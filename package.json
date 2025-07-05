@@ -56,7 +56,8 @@
     "csv-writer": "^1.6.0",
     "mathjs": "^12.4.0",
     "simple-statistics": "^7.8.3",
-    "node-schedule": "^2.1.1"
+    "node-schedule": "^2.1.1",
+    "sqlite": "^4.3.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.5",
