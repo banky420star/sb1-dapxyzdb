@@ -612,3 +612,9 @@
 {"hostname":"cursor","level":"info","message":"Trading started Trading started","pid":4462,"timestamp":"2025-07-06T06:29:22.342Z"}
 {"hostname":"cursor","level":"info","message":"Fetching latest market data Fetching latest market data","pid":4462,"timestamp":"2025-07-06T06:30:00.893Z"}
 {"hostname":"cursor","level":"info","message":"Latest data fetch completed Latest data fetch completed","pid":4462,"timestamp":"2025-07-06T06:30:00.897Z"}
+{"hostname":"cursor","level":"info","message":"🤖 AlgoTrader ML Training System 🤖 AlgoTrader ML Training System","pid":8566,"timestamp":"2025-07-06T06:31:23.968Z"}
+{"hostname":"cursor","level":"info","message":"===================================== =====================================","pid":8566,"timestamp":"2025-07-06T06:31:23.971Z"}
+{"hostname":"cursor","level":"info","message":"🤖 AlgoTrader ML Training System 🤖 AlgoTrader ML Training System","pid":8663,"timestamp":"2025-07-06T06:32:28.888Z"}
+{"hostname":"cursor","level":"info","message":"===================================== =====================================","pid":8663,"timestamp":"2025-07-06T06:32:28.891Z"}
+{"hostname":"cursor","level":"info","message":"Fetching latest market data Fetching latest market data","pid":4462,"timestamp":"2025-07-06T06:35:00.288Z"}
+{"hostname":"cursor","level":"info","message":"Latest data fetch completed Latest data fetch completed","pid":4462,"timestamp":"2025-07-06T06:35:00.292Z"}
