@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # AI Trading Backend
+  # AI Trading Backend - Optimized for 2 vCPU / 4GB RAM
   trading-backend:
     build: .
     container_name: ai-trading-backend
@@ -13,8 +13,8 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=8000
-      - TRADING_MODE=live
-      - ENABLE_LIVE_TRADING=true
+      - TRADING_MODE=paper  # Start in paper mode for safety
+      - ENABLE_LIVE_TRADING=false
       - MT5_INTEGRATION=true
       - ZMQ_COMMAND_PORT=5555
       - ZMQ_DATA_PORT=5556
@@ -33,6 +33,14 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
 
   # Frontend Dashboard
   trading-frontend:
@@ -44,12 +52,20 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - VITE_API_URL=http://localhost:8000
-      - VITE_WS_URL=ws://localhost:8000
+      - VITE_API_URL=http://45.76.136.30:8000
+      - VITE_WS_URL=ws://45.76.136.30:8000
     depends_on:
       - trading-backend
     networks:
       - trading-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
 
   # Redis for caching and sessions
   redis:
@@ -62,7 +78,15 @@ services:
       - redis-data:/data
     networks:
       - trading-network
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
 
   # Monitoring with Prometheus
   prometheus:
@@ -81,6 +105,15 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=7d'  # Keep data for 7 days only
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
 
   # Grafana for dashboards
   grafana:
@@ -91,6 +124,7 @@ services:
       - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana:/etc/grafana/provisioning
@@ -98,6 +132,14 @@ services:
       - trading-network
     depends_on:
       - prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
   # Nginx reverse proxy
   nginx:
@@ -115,6 +157,14 @@ services:
     depends_on:
       - trading-backend
       - trading-frontend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
 
 volumes:
   redis-data:
