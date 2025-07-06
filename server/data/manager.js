@@ -1,8 +1,9 @@
-THIS SHOULD BE A LINTER ERRORimport { EventEmitter } from 'events'
+import { EventEmitter } from 'events'
 import ccxt from 'ccxt'
 import { Logger } from '../utils/logger.js'
 import { DatabaseManager } from '../database/manager.js'
-import { TechnicalIndicators } from 'technicalindicators'
+import pkg from 'technicalindicators'
+const { TechnicalIndicators } = pkg
 
 export class DataManager extends EventEmitter {
   constructor() {
