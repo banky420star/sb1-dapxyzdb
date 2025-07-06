@@ -549,3 +549,21 @@
 {"hostname":"cursor","level":"info","message":"🔧 Setting up environment... 🔧 Setting up environment...","pid":5625,"timestamp":"2025-07-06T05:48:23.353Z"}
 {"hostname":"cursor","level":"info","message":"✅ Environment setup complete! ✅ Environment setup complete!","pid":5625,"timestamp":"2025-07-06T05:48:23.354Z"}
 {"hostname":"cursor","level":"info","message":"➡️  Next step: npm run train api-test ➡️  Next step: npm run train api-test","pid":5625,"timestamp":"2025-07-06T05:48:23.354Z"}
+{"hostname":"cursor","level":"info","message":"🤖 AlgoTrader ML Training System 🤖 AlgoTrader ML Training System","pid":5878,"timestamp":"2025-07-06T05:57:10.343Z"}
+{"hostname":"cursor","level":"info","message":"===================================== =====================================","pid":5878,"timestamp":"2025-07-06T05:57:10.346Z"}
+{"hostname":"cursor","level":"info","message":"🔧 Setting up environment... 🔧 Setting up environment...","pid":5878,"timestamp":"2025-07-06T05:57:10.346Z"}
+{"hostname":"cursor","level":"info","message":"✅ Environment setup complete! ✅ Environment setup complete!","pid":5878,"timestamp":"2025-07-06T05:57:10.347Z"}
+{"hostname":"cursor","level":"info","message":"➡️  Next step: npm run train api-test ➡️  Next step: npm run train api-test","pid":5878,"timestamp":"2025-07-06T05:57:10.347Z"}
+{"hostname":"cursor","level":"info","message":"🤖 AlgoTrader ML Training System 🤖 AlgoTrader ML Training System","pid":5918,"timestamp":"2025-07-06T05:57:18.428Z"}
+{"hostname":"cursor","level":"info","message":"Initializing Real Data Fetcher Initializing Real Data Fetcher","pid":5918,"timestamp":"2025-07-06T05:57:18.433Z"}
+{"hostname":"cursor","level":"info","message":"===================================== =====================================","pid":5918,"timestamp":"2025-07-06T05:57:18.431Z"}
+{"hostname":"cursor","level":"info","message":"🔌 Testing API connections... 🔌 Testing API connections...","pid":5918,"timestamp":"2025-07-06T05:57:18.431Z"}
+{"error":{"message":"Invalid response format","name":"Error"},"hostname":"cursor","level":"error","message":"Alpha Vantage API error for EURUSD: Alpha Vantage API error for EURUSD:","pid":5918,"stack":"Error: Invalid response format\n    at RealDataFetcher.fetchFromAlphaVantage (file:///workspace/server/data/realDataFetcher.js:155:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async RealDataFetcher.testConnections (file:///workspace/server/data/realDataFetcher.js:71:26)\n    at async RealDataFetcher.initialize (file:///workspace/server/data/realDataFetcher.js:52:7)\n    at async testAPIs (file:///workspace/server/ml/train.js:121:5)\n    at async main (file:///workspace/server/ml/train.js:36:7)","timestamp":"2025-07-06T05:57:18.600Z"}
+{"hostname":"cursor","level":"info","message":"📊 API Status: 📊 API Status:","pid":5918,"timestamp":"2025-07-06T05:57:18.602Z"}
+{"alphaVantage":"Error: Invalid response format","hostname":"cursor","level":"info","message":"API Connection Test Results: API Connection Test Results:","pid":5918,"timestamp":"2025-07-06T05:57:18.601Z"}
+{"hostname":"cursor","level":"info","message":"Real Data Fetcher initialized successfully Real Data Fetcher initialized successfully","pid":5918,"timestamp":"2025-07-06T05:57:18.601Z"}
+{"hostname":"cursor","level":"info","message":"   alphaVantage: ✅ Configured (Rate limit: 5/min)    alphaVantage: ✅ Configured (Rate limit: 5/min)","pid":5918,"timestamp":"2025-07-06T05:57:18.602Z"}
+{"hostname":"cursor","level":"info","message":"   iexCloud: ✅ Configured (Rate limit: 100/min)    iexCloud: ✅ Configured (Rate limit: 100/min)","pid":5918,"timestamp":"2025-07-06T05:57:18.602Z"}
+{"hostname":"cursor","level":"info","message":"   polygon: ❌ Not configured (Rate limit: 10/min)    polygon: ❌ Not configured (Rate limit: 10/min)","pid":5918,"timestamp":"2025-07-06T05:57:18.603Z"}
+{"hostname":"cursor","level":"info","message":"✅ At least one API is configured - ready for data collection! ✅ At least one API is configured - ready for data collection!","pid":5918,"timestamp":"2025-07-06T05:57:18.603Z"}
+{"hostname":"cursor","level":"info","message":"➡️  Next step: npm run train collect ➡️  Next step: npm run train collect","pid":5918,"timestamp":"2025-07-06T05:57:18.603Z"}
