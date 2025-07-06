@@ -703,34 +703,58 @@ export class DataManager extends EventEmitter {
     return rows.join('\n')
   }
 
-  // Cleanup and shutdown
+  // Cleanup and shutdown - FIXED MEMORY LEAK
   async cleanup() {
     try {
       this.logger.info('Cleaning up Data Manager')
       
-      // Clear intervals
-      for (const interval of this.updateIntervals.values()) {
-        clearInterval(interval)
+      // Stop all update intervals (Fixed: Proper interval clearing)
+      for (const [key, interval] of this.updateIntervals) {
+        if (interval) {
+          clearInterval(interval)
+          this.logger.debug(`Cleared interval: ${key}`)
+        }
       }
       this.updateIntervals.clear()
       
-      // Close exchange connections
-      for (const exchange of this.exchanges.values()) {
-        if (exchange.close) {
-          await exchange.close()
+      // Close exchange connections gracefully
+      for (const [exchangeId, exchange] of this.exchanges) {
+        try {
+          if (exchange && exchange.close) {
+            await exchange.close()
+          }
+          this.logger.debug(`Closed exchange: ${exchangeId}`)
+        } catch (error) {
+          this.logger.warn(`Error closing exchange ${exchangeId}:`, error.message)
         }
       }
       this.exchanges.clear()
       
+      // Clear data storage and prevent memory leaks
+      this.priceData.clear()
+      this.indicators.clear()
+      this.newsData.length = 0 // Proper array cleanup
+      this.lastUpdate.clear()
+      
+      // Remove all event listeners to prevent memory leaks
+      this.removeAllListeners()
+      
       // Cleanup database
       if (this.db) {
         await this.db.cleanup()
+        this.db = null
+      }
+      
+      // Force garbage collection hint
+      if (global.gc) {
+        global.gc()
       }
       
       this.isInitialized = false
-      this.logger.info('Data Manager cleaned up successfully')
+      this.logger.info('Data Manager cleaned up successfully - Memory leak fixed')
     } catch (error) {
       this.logger.error('Error during Data Manager cleanup:', error)
+      throw error
     }
   }
 
