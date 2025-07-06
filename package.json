@@ -16,7 +16,8 @@
     "train": "node server/ml/train.js",
     "backtest": "node server/trading/backtest.js",
     "data:fetch": "node server/data/fetcher.js",
-    "models:validate": "node server/ml/validator.js"
+    "models:validate": "node server/ml/validator.js",
+    "setup:mt5": "node start_mt5_trading.js"
   },
   "dependencies": {
     "axios": "^1.7.7",

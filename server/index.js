@@ -7,6 +7,7 @@ import compression from 'compression'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
 import cron from 'node-cron'
+import zmq from 'zeromq'
 import { TradingEngine } from './trading/engine.js'
 import { DataManager } from './data/manager.js'
 import { ModelManager } from './ml/manager.js'
@@ -285,6 +286,65 @@ app.post('/api/command', async (req, res) => {
 
 const PORT = process.env.PORT || 8000
 
+// Initialize MT5 ZeroMQ connection if enabled
+async function initializeMT5Integration() {
+  if (process.env.MT5_INTEGRATION === 'true') {
+    try {
+      logger.info('Initializing MT5 ZeroMQ integration...')
+      
+      // Set up ZeroMQ sockets for MT5 communication
+      const commandSocket = zmq.socket('req')
+      const dataSocket = zmq.socket('sub')
+      
+      // Connect to MT5 bridge
+      commandSocket.connect(`tcp://localhost:${process.env.ZMQ_COMMAND_PORT}`)
+      dataSocket.connect(`tcp://localhost:${process.env.ZMQ_DATA_PORT}`)
+      dataSocket.subscribe('') // Subscribe to all messages
+      
+      // Test connection
+      commandSocket.send(JSON.stringify({ action: 'ping' }))
+      
+      const testResponse = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('MT5 connection test timeout'))
+        }, 5000)
+        
+        commandSocket.on('message', (msg) => {
+          clearTimeout(timeout)
+          resolve(JSON.parse(msg.toString()))
+        })
+      })
+      
+      if (testResponse.pong) {
+        logger.info('✅ MT5 connection established successfully')
+        
+        // Listen for market data
+        dataSocket.on('message', (msg) => {
+          try {
+            const data = JSON.parse(msg.toString())
+            if (data.type === 'tick') {
+              // Forward tick data to trading engine
+              tradingEngine.handleMT5Tick(data)
+            }
+          } catch (error) {
+            logger.error('Error parsing MT5 data:', error)
+          }
+        })
+        
+        // Store sockets for trading engine
+        tradingEngine.setMT5Sockets(commandSocket, dataSocket)
+        
+      } else {
+        logger.warn('⚠️  MT5 connection test failed')
+      }
+      
+    } catch (error) {
+      logger.error('❌ MT5 integration failed:', error)
+      logger.info('💡 Make sure MT5 is running with ZmqDealerEA')
+    }
+  }
+}
+
 server.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`)
   
@@ -292,10 +352,29 @@ server.listen(PORT, () => {
   Promise.all([
     dataManager.initialize(),
     modelManager.initialize(),
-    tradingEngine.initialize()
+    tradingEngine.initialize(),
+    initializeMT5Integration()
   ]).then(() => {
     logger.info('System initialized successfully')
+    
+    // Send startup notification
+    io.emit('alert', {
+      id: Date.now().toString(),
+      type: 'success',
+      message: 'Autonomous Trading System online and ready',
+      timestamp: new Date().toISOString(),
+      read: false
+    })
   }).catch(error => {
     logger.error('System initialization failed:', error)
+    
+    // Send error notification
+    io.emit('alert', {
+      id: Date.now().toString(),
+      type: 'error',
+      message: `System initialization failed: ${error.message}`,
+      timestamp: new Date().toISOString(),
+      read: false
+    })
   })
 })
