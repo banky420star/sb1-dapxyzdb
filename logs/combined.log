@@ -580,3 +580,35 @@
 {"hostname":"cursor","level":"info","message":"   polygon: ❌ Not configured (Rate limit: 10/min)    polygon: ❌ Not configured (Rate limit: 10/min)","pid":6003,"timestamp":"2025-07-06T06:01:37.951Z"}
 {"hostname":"cursor","level":"info","message":"✅ At least one API is configured - ready for data collection! ✅ At least one API is configured - ready for data collection!","pid":6003,"timestamp":"2025-07-06T06:01:37.951Z"}
 {"hostname":"cursor","level":"info","message":"➡️  Next step: npm run train collect ➡️  Next step: npm run train collect","pid":6003,"timestamp":"2025-07-06T06:01:37.951Z"}
+{"hostname":"cursor","level":"info","message":"Fetching market data Fetching market data","pid":4462,"timestamp":"2025-07-06T06:24:39.752Z"}
+{"hostname":"cursor","level":"info","message":"Fetching latest market data Fetching latest market data","pid":4462,"timestamp":"2025-07-06T06:24:39.752Z"}
+{"hostname":"cursor","level":"info","message":"Latest data fetch completed Latest data fetch completed","pid":4462,"timestamp":"2025-07-06T06:24:39.757Z"}
+{"0":"U","1":"a","10":"v","11":"h","12":"v","13":"9","14":"b","15":"N","16":"A","17":"A","18":"A","19":"B","2":"-","3":"-","4":"P","5":"L","6":"y","7":"E","8":"j","9":"6","hostname":"cursor","level":"info","message":"Client connected: Client connected:","pid":4462,"timestamp":"2025-07-06T06:24:59.493Z"}
+{"0":"f","1":"e","2":"t","3":"c","4":"h","5":" ","6":"d","7":"a","8":"t","9":"a","hostname":"cursor","level":"info","message":"Executing command: Executing command:","pid":4462,"timestamp":"2025-07-06T06:24:59.503Z"}
+{"hostname":"cursor","level":"info","message":"Fetching latest market data Fetching latest market data","pid":4462,"timestamp":"2025-07-06T06:24:59.503Z"}
+{"hostname":"cursor","level":"info","message":"Fetching market data Fetching market data","pid":4462,"timestamp":"2025-07-06T06:24:59.503Z"}
+{"hostname":"cursor","level":"info","message":"Latest data fetch completed Latest data fetch completed","pid":4462,"timestamp":"2025-07-06T06:24:59.507Z"}
+{"0":"U","1":"a","10":"v","11":"h","12":"v","13":"9","14":"b","15":"N","16":"A","17":"A","18":"A","19":"B","2":"-","3":"-","4":"P","5":"L","6":"y","7":"E","8":"j","9":"6","hostname":"cursor","level":"info","message":"Client disconnected: Client disconnected:","pid":4462,"timestamp":"2025-07-06T06:25:09.482Z"}
+{"hostname":"cursor","level":"info","message":"Fetching market data Fetching market data","pid":4462,"timestamp":"2025-07-06T06:25:39.751Z"}
+{"hostname":"cursor","level":"info","message":"Fetching latest market data Fetching latest market data","pid":4462,"timestamp":"2025-07-06T06:25:39.751Z"}
+{"hostname":"cursor","level":"info","message":"Latest data fetch completed Latest data fetch completed","pid":4462,"timestamp":"2025-07-06T06:25:39.755Z"}
+{"0":"V","1":"H","10":"v","11":"Z","12":"F","13":"Z","14":"c","15":"w","16":"A","17":"A","18":"A","19":"D","2":"G","3":"i","4":"L","5":"G","6":"B","7":"e","8":"B","9":"S","hostname":"cursor","level":"info","message":"Client connected: Client connected:","pid":4462,"timestamp":"2025-07-06T06:25:39.771Z"}
+{"0":"V","1":"H","10":"v","11":"Z","12":"F","13":"Z","14":"c","15":"w","16":"A","17":"A","18":"A","19":"D","2":"G","3":"i","4":"L","5":"G","6":"B","7":"e","8":"B","9":"S","hostname":"cursor","level":"info","message":"Client disconnected: Client disconnected:","pid":4462,"timestamp":"2025-07-06T06:25:39.777Z"}
+{"hostname":"cursor","level":"info","message":"Fetching market data Fetching market data","pid":4462,"timestamp":"2025-07-06T06:27:01.248Z"}
+{"hostname":"cursor","level":"info","message":"Fetching latest market data Fetching latest market data","pid":4462,"timestamp":"2025-07-06T06:27:01.248Z"}
+{"hostname":"cursor","level":"info","message":"Latest data fetch completed Latest data fetch completed","pid":4462,"timestamp":"2025-07-06T06:27:01.252Z"}
+{"0":"j","1":"r","10":"Q","11":"P","12":"e","13":"I","14":"1","15":"9","16":"A","17":"A","18":"A","19":"F","2":"X","3":"n","4":"b","5":"u","6":"1","7":"K","8":"5","9":"8","hostname":"cursor","level":"info","message":"Client connected: Client connected:","pid":4462,"timestamp":"2025-07-06T06:27:01.268Z"}
+{"0":"j","1":"r","10":"Q","11":"P","12":"e","13":"I","14":"1","15":"9","16":"A","17":"A","18":"A","19":"F","2":"X","3":"n","4":"b","5":"u","6":"1","7":"K","8":"5","9":"8","hostname":"cursor","level":"info","message":"Client disconnected: Client disconnected:","pid":4462,"timestamp":"2025-07-06T06:27:01.274Z"}
+{"hostname":"cursor","level":"info","message":"Fetching market data Fetching market data","pid":4462,"timestamp":"2025-07-06T06:27:55.092Z"}
+{"hostname":"cursor","level":"info","message":"Fetching latest market data Fetching latest market data","pid":4462,"timestamp":"2025-07-06T06:27:55.092Z"}
+{"hostname":"cursor","level":"info","message":"Latest data fetch completed Latest data fetch completed","pid":4462,"timestamp":"2025-07-06T06:27:55.096Z"}
+{"0":"n","1":"8","10":"9","11":"a","12":"N","13":"S","14":"A","15":"T","16":"A","17":"A","18":"A","19":"H","2":"9","3":"a","4":"L","5":"z","6":"y","7":"a","8":"E","9":"G","hostname":"cursor","level":"info","message":"Client connected: Client connected:","pid":4462,"timestamp":"2025-07-06T06:27:55.111Z"}
+{"0":"f","1":"e","2":"t","3":"c","4":"h","5":" ","6":"d","7":"a","8":"t","9":"a","hostname":"cursor","level":"info","message":"Executing command: Executing command:","pid":4462,"timestamp":"2025-07-06T06:27:55.118Z"}
+{"hostname":"cursor","level":"info","message":"Fetching latest market data Fetching latest market data","pid":4462,"timestamp":"2025-07-06T06:27:55.118Z"}
+{"hostname":"cursor","level":"info","message":"Fetching market data Fetching market data","pid":4462,"timestamp":"2025-07-06T06:27:55.118Z"}
+{"hostname":"cursor","level":"info","message":"Latest data fetch completed Latest data fetch completed","pid":4462,"timestamp":"2025-07-06T06:27:55.122Z"}
+{"0":"n","1":"8","10":"9","11":"a","12":"N","13":"S","14":"A","15":"T","16":"A","17":"A","18":"A","19":"H","2":"9","3":"a","4":"L","5":"z","6":"y","7":"a","8":"E","9":"G","hostname":"cursor","level":"info","message":"Client disconnected: Client disconnected:","pid":4462,"timestamp":"2025-07-06T06:27:57.119Z"}
+{"hostname":"cursor","level":"info","message":"Trading Engine started Trading Engine started","pid":4462,"timestamp":"2025-07-06T06:29:22.342Z"}
+{"hostname":"cursor","level":"info","message":"Trading started Trading started","pid":4462,"timestamp":"2025-07-06T06:29:22.342Z"}
+{"hostname":"cursor","level":"info","message":"Fetching latest market data Fetching latest market data","pid":4462,"timestamp":"2025-07-06T06:30:00.893Z"}
+{"hostname":"cursor","level":"info","message":"Latest data fetch completed Latest data fetch completed","pid":4462,"timestamp":"2025-07-06T06:30:00.897Z"}
