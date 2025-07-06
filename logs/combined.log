@@ -542,3 +542,10 @@
 {"hostname":"cursor","level":"info","message":"Starting training for ddqn model Starting training for ddqn model","pid":4462,"timestamp":"2025-07-06T05:38:52.944Z"}
 {"hostname":"cursor","level":"info","message":"Prepared 0 training samples Prepared 0 training samples","pid":4462,"timestamp":"2025-07-06T05:38:52.947Z"}
 {"error":{"message":"Insufficient training data","name":"Error"},"hostname":"cursor","level":"error","message":"Error training ddqn model: Error training ddqn model:","pid":4462,"stack":"Error: Insufficient training data\n    at ModelManager.trainModel (file:///workspace/server/ml/manager.js:213:15)\n    at async Timeout._onTimeout (file:///workspace/server/ml/manager.js:176:9)","timestamp":"2025-07-06T05:38:52.947Z"}
+{"hostname":"cursor","level":"info","message":"🤖 AlgoTrader ML Training System 🤖 AlgoTrader ML Training System","pid":5588,"timestamp":"2025-07-06T05:48:16.653Z"}
+{"hostname":"cursor","level":"info","message":"===================================== =====================================","pid":5588,"timestamp":"2025-07-06T05:48:16.656Z"}
+{"hostname":"cursor","level":"info","message":"🤖 AlgoTrader ML Training System 🤖 AlgoTrader ML Training System","pid":5625,"timestamp":"2025-07-06T05:48:23.350Z"}
+{"hostname":"cursor","level":"info","message":"===================================== =====================================","pid":5625,"timestamp":"2025-07-06T05:48:23.353Z"}
+{"hostname":"cursor","level":"info","message":"🔧 Setting up environment... 🔧 Setting up environment...","pid":5625,"timestamp":"2025-07-06T05:48:23.353Z"}
+{"hostname":"cursor","level":"info","message":"✅ Environment setup complete! ✅ Environment setup complete!","pid":5625,"timestamp":"2025-07-06T05:48:23.354Z"}
+{"hostname":"cursor","level":"info","message":"➡️  Next step: npm run train api-test ➡️  Next step: npm run train api-test","pid":5625,"timestamp":"2025-07-06T05:48:23.354Z"}
