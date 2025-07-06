@@ -20,8 +20,26 @@ const app = express()
 const server = createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' ? false : ['http://localhost:3000'],
-    methods: ['GET', 'POST']
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., mobile apps, desktop apps)
+      if (!origin) return callback(null, true)
+      
+      // Define allowed origins based on environment
+      const allowedOrigins = process.env.NODE_ENV === 'production' 
+        ? (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)
+        : ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000']
+      
+      // Check if origin is allowed
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true)
+      }
+      
+      // Log suspicious requests
+      console.warn(`Blocked CORS request from origin: ${origin}`)
+      return callback(new Error('Not allowed by CORS'))
+    },
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 })
 

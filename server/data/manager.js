@@ -272,9 +272,11 @@ export class DataManager extends EventEmitter {
     }
     
     // Start OHLCV updates for longer timeframes
-    setInterval(async () => {
+    const ohlcvInterval = setInterval(async () => {
       await this.updateOHLCVData()
     }, 60 * 1000) // Every minute
+    
+    this.updateIntervals.set('ohlcv_update', ohlcvInterval)
   }
 
   async updateRealTimePrice(symbol) {
@@ -387,9 +389,11 @@ export class DataManager extends EventEmitter {
     this.logger.info('Starting indicator calculations')
     
     // Calculate indicators every 30 seconds
-    setInterval(() => {
+    const indicatorInterval = setInterval(() => {
       this.calculateAllIndicators()
     }, 30 * 1000)
+    
+    this.updateIntervals.set('indicator_calc', indicatorInterval)
     
     // Initial calculation
     this.calculateAllIndicators()
