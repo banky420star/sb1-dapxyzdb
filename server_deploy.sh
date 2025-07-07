@@ -1,20 +1,5 @@
 #!/bin/bash
 
-echo "🚀 AI TRADING SYSTEM - DIRECT DEPLOYMENT"
-echo "========================================"
-echo ""
-echo "🌍 Deploying to: 45.76.136.30 (London)"
-echo "💻 Specs: 2 CPU / 4GB RAM"
-echo "🔑 API Key: 1RK56LEJ7T4E4IA8"
-echo ""
-
-# Create deployment commands
-echo "📋 Creating deployment package..."
-
-# Create the server deployment script
-cat > server_deploy.sh << 'DEPLOY_SCRIPT'
-#!/bin/bash
-
 echo "🏗️ Setting up AI Trading System on server..."
 cd /root && mkdir -p ai-trading-system && cd ai-trading-system
 
@@ -248,22 +233,3 @@ echo "📊 Dashboard: http://45.76.136.30:3000"
 echo "�� API Health: http://45.76.136.30:8000/api/health"
 echo "🔌 MT5 Ports: 5555 (Command), 5556 (Data)"
 echo "🚀 Ready to trade! 💰"
-DEPLOY_SCRIPT
-
-echo ""
-echo "🎯 DEPLOYMENT SCRIPT READY!"
-echo "=========================="
-echo ""
-echo "🔐 Now connecting to your server and deploying..."
-echo "Server: 45.76.136.30"
-echo "User: root"
-echo "Password: G-b9ni}9r5TXPRy{"
-echo ""
-
-# Show the deployment commands to run
-echo "📋 Copy these commands to deploy:"
-echo ""
-echo "ssh root@45.76.136.30"
-echo "# Then paste this:"
-echo ""
-cat server_deploy.sh
