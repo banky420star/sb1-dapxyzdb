@@ -14,7 +14,7 @@ VULTR_API_KEY="${VULTR_API_KEY:-7CEVCTGACCAF6M3VXHBS7MNEKKHBYW5RGVBA}"
 SERVER_LABEL="ai-trading-system"
 REGION="ewr"  # New Jersey (closest to financial markets)
 PLAN="vc2-1c-1gb"  # 1 vCPU, 1GB RAM ($5/month)
-OS_ID="387"  # Ubuntu 20.04
+OS_ID="1743"  # Ubuntu 22.04 LTS x64
 SSH_KEY_NAME="mac@Macs-Air-2.home"
 
 # Your SSH public key
@@ -82,9 +82,9 @@ SCRIPT_ID=$(vultr_api -X POST "https://api.vultr.com/v2/startup-scripts" \
 
 # Create the server
 echo "🖥️  Creating Vultr server..."
-echo "   Region: $REGION"
+echo "   Region: $REGION (New Jersey)"
 echo "   Plan: $PLAN (1 vCPU, 1GB RAM, $5/month)"
-echo "   OS: Ubuntu 20.04"
+echo "   OS: Ubuntu 22.04 LTS"
 
 SERVER_RESPONSE=$(vultr_api -X POST "https://api.vultr.com/v2/instances" \
     -d "{
