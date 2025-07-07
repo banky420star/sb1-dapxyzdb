@@ -1,0 +1,58 @@
+{
+  "timestamp": "2025-07-06T19:27:08.331Z",
+  "tests": [
+    {
+      "name": "Memory Leak Fix",
+      "passed": true,
+      "duration": 202.24526100000003,
+      "memoryUsed": 3.3318939208984375,
+      "details": "Fixed interval cleanup and proper memory management"
+    },
+    {
+      "name": "Data Pipeline Performance",
+      "passed": true,
+      "duration": 14.120012000000003,
+      "throughput": 708214.6955682472,
+      "details": "Processed 10000 data points"
+    },
+    {
+      "name": "Circuit Breaker Pattern",
+      "passed": true,
+      "duration": 0.17484999999999218,
+      "successCount": 4,
+      "failureCount": 1,
+      "details": "Circuit breaker successfully handled failures"
+    },
+    {
+      "name": "Cache Performance",
+      "passed": false,
+      "duration": 0.5623539999999991,
+      "hitRate": 0,
+      "details": "Cache hit rate: 0.0%"
+    },
+    {
+      "name": "Connection Pooling",
+      "passed": true,
+      "duration": 0.20729299999999284,
+      "stats": {
+        "total": 3,
+        "available": 2,
+        "acquired": 3,
+        "released": 2
+      },
+      "details": "Connection pool managed resources efficiently"
+    },
+    {
+      "name": "Batch Processing",
+      "passed": true,
+      "duration": 100.49067099999999,
+      "stats": {
+        "queueSize": 0,
+        "processedCount": 23
+      },
+      "details": "Batch processor handled all items correctly"
+    }
+  ],
+  "performance": {},
+  "improvements": []
+}
