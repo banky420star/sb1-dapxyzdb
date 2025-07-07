@@ -3,7 +3,7 @@ services:
     name: ai-trading-system
     env: node
     buildCommand: npm install && npm run build
-    startCommand: node start-production.js
+    startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
