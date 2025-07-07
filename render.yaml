@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: ai-trading-system
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: node start-production.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
