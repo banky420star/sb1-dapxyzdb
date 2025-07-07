@@ -43,12 +43,12 @@ export class TradingEngine extends EventEmitter {
       marginLevel: 0
     }
     
-    // Configuration (matches MT5 bridge ports)
+    // Configuration
     this.config = {
       zmq: {
-        commandPort: 5555,    // MT5 REP socket (receives commands)
-        dataPort: 5556,       // MT5 PUB socket (sends data)
-        tradePort: 5555,      // Same as command port for this bridge
+        commandPort: 5555,
+        dataPort: 5556,
+        tradePort: 5557,
         host: 'localhost',
         timeout: 5000
       },
@@ -224,58 +224,6 @@ export class TradingEngine extends EventEmitter {
       this.metrics.recordNewsEvent(data)
     } catch (error) {
       this.logger.error('Error handling news update:', error)
-    }
-  }
-
-  // Set MT5 ZeroMQ sockets from server
-  setMT5Sockets(commandSocket, dataSocket) {
-    this.zmqSockets = {
-      command: commandSocket,
-      data: dataSocket,
-      trade: commandSocket // Use same socket for commands and trades
-    }
-    this.logger.info('MT5 ZeroMQ sockets configured')
-  }
-
-  // Handle MT5 tick data
-  handleMT5Tick(tickData) {
-    try {
-      // Update price data
-      const priceData = {
-        symbol: tickData.sym,
-        bid: tickData.bid,
-        ask: tickData.ask,
-        close: (tickData.bid + tickData.ask) / 2,
-        spread: tickData.ask - tickData.bid,
-        timestamp: new Date(tickData.ts * 1000)
-      }
-      
-      // Update data manager
-      this.dataManager.emit('price_update', priceData)
-      
-      // Update position P&L
-      this.updatePositionPnL(priceData)
-      
-      // Check for trading signals on this new tick
-      if (this.isRunning && !this.emergencyStop) {
-        this.checkTradingSignals(tickData.sym)
-      }
-      
-      // Update metrics
-      this.metrics.recordPriceUpdate(priceData)
-      
-      // Emit to connected clients
-      if (this.io) {
-        this.io.emit('tick_update', {
-          symbol: tickData.sym,
-          bid: tickData.bid,
-          ask: tickData.ask,
-          timestamp: new Date(tickData.ts * 1000)
-        })
-      }
-      
-    } catch (error) {
-      this.logger.error('Error handling MT5 tick:', error)
     }
   }
 
@@ -505,41 +453,30 @@ export class TradingEngine extends EventEmitter {
 
   async sendOrderToMT5(order) {
     try {
-      // Format for MT5 ZeroMQ bridge
       const mt5Order = {
-        action: 'order',
-        side: order.side,           // 'buy' or 'sell'
-        vol: order.size,            // volume in lots
+        action: 'TRADE',
         symbol: order.symbol,
-        magic: 123456,              // matches MT5 EA magic number
+        cmd: order.side === 'buy' ? 0 : 1, // 0 = buy, 1 = sell
+        volume: order.size,
+        price: order.price,
+        slippage: this.config.trading.slippage,
+        magic: 12345,
         comment: `AlgoTrader_${order.id}`
       }
       
       const startTime = Date.now()
+      await this.zmqSockets.trade.send(JSON.stringify(mt5Order))
       
-      // Send as JSON string to MT5 REP socket
-      const requestData = JSON.stringify(mt5Order)
-      await this.zmqSockets.command.send(requestData)
-      
-      // Wait for response from MT5
-      const responseBuffer = await this.zmqSockets.command.receive()
-      const response = JSON.parse(responseBuffer.toString())
-      
+      // Wait for response (implement timeout)
+      const response = await this.waitForMT5Response(order.id, 5000)
       const latency = Date.now() - startTime
-      this.metrics.recordZMQMessage('sent', 'ORDER', latency)
       
-      if (response.ticket) {
-        // Success - got ticket number
-        await this.handleOrderFilled(order, { 
-          ticket: response.ticket,
-          success: true 
-        })
-      } else if (response.err) {
-        // Error from MT5
-        await this.handleOrderRejected(order, { 
-          error: `MT5 Error: ${response.err}`,
-          code: response.err
-        })
+      this.metrics.recordZMQMessage('sent', 'TRADE', latency)
+      
+      if (response && response.success) {
+        await this.handleOrderFilled(order, response)
+      } else {
+        await this.handleOrderRejected(order, response)
       }
     } catch (error) {
       this.logger.error('Error sending order to MT5:', error)

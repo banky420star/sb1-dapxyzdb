@@ -2,8 +2,7 @@ import { EventEmitter } from 'events'
 import ccxt from 'ccxt'
 import { Logger } from '../utils/logger.js'
 import { DatabaseManager } from '../database/manager.js'
-import pkg from 'technicalindicators'
-const { TechnicalIndicators } = pkg
+import { TechnicalIndicators } from 'technicalindicators'
 
 export class DataManager extends EventEmitter {
   constructor() {
@@ -273,11 +272,9 @@ export class DataManager extends EventEmitter {
     }
     
     // Start OHLCV updates for longer timeframes
-    const ohlcvInterval = setInterval(async () => {
+    setInterval(async () => {
       await this.updateOHLCVData()
     }, 60 * 1000) // Every minute
-    
-    this.updateIntervals.set('ohlcv_update', ohlcvInterval)
   }
 
   async updateRealTimePrice(symbol) {
@@ -390,11 +387,9 @@ export class DataManager extends EventEmitter {
     this.logger.info('Starting indicator calculations')
     
     // Calculate indicators every 30 seconds
-    const indicatorInterval = setInterval(() => {
+    setInterval(() => {
       this.calculateAllIndicators()
     }, 30 * 1000)
-    
-    this.updateIntervals.set('indicator_calc', indicatorInterval)
     
     // Initial calculation
     this.calculateAllIndicators()
@@ -703,58 +698,34 @@ export class DataManager extends EventEmitter {
     return rows.join('\n')
   }
 
-  // Cleanup and shutdown - FIXED MEMORY LEAK
+  // Cleanup and shutdown
   async cleanup() {
     try {
       this.logger.info('Cleaning up Data Manager')
       
-      // Stop all update intervals (Fixed: Proper interval clearing)
-      for (const [key, interval] of this.updateIntervals) {
-        if (interval) {
-          clearInterval(interval)
-          this.logger.debug(`Cleared interval: ${key}`)
-        }
+      // Clear intervals
+      for (const interval of this.updateIntervals.values()) {
+        clearInterval(interval)
       }
       this.updateIntervals.clear()
       
-      // Close exchange connections gracefully
-      for (const [exchangeId, exchange] of this.exchanges) {
-        try {
-          if (exchange && exchange.close) {
-            await exchange.close()
-          }
-          this.logger.debug(`Closed exchange: ${exchangeId}`)
-        } catch (error) {
-          this.logger.warn(`Error closing exchange ${exchangeId}:`, error.message)
+      // Close exchange connections
+      for (const exchange of this.exchanges.values()) {
+        if (exchange.close) {
+          await exchange.close()
         }
       }
       this.exchanges.clear()
       
-      // Clear data storage and prevent memory leaks
-      this.priceData.clear()
-      this.indicators.clear()
-      this.newsData.length = 0 // Proper array cleanup
-      this.lastUpdate.clear()
-      
-      // Remove all event listeners to prevent memory leaks
-      this.removeAllListeners()
-      
       // Cleanup database
       if (this.db) {
         await this.db.cleanup()
-        this.db = null
-      }
-      
-      // Force garbage collection hint
-      if (global.gc) {
-        global.gc()
       }
       
       this.isInitialized = false
-      this.logger.info('Data Manager cleaned up successfully - Memory leak fixed')
+      this.logger.info('Data Manager cleaned up successfully')
     } catch (error) {
       this.logger.error('Error during Data Manager cleanup:', error)
-      throw error
     }
   }
 

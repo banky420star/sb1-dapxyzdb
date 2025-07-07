@@ -1,7 +1,6 @@
 import winston from 'winston'
 import path from 'path'
 import fs from 'fs'
-import os from 'os'
 
 export class Logger {
   constructor(options = {}) {
@@ -153,7 +152,7 @@ export class Logger {
       message,
       timestamp: new Date().toISOString(),
       pid: process.pid,
-      hostname: os.hostname(),
+      hostname: require('os').hostname(),
       ...meta
     }
     
