@@ -18,3 +18,8 @@
    Status: locked (waiting...)
    Status: locked (waiting...)
    Status: locked (waiting...)
+✅ Server ready! IP: 64.176.199.22
+⏳ Waiting for server setup to complete...
+🚀 Deploying application...
+
+./deploy-to-server.sh: line 3: rsync: command not found

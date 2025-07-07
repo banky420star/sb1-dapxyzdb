@@ -1,5 +1,5 @@
 #!/bin/bash
-SERVER_IP=149.28.230.195
+SERVER_IP=64.176.199.22
 rsync -avz --progress \
     --exclude 'node_modules' \
     --exclude '.git' \
