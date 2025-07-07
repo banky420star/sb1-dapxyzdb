@@ -602,6 +602,42 @@ export class DatabaseManager {
     }
   }
 
+  async getHistoricalTrades(symbol = null, limit = 100) {
+    try {
+      let query = `
+        SELECT * FROM trades
+      `
+      let params = []
+      
+      if (symbol) {
+        query += ` WHERE symbol = ?`
+        params.push(symbol)
+      }
+      
+      query += ` ORDER BY timestamp DESC LIMIT ?`
+      params.push(limit)
+      
+      const rows = await this.db.all(query, params)
+      
+      return rows.map(row => ({
+        id: row.id,
+        positionId: row.position_id,
+        symbol: row.symbol,
+        side: row.side,
+        size: row.size,
+        entryPrice: row.entry_price,
+        closePrice: row.close_price,
+        pnl: row.pnl,
+        duration: row.duration,
+        timestamp: row.timestamp,
+        reason: row.reason
+      }))
+    } catch (error) {
+      this.logger.error('Error getting historical trades:', error)
+      throw error
+    }
+  }
+
   // Account balance methods
   async saveAccountBalance(balance) {
     try {
