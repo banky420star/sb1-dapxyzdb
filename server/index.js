@@ -14,6 +14,8 @@ import { ModelManager } from './ml/manager.js'
 import { RiskManager } from './risk/manager.js'
 import { Logger } from './utils/logger.js'
 import { MetricsCollector } from './monitoring/metrics.js'
+import { AINotificationAgent } from './ai/notification-agent.js'
+import { AutonomousOrchestrator } from './autonomous/orchestrator.js'
 
 dotenv.config()
 
@@ -28,7 +30,7 @@ const io = new Server(server, {
       // Define allowed origins based on environment
       const allowedOrigins = process.env.NODE_ENV === 'production' 
         ? (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)
-        : ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000']
+        : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:5173', 'http://localhost:4173', 'http://localhost:4174', 'http://127.0.0.1:3000']
       
       // Check if origin is allowed
       if (allowedOrigins.includes(origin)) {
@@ -58,6 +60,25 @@ const tradingEngine = new TradingEngine({
   io
 })
 
+// Initialize AI Notification Agent (will be started after DB initialization)
+let notificationAgent = null
+
+// Initialize Autonomous Orchestrator
+const autonomousOrchestrator = new AutonomousOrchestrator()
+
+// Pass system components to orchestrator
+autonomousOrchestrator.setSystemComponents({
+  tradingEngine,
+  dataManager,
+  modelManager,
+  riskManager,
+  database: dataManager.db,
+  logger
+})
+
+// Initialize autonomous mode
+await autonomousOrchestrator.initialize()
+
 // Middleware
 app.use(helmet())
 app.use(compression())
@@ -84,6 +105,7 @@ io.on('connection', (socket) => {
   socket.emit('balance_update', tradingEngine.getBalance())
   socket.emit('models_update', modelManager.getModelStatus())
   socket.emit('metrics_update', metricsCollector.getMetrics())
+  socket.emit('notifications_update', notificationAgent ? notificationAgent.getNotificationHistory() : [])
 
   // Handle commands
   socket.on('execute_command', async (data) => {
@@ -153,6 +175,8 @@ io.on('connection', (socket) => {
     logger.info('Client disconnected:', socket.id)
   })
 })
+
+// AI Notification Agent event handlers will be set up after initialization
 
 // Command execution
 async function executeCommand(command) {
@@ -267,12 +291,76 @@ app.get('/api/status', (req, res) => {
     models: modelManager.getModelStatus(),
     positions: tradingEngine.getPositions().length,
     orders: tradingEngine.getOrders().length,
-    emergencyStop: systemState.emergencyStop
+    emergencyStop: systemState.emergencyStop,
+    autonomous: autonomousOrchestrator.getStatus()
   })
 })
 
 app.get('/api/metrics', (req, res) => {
   res.json(metricsCollector.getMetrics())
+})
+
+// Widget API endpoints
+app.get('/api/widgets', (req, res) => {
+  try {
+    const fs = require('fs')
+    const yaml = require('js-yaml')
+    
+    const configPath = path.join(process.cwd(), 'widgets.yaml')
+    if (fs.existsSync(configPath)) {
+      const config = yaml.load(fs.readFileSync(configPath, 'utf8'))
+      res.json(config)
+    } else {
+      res.json({ widgets: [], settings: {} })
+    }
+  } catch (error) {
+    logger.error('Error loading widget config:', error)
+    res.status(500).json({ error: 'Failed to load widget configuration' })
+  }
+})
+
+app.get('/api/widgets/:id', (req, res) => {
+  try {
+    const fs = require('fs')
+    const yaml = require('js-yaml')
+    
+    const configPath = path.join(process.cwd(), 'widgets.yaml')
+    if (fs.existsSync(configPath)) {
+      const config = yaml.load(fs.readFileSync(configPath, 'utf8'))
+      const widget = config.widgets.find(w => w.id === req.params.id)
+      
+      if (widget) {
+        res.json(widget)
+      } else {
+        res.status(404).json({ error: 'Widget not found' })
+      }
+    } else {
+      res.status(404).json({ error: 'Widget configuration not found' })
+    }
+  } catch (error) {
+    logger.error('Error loading widget:', error)
+    res.status(500).json({ error: 'Failed to load widget' })
+  }
+})
+
+app.get('/api/widgets/:id/data', async (req, res) => {
+  try {
+    const widgetId = req.params.id
+    
+    // Get widget data from database based on type
+    if (widgetId === 'econ_cal') {
+      const events = await dataManager.db.getEconomicEvents(24) // Last 24 hours
+      res.json({ events })
+    } else if (widgetId === 'news_feed') {
+      const news = await dataManager.db.getNewsEvents(24) // Last 24 hours
+      res.json({ news })
+    } else {
+      res.json({ data: [] })
+    }
+  } catch (error) {
+    logger.error('Error fetching widget data:', error)
+    res.status(500).json({ error: 'Failed to fetch widget data' })
+  }
 })
 
 app.post('/api/command', async (req, res) => {
@@ -284,7 +372,34 @@ app.post('/api/command', async (req, res) => {
   }
 })
 
-const PORT = process.env.PORT || 8000
+// Function to find available port
+async function findAvailablePort(startPort = 8000) {
+  const net = await import('net')
+  
+  return new Promise((resolve, reject) => {
+    const server = net.createServer()
+    
+    server.listen(startPort, () => {
+      const { port } = server.address()
+      server.close(() => resolve(port))
+    })
+    
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        // Ensure we don't exceed max port number
+        const nextPort = parseInt(startPort) + 1
+        if (nextPort > 65535) {
+          reject(new Error('No available ports found'))
+        } else {
+          // Use Promise.resolve to handle the recursive call properly
+          findAvailablePort(nextPort).then(resolve).catch(reject)
+        }
+      } else {
+        reject(err)
+      }
+    })
+  })
+}
 
 // Initialize MT5 ZeroMQ connection if enabled
 async function initializeMT5Integration() {
@@ -293,33 +408,33 @@ async function initializeMT5Integration() {
       logger.info('Initializing MT5 ZeroMQ integration...')
       
       // Set up ZeroMQ sockets for MT5 communication
-      const commandSocket = zmq.socket('req')
-      const dataSocket = zmq.socket('sub')
+      const commandSocket = new zmq.Request()
+      const dataSocket = new zmq.Subscriber()
       
       // Connect to MT5 bridge
-      commandSocket.connect(`tcp://localhost:${process.env.ZMQ_COMMAND_PORT}`)
-      dataSocket.connect(`tcp://localhost:${process.env.ZMQ_DATA_PORT}`)
-      dataSocket.subscribe('') // Subscribe to all messages
+      await commandSocket.connect(`tcp://localhost:${process.env.ZMQ_COMMAND_PORT}`)
+      await dataSocket.connect(`tcp://localhost:${process.env.ZMQ_DATA_PORT}`)
+      await dataSocket.subscribe('') // Subscribe to all messages
       
       // Test connection
-      commandSocket.send(JSON.stringify({ action: 'ping' }))
+      await commandSocket.send(JSON.stringify({ action: 'ping' }))
       
       const testResponse = await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('MT5 connection test timeout'))
         }, 5000)
         
-        commandSocket.on('message', (msg) => {
+        commandSocket.receive().then(([msg]) => {
           clearTimeout(timeout)
           resolve(JSON.parse(msg.toString()))
-        })
+        }).catch(reject)
       })
       
       if (testResponse.pong) {
         logger.info('✅ MT5 connection established successfully')
         
         // Listen for market data
-        dataSocket.on('message', (msg) => {
+        dataSocket.receive().then(([msg]) => {
           try {
             const data = JSON.parse(msg.toString())
             if (data.type === 'tick') {
@@ -329,6 +444,8 @@ async function initializeMT5Integration() {
           } catch (error) {
             logger.error('Error parsing MT5 data:', error)
           }
+        }).catch(error => {
+          logger.error('Error receiving MT5 data:', error)
         })
         
         // Store sockets for trading engine
@@ -345,36 +462,67 @@ async function initializeMT5Integration() {
   }
 }
 
-server.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`)
-  
-  // Initialize system
-  Promise.all([
-    dataManager.initialize(),
-    modelManager.initialize(),
-    tradingEngine.initialize(),
-    initializeMT5Integration()
-  ]).then(() => {
-    logger.info('System initialized successfully')
+// Find available port and start server
+async function startServer() {
+  try {
+    const PORT = await findAvailablePort(process.env.PORT || 8000)
     
-    // Send startup notification
-    io.emit('alert', {
-      id: Date.now().toString(),
-      type: 'success',
-      message: 'Autonomous Trading System online and ready',
-      timestamp: new Date().toISOString(),
-      read: false
+    server.listen(PORT, () => {
+      logger.info(`Server running on port ${PORT}`)
+      
+      // Initialize system components in order
+      Promise.all([
+        dataManager.initialize(),
+        modelManager.initialize(),
+        tradingEngine.initialize()
+      ]).then(async () => {
+        logger.info('Core system initialized successfully')
+        
+        // Initialize AI Notification Agent after database is ready (optional)
+        try {
+          if (notificationAgent) {
+            notificationAgent.on('notification', (notification) => {
+              logger.info(`AI Notification: ${notification.message}`)
+            })
+          }
+        } catch (error) {
+          logger.warn('AI Notification Agent not available, continuing without it')
+        }
+        
+        // Initialize MT5 integration (optional)
+        try {
+          await initializeMT5Integration()
+        } catch (error) {
+          logger.warn('MT5 integration not available, continuing without it')
+        }
+        
+        // Initialize Autonomous Orchestrator (optional)
+        try {
+          await autonomousOrchestrator.initialize()
+        } catch (error) {
+          logger.warn('Autonomous Orchestrator not available, continuing without it')
+        }
+        
+        logger.info('System fully initialized successfully')
+      }).catch(error => {
+        logger.error('Failed to initialize core system:', error)
+      })
     })
-  }).catch(error => {
-    logger.error('System initialization failed:', error)
     
-    // Send error notification
-    io.emit('alert', {
-      id: Date.now().toString(),
-      type: 'error',
-      message: `System initialization failed: ${error.message}`,
-      timestamp: new Date().toISOString(),
-      read: false
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        logger.error(`Port ${PORT} is in use, trying next port...`)
+        startServer()
+      } else {
+        logger.error('Server error:', error)
+      }
     })
-  })
-})
+    
+  } catch (error) {
+    logger.error('Failed to start server:', error)
+    process.exit(1)
+  }
+}
+
+// Start the server
+startServer()

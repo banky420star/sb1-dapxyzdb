@@ -53,58 +53,6 @@ export default function TradingViewDashboard() {
     heatmap: false
   })
 
-  // Mock data for demonstration
-  const [positions] = useState<Position[]>([
-    {
-      id: '1',
-      symbol: 'EURUSD',
-      type: 'buy',
-      volume: 0.1,
-      openPrice: 1.0850,
-      currentPrice: 1.0875,
-      pnl: 25.00,
-      sl: 1.0800,
-      tp: 1.0950,
-      openTime: '2024-01-15 09:30:00'
-    },
-    {
-      id: '2',
-      symbol: 'GBPUSD',
-      type: 'sell',
-      volume: 0.05,
-      openPrice: 1.2650,
-      currentPrice: 1.2625,
-      pnl: 12.50,
-      sl: 1.2700,
-      tp: 1.2550,
-      openTime: '2024-01-15 10:15:00'
-    }
-  ])
-
-  const [modelMetrics] = useState<ModelMetrics[]>([
-    {
-      name: 'Random Forest',
-      accuracy: 68.5,
-      lastUpdate: '2024-01-15 11:30:00',
-      status: 'active',
-      performance: 85.2
-    },
-    {
-      name: 'LSTM Neural Net',
-      accuracy: 72.1,
-      lastUpdate: '2024-01-15 11:25:00',
-      status: 'active',
-      performance: 78.9
-    },
-    {
-      name: 'DDQN Agent',
-      accuracy: 65.8,
-      lastUpdate: '2024-01-15 11:20:00',
-      status: 'training',
-      performance: 71.3
-    }
-  ])
-
   useEffect(() => {
     const loadTradingViewWidgets = async () => {
       try {
@@ -635,45 +583,10 @@ export default function TradingViewDashboard() {
           </div>
           <div className="p-4">
             <div className="space-y-3">
-              {positions.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No active positions
-                </div>
-              ) : (
-                positions.map((position) => (
-                  <div key={position.id} className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-900">{position.symbol}</span>
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          position.type === 'buy' 
-                            ? 'bg-success-100 text-success-800' 
-                            : 'bg-danger-100 text-danger-800'
-                        }`}>
-                          {position.type.toUpperCase()}
-                        </span>
-                        <span className="text-sm text-gray-600">{position.volume} lots</span>
-                      </div>
-                      <div className={`font-medium ${
-                        position.pnl >= 0 ? 'text-success-600' : 'text-danger-600'
-                      }`}>
-                        {position.pnl >= 0 ? '+' : ''}${position.pnl.toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                      <div>
-                        <span>Entry: {position.openPrice}</span>
-                        <br />
-                        <span>Current: {position.currentPrice}</span>
-                      </div>
-                      <div>
-                        {position.sl && <span>SL: {position.sl}<br /></span>}
-                        {position.tp && <span>TP: {position.tp}</span>}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+              {/* No active positions data available */}
+              <div className="text-center py-8 text-gray-500">
+                No active positions data available
+              </div>
             </div>
           </div>
         </div>
@@ -686,44 +599,10 @@ export default function TradingViewDashboard() {
           </div>
           <div className="p-4">
             <div className="space-y-4">
-              {modelMetrics.map((model, index) => (
-                <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(model.status)}
-                      <span className="font-medium text-gray-900">{model.name}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(model.status)}`}>
-                        {model.status.charAt(0).toUpperCase() + model.status.slice(1)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">Accuracy:</span>
-                      <span className="ml-2 font-medium text-gray-900">{model.accuracy}%</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Performance:</span>
-                      <span className="ml-2 font-medium text-gray-900">{model.performance}%</span>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-xs text-gray-500">
-                    Last Update: {new Date(model.lastUpdate).toLocaleString()}
-                  </div>
-                  
-                  {/* Progress Bar for Training Models */}
-                  {model.status === 'training' && (
-                    <div className="mt-2">
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${model.performance}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+              {/* No model metrics data available */}
+              <div className="text-center py-8 text-gray-500">
+                No model metrics data available
+              </div>
             </div>
           </div>
         </div>

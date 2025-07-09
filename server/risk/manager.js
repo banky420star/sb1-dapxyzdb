@@ -451,20 +451,37 @@ export class RiskManager extends EventEmitter {
     return { approved: true }
   }
 
-  async calculatePositionSize(signal) {
+  async configure(config) {
+    this.logger.info('Configuring risk manager...')
+    try {
+      this.maxPositions = config.maxPositions || 5
+      this.maxRiskPerTrade = config.maxRiskPerTrade || 0.02
+      this.maxDailyLoss = config.maxDailyLoss || 0.05
+      this.stopLoss = config.stopLoss || 0.02
+      this.takeProfit = config.takeProfit || 0.04
+      
+      this.logger.info('Risk manager configured successfully')
+      return true
+    } catch (error) {
+      this.logger.error('Failed to configure risk manager:', error)
+      return false
+    }
+  }
+
+  async calculatePositionSize(symbol, price, riskAmount) {
     try {
       const accountBalance = await this.db.getAccountBalance()
       if (!accountBalance) return 0
       
       // Base position size using Kelly criterion
-      const kellySize = await this.calculateKellySize(signal)
+      const kellySize = await this.calculateKellySize(symbol)
       
       // Apply risk limits
       const maxRiskSize = this.config.maxRiskPerTrade * accountBalance.equity
       const maxKellySize = this.config.maxKellySize * accountBalance.equity
       
       // Get volatility adjustment
-      const volatility = this.volatilityData.get(signal.symbol) || 0.01
+      const volatility = this.volatilityData.get(symbol) || 0.01
       const volAdjustment = this.config.volAdjustment ? 
         Math.min(1, 0.01 / volatility) : 1
       

@@ -12,9 +12,18 @@ export class DataManager extends EventEmitter {
     this.db = new DatabaseManager()
     this.isInitialized = false
     
-    // Exchange connections
+    // Data sources
+    this.alphaVantageApiKey = process.env.ALPHA_VANTAGE_API_KEY || 'demo'
     this.exchanges = new Map()
-    this.activeSymbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD']
+    
+    // Forex symbols (Alpha Vantage)
+    this.forexSymbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD']
+    // Crypto symbols (Bybit)
+    this.cryptoSymbols = ['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'DOT/USDT']
+    // Metal symbols (Alpha Vantage)
+    this.metalSymbols = ['XAUUSD', 'XAGUSD']
+    
+    this.activeSymbols = [...this.forexSymbols, ...this.metalSymbols]
     this.timeframes = ['1m', '5m', '15m', '1h', '4h', '1d']
     
     // Data storage
@@ -72,29 +81,28 @@ export class DataManager extends EventEmitter {
 
   async setupExchanges() {
     try {
-      // Setup demo/sandbox exchanges for data feeds
-      const exchangeConfigs = [
-        { id: 'binance', sandbox: true },
-        { id: 'oanda', sandbox: true }
-      ]
+      // Setup Bybit for crypto only
+      try {
+        const bybit = new ccxt.bybit({
+          apiKey: process.env.BYBIT_API_KEY || '3fg29yhr1a9JJ1etm3',
+          secret: process.env.BYBIT_SECRET || 'wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14',
+          sandbox: true,
+          enableRateLimit: true,
+          timeout: 30000
+        })
+        
+        await bybit.loadMarkets()
+        this.exchanges.set('bybit', bybit)
+        this.logger.info('Connected to Bybit for crypto data')
+      } catch (error) {
+        this.logger.warn('Failed to connect to Bybit:', error.message)
+      }
       
-      for (const config of exchangeConfigs) {
-        try {
-          const ExchangeClass = ccxt[config.id]
-          if (ExchangeClass) {
-            const exchange = new ExchangeClass({
-              sandbox: config.sandbox,
-              enableRateLimit: true,
-              timeout: 30000
-            })
-            
-            await exchange.loadMarkets()
-            this.exchanges.set(config.id, exchange)
-            this.logger.info(`Connected to ${config.id} exchange`)
-          }
-        } catch (error) {
-          this.logger.warn(`Failed to connect to ${config.id}:`, error.message)
-        }
+      // Setup Alpha Vantage for forex and metals
+      if (this.alphaVantageApiKey && this.alphaVantageApiKey !== 'demo') {
+        this.logger.info('Alpha Vantage API key configured for forex/metal data')
+      } else {
+        this.logger.warn('Alpha Vantage API key not configured, using demo data for forex/metal')
       }
       
       if (this.exchanges.size === 0) {
@@ -185,49 +193,175 @@ export class DataManager extends EventEmitter {
         for (const timeframe of this.timeframes) {
           try {
             // Try to load from database first
-            const dbData = await this.db.getOHLCVData(symbol, timeframe, 1000)
+            const dbData = await this.db.getOHLCVData(symbol, timeframe, 5000) // Increased from 1000
             
-            if (dbData && dbData.length > 0) {
+            if (dbData && dbData.length > 100) { // Minimum 100 bars required
               this.storeOHLCVData(symbol, timeframe, dbData)
               this.logger.debug(`Loaded ${dbData.length} bars for ${symbol} ${timeframe} from database`)
             } else {
-              // Fetch from exchange
-              await this.fetchHistoricalData(symbol, timeframe)
+              // Fetch historical data if not enough in database
+              this.logger.info(`Fetching historical data for ${symbol} ${timeframe}`)
+              const historicalData = await this.fetchHistoricalData(symbol, timeframe, 5000)
+              
+              if (historicalData && historicalData.length > 0) {
+                // Save to database
+                await this.db.saveOHLCVData(symbol, timeframe, historicalData)
+                
+                // Store in memory
+                this.storeOHLCVData(symbol, timeframe, historicalData)
+                
+                this.logger.info(`Fetched and stored ${historicalData.length} bars for ${symbol} ${timeframe}`)
+              } else {
+                this.logger.warn(`No historical data available for ${symbol} ${timeframe}`)
+              }
             }
           } catch (error) {
-            this.logger.warn(`Error loading historical data for ${symbol} ${timeframe}:`, error.message)
+            this.logger.error(`Error loading data for ${symbol} ${timeframe}:`, error.message)
           }
         }
       }
       
+      // Ensure we have enough data for training
+      await this.ensureMinimumDataForTraining()
+      
       this.logger.info('Historical data loading completed')
     } catch (error) {
       this.logger.error('Error loading historical data:', error)
+      throw error
+    }
+  }
+
+  async ensureMinimumDataForTraining() {
+    try {
+      this.logger.info('Ensuring minimum data for training')
+      
+      const requiredSymbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD']
+      const requiredTimeframes = ['1m', '5m', '15m', '1h']
+      const minBars = 2000 // Minimum bars needed for training
+      
+      for (const symbol of requiredSymbols) {
+        for (const timeframe of requiredTimeframes) {
+          const data = await this.db.getOHLCVData(symbol, timeframe, minBars)
+          
+          if (!data || data.length < minBars) {
+            this.logger.info(`Insufficient data for ${symbol} ${timeframe}, fetching more...`)
+            
+            // Calculate how much more data we need
+            const currentBars = data ? data.length : 0
+            const neededBars = minBars - currentBars
+            
+            if (neededBars > 0) {
+              const additionalData = await this.fetchHistoricalData(symbol, timeframe, neededBars)
+              
+              if (additionalData && additionalData.length > 0) {
+                await this.db.saveOHLCVData(symbol, timeframe, additionalData)
+                this.logger.info(`Added ${additionalData.length} bars for ${symbol} ${timeframe}`)
+              }
+            }
+          }
+        }
+      }
+      
+      this.logger.info('Minimum data requirements checked')
+    } catch (error) {
+      this.logger.error('Error ensuring minimum data:', error)
     }
   }
 
   async fetchHistoricalData(symbol, timeframe, limit = 1000) {
     try {
-      const exchange = this.exchanges.values().next().value
+      // Check if it's a forex/metal symbol (use Alpha Vantage)
+      if (this.forexSymbols.includes(symbol) || this.metalSymbols.includes(symbol)) {
+        return await this.fetchAlphaVantageData(symbol, timeframe, limit)
+      }
+      
+      // Check if it's a crypto symbol (use Bybit)
+      if (this.cryptoSymbols.includes(symbol)) {
+        return await this.fetchBybitData(symbol, timeframe, limit)
+      }
+      
+      // Fallback to mock data
+      this.logger.warn(`Unknown symbol ${symbol}, using mock data`)
+      return this.generateMockOHLCV(symbol, timeframe, limit)
+      
+    } catch (error) {
+      this.logger.error(`Error fetching historical data for ${symbol} ${timeframe}:`, error)
+      return this.generateMockOHLCV(symbol, timeframe, limit)
+    }
+  }
+
+  async fetchAlphaVantageData(symbol, timeframe, limit = 1000) {
+    if (this.alphaVantageApiKey === 'demo') {
+      this.logger.warn('Alpha Vantage API key not configured, using mock data')
+      return this.generateMockOHLCV(symbol, timeframe, limit)
+    }
+
+    try {
+      const interval = this.getAlphaVantageInterval(timeframe)
+      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&apikey=${this.alphaVantageApiKey}&outputsize=full`
+      
+      const response = await fetch(url)
+      const data = await response.json()
+      
+      if (data['Error Message']) {
+        throw new Error(data['Error Message'])
+      }
+      
+      const timeSeriesKey = `Time Series (${interval})`
+      const timeSeries = data[timeSeriesKey]
+      
+      if (!timeSeries) {
+        throw new Error('No time series data received')
+      }
+      
+      const ohlcv = []
+      const entries = Object.entries(timeSeries).slice(0, limit)
+      
+      for (const [timestamp, values] of entries) {
+        ohlcv.push([
+          new Date(timestamp).getTime(),
+          parseFloat(values['1. open']),
+          parseFloat(values['2. high']),
+          parseFloat(values['3. low']),
+          parseFloat(values['4. close']),
+          parseFloat(values['5. volume']) || 0
+        ])
+      }
+      
+      return ohlcv.reverse() // Return in chronological order
+      
+    } catch (error) {
+      this.logger.error(`Error fetching Alpha Vantage data for ${symbol}:`, error)
+      return this.generateMockOHLCV(symbol, timeframe, limit)
+    }
+  }
+
+  async fetchBybitData(symbol, timeframe, limit = 1000) {
+    try {
+      const exchange = this.exchanges.get('bybit')
       if (!exchange) {
-        throw new Error('No exchange available')
+        throw new Error('Bybit exchange not available')
       }
       
       const ohlcv = await exchange.fetchOHLCV(symbol, timeframe, undefined, limit)
+      return ohlcv
       
-      if (ohlcv && ohlcv.length > 0) {
-        this.storeOHLCVData(symbol, timeframe, ohlcv)
-        
-        // Save to database
-        await this.db.saveOHLCVData(symbol, timeframe, ohlcv)
-        
-        this.logger.debug(`Fetched ${ohlcv.length} bars for ${symbol} ${timeframe}`)
-        return ohlcv
-      }
     } catch (error) {
-      this.logger.error(`Error fetching historical data for ${symbol} ${timeframe}:`, error)
-      throw error
+      this.logger.error(`Error fetching Bybit data for ${symbol}:`, error)
+      return this.generateMockOHLCV(symbol, timeframe, limit)
     }
+  }
+
+  getAlphaVantageInterval(timeframe) {
+    const intervals = {
+      '1m': '1min',
+      '5m': '5min',
+      '15m': '15min',
+      '1h': '60min',
+      '4h': '60min', // Alpha Vantage doesn't support 4h, use 1h
+      '1d': 'daily'
+    }
+    return intervals[timeframe] || '1min'
   }
 
   storeOHLCVData(symbol, timeframe, ohlcv) {
@@ -282,28 +416,129 @@ export class DataManager extends EventEmitter {
 
   async updateRealTimePrice(symbol) {
     try {
-      const exchange = this.exchanges.values().next().value
-      if (!exchange) return
+      let ticker = null
       
-      const ticker = await exchange.fetchTicker(symbol)
+      // Check if it's a forex/metal symbol (use Alpha Vantage)
+      if (this.forexSymbols.includes(symbol) || this.metalSymbols.includes(symbol)) {
+        ticker = await this.fetchAlphaVantageTicker(symbol)
+      }
+      // Check if it's a crypto symbol (use Bybit)
+      else if (this.cryptoSymbols.includes(symbol)) {
+        ticker = await this.fetchBybitTicker(symbol)
+      }
+      // Fallback to mock data
+      else {
+        ticker = this.generateMockTicker(symbol)
+      }
       
       if (ticker) {
-        // Emit price update
-        this.emit('price_update', {
-          symbol,
-          bid: ticker.bid,
-          ask: ticker.ask,
-          last: ticker.last,
-          change: ticker.change,
-          percentage: ticker.percentage,
-          timestamp: ticker.timestamp || Date.now()
-        })
-        
-        // Update latest price in storage
         this.updateLatestPrice(symbol, ticker)
+        this.emit('price_update', { symbol, ticker })
       }
+      
     } catch (error) {
       this.logger.debug(`Error updating real-time price for ${symbol}:`, error.message)
+    }
+  }
+
+  async fetchAlphaVantageTicker(symbol) {
+    try {
+      const apiKey = '2ZQ8QZSN1U9XN5TK'
+      
+      // For forex pairs, use the CURRENCY_EXCHANGE_RATE function
+      if (this.forexSymbols.includes(symbol)) {
+        const fromCurrency = symbol.substring(0, 3)
+        const toCurrency = symbol.substring(3, 6)
+        
+        const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${fromCurrency}&to_currency=${toCurrency}&apikey=${apiKey}`
+        
+        const response = await fetch(url)
+        const data = await response.json()
+        
+        if (!data || !data['Realtime Currency Exchange Rate']) {
+          this.logger.warn(`No forex data for ${symbol} from Alpha Vantage`)
+          return this.generateMockTicker(symbol)
+        }
+        
+        const rate = data['Realtime Currency Exchange Rate']
+        const price = parseFloat(rate['5. Exchange Rate'] || 0)
+        
+        if (!price || isNaN(price)) {
+          this.logger.warn(`Invalid forex rate for ${symbol}: ${price}`)
+          return this.generateMockTicker(symbol)
+        }
+        
+        const timestamp = Date.now()
+        const spread = price * 0.0001 // 1 pip spread
+        
+        return {
+          symbol,
+          bid: price - spread / 2,
+          ask: price + spread / 2,
+          last: price,
+          change: 0, // Alpha Vantage doesn't provide change for forex
+          percentage: 0,
+          timestamp,
+          datetime: new Date(timestamp).toISOString()
+        }
+      }
+      // For metals, use the GLOBAL_QUOTE function
+      else if (this.metalSymbols.includes(symbol)) {
+        const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`
+        
+        const response = await fetch(url)
+        const data = await response.json()
+        
+        if (!data || !data['Global Quote']) {
+          this.logger.warn(`No metal data for ${symbol} from Alpha Vantage`)
+          return this.generateMockTicker(symbol)
+        }
+        
+        const quote = data['Global Quote']
+        const price = parseFloat(quote['05. price'] || 0)
+        
+        if (!price || isNaN(price)) {
+          this.logger.warn(`Invalid metal price for ${symbol}: ${price}`)
+          return this.generateMockTicker(symbol)
+        }
+        
+        const timestamp = Date.now()
+        const spread = price * 0.0001 // 1 pip spread
+        
+        return {
+          symbol,
+          bid: price - spread / 2,
+          ask: price + spread / 2,
+          last: price,
+          change: parseFloat(quote['09. change'] || 0),
+          percentage: parseFloat(quote['10. change percent'] || 0),
+          timestamp,
+          datetime: new Date(timestamp).toISOString()
+        }
+      }
+      else {
+        return this.generateMockTicker(symbol)
+      }
+      
+    } catch (error) {
+      this.logger.error(`Error fetching Alpha Vantage ticker for ${symbol}:`, error)
+      return this.generateMockTicker(symbol)
+    }
+  }
+
+  async fetchBybitTicker(symbol) {
+    try {
+      const exchange = this.exchanges.get('bybit')
+      if (!exchange) {
+        throw new Error('Bybit exchange not available')
+      }
+      
+      const ticker = await exchange.fetchTicker(symbol)
+      return ticker
+      
+    } catch (error) {
+      this.logger.error(`Error fetching Bybit ticker for ${symbol}:`, error)
+      return this.generateMockTicker(symbol)
     }
   }
 
@@ -767,6 +1002,18 @@ export class DataManager extends EventEmitter {
       dataPoints: this.priceData.size,
       indicators: this.indicators.size,
       lastUpdate: Math.max(...Array.from(this.lastUpdate.values()))
+    }
+  }
+
+  async reconnect() {
+    this.logger.info('Reconnecting data manager...')
+    try {
+      await this.initialize()
+      this.logger.info('Data manager reconnected successfully')
+      return true
+    } catch (error) {
+      this.logger.error('Failed to reconnect data manager:', error)
+      return false
     }
   }
 

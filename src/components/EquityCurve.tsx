@@ -1,18 +1,19 @@
 import React from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-
-// Mock data for demonstration
-const mockData = Array.from({ length: 30 }, (_, i) => ({
-  date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  equity: 10000 + Math.random() * 2000 - 1000 + i * 50,
-  drawdown: Math.random() * -500
-}))
+import { useTradingContext } from '../contexts/TradingContext'
 
 export default function EquityCurve() {
+  const { state } = useTradingContext()
+  const equityCurve = state.metrics.equityCurve // expects array of {date, equity, drawdown}
+
+  if (!equityCurve || equityCurve.length === 0) {
+    return <div className="text-gray-500 text-sm text-center py-8">No equity data available.</div>
+  }
+
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={mockData}>
+        <LineChart data={equityCurve}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis 
             dataKey="date" 

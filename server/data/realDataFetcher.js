@@ -11,7 +11,7 @@ export class RealDataFetcher {
     this.apis = {
       alphaVantage: {
         baseUrl: 'https://www.alphavantage.co/query',
-        key: process.env.ALPHA_VANTAGE_API_KEY,
+        key: process.env.ALPHA_VANTAGE_API_KEY || '2ZQ8QZSN1U9XN5TK',
         rateLimit: 5, // 5 requests per minute
         lastRequest: 0
       },

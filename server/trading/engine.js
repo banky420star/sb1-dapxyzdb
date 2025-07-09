@@ -1072,13 +1072,12 @@ export class TradingEngine extends EventEmitter {
   }
 
   async setMode(mode) {
-    if (!['paper', 'live'].includes(mode)) {
-      throw new Error('Invalid trading mode')
-    }
-    
-    this.tradingMode = mode
+    this.mode = mode
     this.logger.info(`Trading mode set to ${mode}`)
-    this.emit('mode_changed', mode)
+    return true
+  }
+
+  async restart() {
   }
 
   // Data retrieval methods

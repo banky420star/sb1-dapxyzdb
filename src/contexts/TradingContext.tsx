@@ -7,10 +7,19 @@ interface TradingState {
   systemStatus: 'online' | 'offline' | 'maintenance'
   positions: Position[]
   orders: Order[]
+  trades: Position[] // Add trades array
   balance: AccountBalance
   models: ModelStatus[]
   metrics: TradingMetrics
   alerts: Alert[]
+  aiNotifications: AINotification[]
+  // Add missing properties that Dashboard uses
+  totalPnL: number
+  pnlChange: number
+  winRate: number
+  systemLoad: number
+  modelAccuracy: number
+  riskLevel: string
 }
 
 interface Position {
@@ -72,17 +81,38 @@ interface Alert {
   read: boolean
 }
 
+interface AINotification {
+  id: string
+  level: 'info' | 'warning' | 'error' | 'critical'
+  title: string
+  message: string
+  category: string
+  timestamp: string
+  read: boolean
+  data?: any
+}
+
 type TradingAction = 
   | { type: 'SET_CONNECTION'; payload: boolean }
   | { type: 'SET_TRADING_MODE'; payload: 'paper' | 'live' }
   | { type: 'SET_SYSTEM_STATUS'; payload: 'online' | 'offline' | 'maintenance' }
   | { type: 'UPDATE_POSITIONS'; payload: Position[] }
   | { type: 'UPDATE_ORDERS'; payload: Order[] }
+  | { type: 'UPDATE_TRADES'; payload: Position[] }
   | { type: 'UPDATE_BALANCE'; payload: AccountBalance }
   | { type: 'UPDATE_MODELS'; payload: ModelStatus[] }
   | { type: 'UPDATE_METRICS'; payload: TradingMetrics }
+  | { type: 'UPDATE_TOTAL_PNL'; payload: number }
+  | { type: 'UPDATE_PNL_CHANGE'; payload: number }
+  | { type: 'UPDATE_WIN_RATE'; payload: number }
+  | { type: 'UPDATE_SYSTEM_LOAD'; payload: number }
+  | { type: 'UPDATE_MODEL_ACCURACY'; payload: number }
+  | { type: 'UPDATE_RISK_LEVEL'; payload: string }
   | { type: 'ADD_ALERT'; payload: Alert }
   | { type: 'MARK_ALERT_READ'; payload: string }
+  | { type: 'UPDATE_AI_NOTIFICATIONS'; payload: AINotification[] }
+  | { type: 'ADD_AI_NOTIFICATION'; payload: AINotification }
+  | { type: 'MARK_AI_NOTIFICATION_READ'; payload: string }
 
 const initialState: TradingState = {
   isConnected: false,
@@ -90,6 +120,7 @@ const initialState: TradingState = {
   systemStatus: 'offline',
   positions: [],
   orders: [],
+  trades: [],
   balance: {
     equity: 10000,
     balance: 10000,
@@ -133,7 +164,14 @@ const initialState: TradingState = {
     weeklyPnl: 0,
     monthlyPnl: 0
   },
-  alerts: []
+  alerts: [],
+  aiNotifications: [],
+  totalPnL: 0,
+  pnlChange: 0,
+  winRate: 0,
+  systemLoad: 0,
+  modelAccuracy: 0,
+  riskLevel: 'Low'
 }
 
 function tradingReducer(state: TradingState, action: TradingAction): TradingState {
@@ -148,12 +186,26 @@ function tradingReducer(state: TradingState, action: TradingAction): TradingStat
       return { ...state, positions: action.payload }
     case 'UPDATE_ORDERS':
       return { ...state, orders: action.payload }
+    case 'UPDATE_TRADES':
+      return { ...state, trades: action.payload }
     case 'UPDATE_BALANCE':
       return { ...state, balance: action.payload }
     case 'UPDATE_MODELS':
       return { ...state, models: action.payload }
     case 'UPDATE_METRICS':
       return { ...state, metrics: action.payload }
+    case 'UPDATE_TOTAL_PNL':
+      return { ...state, totalPnL: action.payload }
+    case 'UPDATE_PNL_CHANGE':
+      return { ...state, pnlChange: action.payload }
+    case 'UPDATE_WIN_RATE':
+      return { ...state, winRate: action.payload }
+    case 'UPDATE_SYSTEM_LOAD':
+      return { ...state, systemLoad: action.payload }
+    case 'UPDATE_MODEL_ACCURACY':
+      return { ...state, modelAccuracy: action.payload }
+    case 'UPDATE_RISK_LEVEL':
+      return { ...state, riskLevel: action.payload }
     case 'ADD_ALERT':
       return { 
         ...state, 
@@ -164,6 +216,20 @@ function tradingReducer(state: TradingState, action: TradingAction): TradingStat
         ...state,
         alerts: state.alerts.map(alert => 
           alert.id === action.payload ? { ...alert, read: true } : alert
+        )
+      }
+    case 'UPDATE_AI_NOTIFICATIONS':
+      return { ...state, aiNotifications: action.payload }
+    case 'ADD_AI_NOTIFICATION':
+      return { 
+        ...state, 
+        aiNotifications: [action.payload, ...state.aiNotifications].slice(0, 50)
+      }
+    case 'MARK_AI_NOTIFICATION_READ':
+      return {
+        ...state,
+        aiNotifications: state.aiNotifications.map(notification => 
+          notification.id === action.payload ? { ...notification, read: true } : notification
         )
       }
     default:
@@ -222,6 +288,14 @@ export function TradingProvider({ children }: { children: React.ReactNode }) {
 
     newSocket.on('alert', (alert: Alert) => {
       dispatch({ type: 'ADD_ALERT', payload: alert })
+    })
+
+    newSocket.on('notifications_update', (notifications: AINotification[]) => {
+      dispatch({ type: 'UPDATE_AI_NOTIFICATIONS', payload: notifications })
+    })
+
+    newSocket.on('notification', (notification: AINotification) => {
+      dispatch({ type: 'ADD_AI_NOTIFICATION', payload: notification })
     })
 
     return () => {

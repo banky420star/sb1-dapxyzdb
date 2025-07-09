@@ -1,89 +1,94 @@
 import React from 'react'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, Clock, DollarSign, Target } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-
-// Mock data for demonstration
-const mockTrades = [
-  {
-    id: '1',
-    symbol: 'EURUSD',
-    side: 'buy' as const,
-    size: 0.1,
-    entryPrice: 1.0850,
-    exitPrice: 1.0875,
-    pnl: 25.00,
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '2',
-    symbol: 'GBPUSD',
-    side: 'sell' as const,
-    size: 0.05,
-    entryPrice: 1.2650,
-    exitPrice: 1.2625,
-    pnl: 12.50,
-    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '3',
-    symbol: 'USDJPY',
-    side: 'buy' as const,
-    size: 0.08,
-    entryPrice: 149.50,
-    exitPrice: 149.25,
-    pnl: -20.00,
-    timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
-  }
-]
+import { useTradingContext } from '../contexts/TradingContext'
 
 export default function RecentTrades() {
+  const { state } = useTradingContext()
+  const trades = state.positions // or state.trades if available
+
+  if (!trades || trades.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+          <Target className="h-8 w-8 text-gray-400" />
+        </div>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">No recent trades</p>
+        <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Trades will appear here when executed</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-3">
-      {mockTrades.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No recent trades
-        </div>
-      ) : (
-        mockTrades.map((trade) => (
-          <div key={trade.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className={`p-2 rounded-lg ${
-                trade.side === 'buy' ? 'bg-success-100' : 'bg-danger-100'
-              }`}>
-                {trade.side === 'buy' ? (
-                  <TrendingUp className="h-4 w-4 text-success-600" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-danger-600" />
-                )}
-              </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium text-gray-900">{trade.symbol}</span>
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                    trade.side === 'buy' 
-                      ? 'bg-success-100 text-success-800' 
-                      : 'bg-danger-100 text-danger-800'
-                  }`}>
-                    {trade.side.toUpperCase()}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  {trade.size} lots • {trade.entryPrice} → {trade.exitPrice}
-                </p>
-              </div>
+      {trades.slice(0, 5).map((trade, index) => (
+        <div 
+          key={trade.id || index} 
+          className="group flex items-center justify-between p-4 bg-gradient-to-r from-white/50 to-white/30 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm rounded-xl border border-white/20 dark:border-gray-700/20 hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
+        >
+          <div className="flex items-center space-x-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+              trade.pnl >= 0 
+                ? 'bg-gradient-to-br from-green-500 to-emerald-500' 
+                : 'bg-gradient-to-br from-red-500 to-pink-500'
+            }`}>
+              {trade.pnl >= 0 ? (
+                <TrendingUp className="h-6 w-6 text-white" />
+              ) : (
+                <TrendingDown className="h-6 w-6 text-white" />
+              )}
             </div>
-            <div className="text-right">
-              <p className={`font-medium ${
-                trade.pnl >= 0 ? 'text-success-600' : 'text-danger-600'
-              }`}>
-                {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}
-              </p>
-              <p className="text-xs text-gray-500">
-                {formatDistanceToNow(new Date(trade.timestamp), { addSuffix: true })}
-              </p>
+            
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <h4 className="font-semibold text-gray-900 dark:text-white text-lg">{trade.symbol}</h4>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  trade.side === 'long' 
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                }`}>
+                  {trade.side.toUpperCase()}
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-1">
+                  <DollarSign className="h-3 w-3" />
+                  <span>Size: {trade.size}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Target className="h-3 w-3" />
+                  <span>Entry: ${trade.entryPrice}</span>
+                </div>
+              </div>
             </div>
           </div>
-        ))
+          
+          <div className="text-right space-y-1">
+            <div className={`text-lg font-bold ${
+              trade.pnl >= 0 
+                ? 'text-green-600 dark:text-green-400' 
+                : 'text-red-600 dark:text-red-400'
+            }`}>
+              {trade.pnl >= 0 ? '+' : ''}${trade.pnl?.toFixed(2) || '0.00'}
+            </div>
+            
+            <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+              <Clock className="h-3 w-3" />
+              <span>
+                {formatDistanceToNow(new Date(trade.timestamp || Date.now()), { addSuffix: true })}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+      
+      {trades.length > 5 && (
+        <div className="text-center pt-4">
+          <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            View all {trades.length} trades
+          </button>
+        </div>
       )}
     </div>
   )

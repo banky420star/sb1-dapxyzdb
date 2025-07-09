@@ -12,7 +12,10 @@ interface ModelStatusProps {
   }>
 }
 
-export default function ModelStatus({ models }: ModelStatusProps) {
+export default function ModelStatus({ models = [] }: ModelStatusProps) {
+  // Add null check for models
+  const safeModels = models || []
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'active':
@@ -39,9 +42,20 @@ export default function ModelStatus({ models }: ModelStatusProps) {
     }
   }
 
+  // Show empty state if no models
+  if (!safeModels.length) {
+    return (
+      <div className="text-center py-8">
+        <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-500 text-sm">No models available</p>
+        <p className="text-gray-400 text-xs">Models will appear here when initialized</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
-      {models.map((model, index) => (
+      {safeModels.map((model, index) => (
         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-white rounded-lg">
@@ -50,7 +64,7 @@ export default function ModelStatus({ models }: ModelStatusProps) {
             <div>
               <h4 className="font-medium text-gray-900">{model.name}</h4>
               <p className="text-sm text-gray-600">
-                Accuracy: {(model.accuracy * 100).toFixed(1)}% • v{model.version}
+                Accuracy: {((model.accuracy || 0) * 100).toFixed(1)}% • v{model.version || '1.0'}
               </p>
             </div>
           </div>

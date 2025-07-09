@@ -1,171 +1,254 @@
-# AlgoTrader Pro - ML Trading System
+# AlgoTrader Pro - AI-Powered Trading System
 
-A comprehensive algorithmic trading system with machine learning ensemble, risk management, and real-time monitoring.
+A comprehensive algorithmic trading platform with machine learning models, real-time market data, and intelligent notifications.
 
-## 🏗️ Architecture Overview
+## 🚀 Features
 
-### Core Components
+### Core Trading System
+- **Multi-Model ML Ensemble**: Random Forest, LSTM, and DDQN models
+- **Real-time Market Data**: Live price feeds and technical indicators
+- **Risk Management**: Position sizing, stop-loss, and drawdown protection
+- **Paper & Live Trading**: Safe testing with paper trading mode
 
-- **Data & Features**: CCXT fetchers + 60+ technical indicators across multiple timeframes
-- **ML Models**: Random Forest + LSTM + DDQN ensemble for decision making
-- **Trade Engine**: Multi-threaded orchestrator with broker abstraction
-- **Risk Manager**: Kelly-capped sizing, ATR stops, drawdown protection
-- **Model Manager**: Hot-swap capabilities with walk-forward validation
-- **MT5 Bridge**: ZeroMQ integration for MetaTrader 5
-- **Command Interface**: REST API, CLI, and Telegram bot with RBAC
-- **Observability**: Prometheus metrics, Grafana dashboards, structured logging
+### AI Notification Agent 🤖
+- **Intelligent Monitoring**: Real-time system health and performance tracking
+- **Smart Alerts**: P&L alerts, model performance, system load monitoring
+- **Daily Summaries**: Automated trading performance reports
+- **Concierge Service**: Proactive notifications about system status
 
-## 🚀 Quick Start
+### Frontend Dashboard
+- **Real-time Updates**: Live trading data and system metrics
+- **Interactive Charts**: TradingView and MQL5 integration
+- **AI Notifications**: Intelligent alert system with filtering
+- **Responsive Design**: Mobile-friendly interface
+
+## 🛠️ Quick Start
 
 ### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Git
 
-- Node.js 18+
-- Docker & Docker Compose (for full stack)
-- MetaTrader 5 (for live trading)
-
-### Development Setup
-
-1. **Clone and Install**
-   ```bash
-   git clone <repository>
-   cd algo-trading-system
-   npm install
-   ```
-
-2. **Environment Setup**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. **Start Development Server**
-   ```bash
-   npm run dev        # Frontend (port 3000)
-   npm start          # Backend (port 8000)
-   ```
-
-4. **Access Dashboard**
-   - Frontend: http://localhost:3000
-   - API: http://localhost:8000
-
-### Production Deployment
-
+### Installation
 ```bash
-# Build for production
-npm run build
+# Clone the repository
+git clone https://github.com/yourusername/algotrader-pro.git
+cd algotrader-pro
 
-# Start with Docker Compose
-docker-compose up -d
+# Install dependencies
+npm install
+
+# Set up environment
+cp env.example .env
+# Edit .env with your configuration
+
+# Start development server
+npm run dev
 ```
 
-## 📊 Features
+### Deployment
+```bash
+# Deploy to any platform (Railway, Heroku, Render, Vultr, or local)
+npm run deploy
+```
 
-### Dashboard
-- Real-time system status and metrics
-- Equity curve visualization
-- Model performance monitoring
-- Recent trades and alerts
+The deployment script automatically detects your environment and deploys accordingly.
 
-### Trading Engine
-- Multi-timeframe analysis (1m → 1D)
-- Ensemble ML decision making
-- Risk-managed position sizing
-- Real-time execution monitoring
+## 📊 Dashboard Access
 
-### Risk Management
-- Kelly criterion position sizing
-- ATR-based stop losses
-- Maximum drawdown protection
-- Weekend position flattening
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **AI Notifications**: Click the 🤖 icon in the top bar
 
-### Model Management
-- Hot-swap model deployment
-- Walk-forward validation
-- Performance-based promotion
-- Automatic rollback on failure
+## 🤖 AI Notification Agent
 
-### Monitoring & Alerts
-- Real-time system health
-- Performance metrics tracking
-- Configurable alert system
-- Comprehensive logging
+The AI notification agent acts as your trading concierge, providing:
+
+### Real-time Monitoring
+- System health and performance metrics
+- Trading performance alerts
+- Model accuracy tracking
+- Data stream health monitoring
+
+### Smart Alerts
+- **P&L Alerts**: Notifications when losses exceed thresholds
+- **Win Rate Monitoring**: Alerts for poor trading performance
+- **Drawdown Protection**: Critical alerts for high drawdowns
+- **System Load**: CPU and memory usage monitoring
+
+### Daily Summaries
+- Automated daily trading performance reports
+- Model performance summaries
+- System uptime and reliability metrics
+
+## 🏗️ Architecture
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Backend       │    │   AI Agent      │
+│   (React)       │◄──►│   (Node.js)     │◄──►│   (Monitoring)  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         │                       │                       │
+    ┌─────────┐            ┌─────────┐            ┌─────────┐
+    │TradingView│            │ML Models│            │Notifications│
+    │MQL5     │            │Database│            │Alerts   │
+    └─────────┘            └─────────┘            └─────────┘
+```
 
 ## 🔧 Configuration
 
-### Trading Modes
-- **Paper Mode**: Risk-free simulation
-- **Live Mode**: Real money trading
+### Environment Variables
+```bash
+NODE_ENV=production
+PORT=8000
+TRADING_MODE=paper
+ENABLE_LIVE_TRADING=false
+POSITION_SIZE_LIMIT=0.01
+MAX_DAILY_LOSS=0.005
+MT5_INTEGRATION=true
+ALPHA_VANTAGE_API_KEY=your_api_key
+```
 
-### Model Configuration
-- Random Forest: Pattern recognition
-- LSTM: Sequence forecasting
-- DDQN: Reinforcement learning policy
+### AI Agent Configuration
+```javascript
+// Customize notification thresholds
+const notificationAgent = new AINotificationAgent({
+  checkInterval: 30000, // 30 seconds
+  notificationThresholds: {
+    pnlAlert: -100,        // Alert on $100 loss
+    winRateAlert: 0.4,     // Alert if win rate < 40%
+    drawdownAlert: 0.1,    // Alert on 10% drawdown
+    modelAccuracyAlert: 0.5, // Alert if model accuracy < 50%
+    systemLoadAlert: 0.8,  // Alert if system load > 80%
+    connectionTimeout: 60000 // Alert if no data for 1 minute
+  }
+})
+```
 
-### Risk Parameters
-- Maximum position size
-- Stop loss levels
-- Drawdown limits
-- Correlation limits
+## 📈 Trading Models
 
-## 🛡️ Safety Features
+### Random Forest
+- **Type**: Ensemble learning
+- **Features**: Technical indicators, market sentiment
+- **Update Frequency**: Daily retraining
 
-- **Emergency Stop**: Immediate halt of all trading
-- **Circuit Breakers**: Automatic shutdown on excessive losses
-- **Model Validation**: Continuous performance monitoring
-- **Rollback Capability**: Instant reversion to previous models
-- **Chaos Testing**: Automated resilience testing
+### LSTM Neural Network
+- **Type**: Deep learning for time series
+- **Features**: Price patterns, volume analysis
+- **Update Frequency**: Weekly retraining
 
-## 📈 Performance Monitoring
+### DDQN Agent
+- **Type**: Reinforcement learning
+- **Features**: Market state, action-reward learning
+- **Update Frequency**: Continuous learning
 
-### Key Metrics
-- Sharpe Ratio
-- Maximum Drawdown
-- Win Rate
-- Profit Factor
-- Calmar Ratio
+## 🛡️ Risk Management
 
-### Real-time Monitoring
-- Position P&L
-- Model accuracy
-- System latency
-- Connection status
+- **Position Sizing**: Kelly Criterion-based sizing
+- **Stop Loss**: Dynamic stop-loss levels
+- **Drawdown Protection**: Maximum drawdown limits
+- **Daily Loss Limits**: Configurable daily loss thresholds
 
-## 🔌 Integrations
+## 🚀 Deployment Options
 
-### Supported Brokers
-- MetaTrader 5 (via ZeroMQ)
-- Interactive Brokers (planned)
-- Binance (planned)
+### Railway
+```bash
+RAILWAY_TOKEN=your_token npm run deploy
+```
 
-### Data Sources
-- CCXT for market data
-- Custom feature engineering
-- Alternative data integration
+### Heroku
+```bash
+HEROKU_API_KEY=your_key npm run deploy
+```
+
+### Render
+```bash
+RENDER_TOKEN=your_token npm run deploy
+```
+
+### Vultr VPS
+```bash
+VULTR_API_KEY=your_key VULTR_SERVER_IP=your_ip npm run deploy
+```
+
+### Local Development
+```bash
+npm run deploy  # Automatically detects local environment
+```
+
+## 📝 API Endpoints
+
+### Trading
+- `GET /api/positions` - Get current positions
+- `GET /api/orders` - Get pending orders
+- `POST /api/orders` - Place new order
+- `GET /api/balance` - Get account balance
+
+### Models
+- `GET /api/models` - Get model status
+- `POST /api/models/retrain` - Retrain models
+- `GET /api/models/performance` - Get model performance
+
+### AI Notifications
+- `GET /api/notifications` - Get AI notifications
+- `POST /api/notifications/mark-read` - Mark notification as read
+- `GET /api/notifications/summary` - Get daily summary
 
 ## 🧪 Testing
 
 ```bash
-# Run unit tests
+# Run all tests
 npm test
 
-# Run integration tests
+# Run specific test suites
+npm run test:unit
 npm run test:integration
-
-# Run chaos tests
-npm run test:chaos
+npm run test:e2e
 ```
 
-## 📚 Documentation
+## 📊 Monitoring
 
-- [API Documentation](docs/api.md)
-- [Model Architecture](docs/models.md)
-- [Risk Management](docs/risk.md)
-- [Deployment Guide](docs/deployment.md)
+### Metrics
+- Trading performance metrics
+- Model accuracy tracking
+- System resource usage
+- API response times
 
-## ⚠️ Disclaimer
+### Logs
+- Trading activity logs
+- Model training logs
+- System error logs
+- Performance logs
 
-This software is for educational and research purposes. Trading involves substantial risk of loss. Past performance does not guarantee future results. Use at your own risk.
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - see LICENSE file for details
+
+## 🆘 Support
+
+- **Documentation**: Check the `/docs` folder
+- **Issues**: Create an issue on GitHub
+- **Discussions**: Use GitHub Discussions
+
+## 🎯 Roadmap
+
+- [ ] Advanced ML models (Transformer, GAN)
+- [ ] Multi-exchange support
+- [ ] Mobile app
+- [ ] Advanced backtesting
+- [ ] Social trading features
+- [ ] API rate limiting improvements
+- [ ] Enhanced AI notifications
+
+---
+
+**Built with ❤️ for algorithmic traders**

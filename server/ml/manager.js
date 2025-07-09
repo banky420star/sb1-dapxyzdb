@@ -24,19 +24,22 @@ export class ModelManager extends EventEmitter {
           enabled: true,
           weight: 0.4,
           retrainInterval: 24 * 60 * 60 * 1000, // 24 hours
-          minAccuracy: 0.55
+          minAccuracy: 0.55,
+          minSamples: 1000 // Minimum samples required for training
         },
         lstm: {
           enabled: true,
           weight: 0.35,
           retrainInterval: 12 * 60 * 60 * 1000, // 12 hours
-          minAccuracy: 0.60
+          minAccuracy: 0.60,
+          minSamples: 2000 // LSTM needs more data
         },
         ddqn: {
           enabled: true,
           weight: 0.25,
           retrainInterval: 6 * 60 * 60 * 1000, // 6 hours
-          minAccuracy: 0.50
+          minAccuracy: 0.50,
+          minSamples: 1500 // DDQN needs substantial data
         }
       },
       ensemble: {
@@ -45,10 +48,13 @@ export class ModelManager extends EventEmitter {
         agreementThreshold: 0.7
       },
       training: {
-        lookbackPeriod: 1000, // bars
+        lookbackPeriod: 3000, // Increased from 1000 to 3000 bars
         validationSplit: 0.2,
         testSplit: 0.1,
-        maxTrainingTime: 30 * 60 * 1000 // 30 minutes
+        maxTrainingTime: 30 * 60 * 1000, // 30 minutes
+        minDataPeriod: 7 * 24 * 60 * 60 * 1000, // 7 days minimum data period
+        requiredSymbols: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD'],
+        requiredTimeframes: ['1m', '5m', '15m', '1h']
       }
     }
     
@@ -88,6 +94,18 @@ export class ModelManager extends EventEmitter {
     } catch (error) {
       this.logger.error('Failed to initialize Model Manager:', error)
       throw error
+    }
+  }
+
+  async reinitialize() {
+    this.logger.info('Reinitializing model manager...')
+    try {
+      await this.initialize()
+      this.logger.info('Model manager reinitialized successfully')
+      return true
+    } catch (error) {
+      this.logger.error('Failed to reinitialize model manager:', error)
+      return false
     }
   }
 
@@ -204,89 +222,141 @@ export class ModelManager extends EventEmitter {
         throw new Error(`Model ${modelType} not found`)
       }
       
+      // Check data availability before training
+      const dataCheck = await this.checkDataAvailability(modelType)
+      if (!dataCheck.sufficient) {
+        throw new Error(`Insufficient data for ${modelType} training: ${dataCheck.message}`)
+      }
+      
       const startTime = Date.now()
       
       // Prepare training data
       const trainingData = await this.prepareTrainingData(modelType)
       
-      if (!trainingData || trainingData.length < 100) {
-        throw new Error('Insufficient training data')
+      if (!trainingData || trainingData.length === 0) {
+        throw new Error('No training data available')
       }
+      
+      // Check minimum samples requirement
+      const minSamples = this.config.models[modelType].minSamples
+      if (trainingData.length < minSamples) {
+        throw new Error(`Insufficient training samples: ${trainingData.length} < ${minSamples}`)
+      }
+      
+      this.logger.info(`Training ${modelType} with ${trainingData.length} samples`)
       
       // Split data
       const { trainData, validData, testData } = this.splitData(trainingData)
       
       // Train model
-      const trainingResult = await model.train(trainData, validData, {
-        maxTime: this.config.training.maxTrainingTime,
-        validationSplit: this.config.training.validationSplit
-      })
-      
-      // Evaluate on test data
-      const testResult = await model.evaluate(testData)
-      
-      const trainingTime = Date.now() - startTime
+      const result = await model.train(trainData, validData, testData)
       
       // Save model state
       const modelState = await model.getState()
       await this.db.saveModelState(modelType, modelState)
       
-      // Update performance metrics
-      const performance = {
+      // Save performance metrics
+      await this.db.saveModelPerformance(modelType, {
         modelType,
-        accuracy: testResult.accuracy,
-        precision: testResult.precision,
-        recall: testResult.recall,
-        f1Score: testResult.f1Score,
-        trainingTime,
+        accuracy: result.accuracy,
+        precision: result.precision,
+        recall: result.recall,
+        f1Score: result.f1Score,
+        trainingTime: Date.now() - startTime,
         trainingDate: new Date().toISOString(),
         dataSize: trainingData.length,
-        version: modelState.version || '1.0.0'
-      }
-      
-      this.modelPerformance.set(modelType, performance)
-      await this.db.saveModelPerformance(modelType, performance)
-      
-      // Activate model if it meets minimum requirements
-      if (performance.accuracy >= this.config.models[modelType].minAccuracy) {
-        this.activeModels.set(modelType, model)
-        this.logger.info(`${modelType} model activated with accuracy: ${(performance.accuracy * 100).toFixed(2)}%`)
-      } else {
-        this.logger.warn(`${modelType} model accuracy too low: ${(performance.accuracy * 100).toFixed(2)}%`)
-      }
-      
-      // Record training history
-      this.trainingHistory.push({
-        modelType,
-        timestamp: new Date().toISOString(),
-        performance,
-        success: true
+        version: '1.0.0'
       })
       
-      this.emit('model_trained', {
-        modelType,
-        performance,
-        trainingTime
-      })
+      // Update active models
+      this.activeModels.set(modelType, model)
+      this.modelPerformance.set(modelType, result)
       
-      this.logger.info(`Training completed for ${modelType} model in ${trainingTime}ms`)
+      this.logger.info(`${modelType} training completed in ${Date.now() - startTime}ms`)
+      this.logger.info(`Accuracy: ${result.accuracy.toFixed(4)}`)
       
+      return result
     } catch (error) {
       this.logger.error(`Error training ${modelType} model:`, error)
-      
-      this.trainingHistory.push({
-        modelType,
-        timestamp: new Date().toISOString(),
-        error: error.message,
-        success: false
-      })
-      
-      this.emit('model_training_failed', {
-        modelType,
-        error: error.message
-      })
+      throw error
     } finally {
       this.isTraining = false
+    }
+  }
+
+  async checkDataAvailability(modelType) {
+    try {
+      const requiredSymbols = this.config.training.requiredSymbols
+      const requiredTimeframes = this.config.training.requiredTimeframes
+      const minDataPeriod = this.config.training.minDataPeriod
+      const minSamples = this.config.models[modelType].minSamples
+      
+      let totalSamples = 0
+      const dataStatus = {}
+      
+      for (const symbol of requiredSymbols) {
+        for (const timeframe of requiredTimeframes) {
+          const data = await this.db.getOHLCVData(symbol, timeframe, 5000)
+          
+          if (data && data.length > 0) {
+            const oldestTimestamp = data[0][0]
+            const newestTimestamp = data[data.length - 1][0]
+            const dataPeriod = newestTimestamp - oldestTimestamp
+            
+            // Calculate available samples (accounting for lookback period)
+            const availableSamples = Math.max(0, data.length - 25) // 20 lookback + 5 future
+            
+            dataStatus[`${symbol}_${timeframe}`] = {
+              bars: data.length,
+              samples: availableSamples,
+              period: dataPeriod,
+              periodDays: dataPeriod / (24 * 60 * 60 * 1000),
+              oldest: new Date(oldestTimestamp).toISOString(),
+              newest: new Date(newestTimestamp).toISOString()
+            }
+            
+            totalSamples += availableSamples
+          } else {
+            dataStatus[`${symbol}_${timeframe}`] = {
+              bars: 0,
+              samples: 0,
+              period: 0,
+              periodDays: 0,
+              error: 'No data available'
+            }
+          }
+        }
+      }
+      
+      // Check if we have sufficient data
+      const hasEnoughSamples = totalSamples >= minSamples
+      const hasEnoughPeriod = Object.values(dataStatus).some(status => 
+        status.period >= minDataPeriod
+      )
+      
+      const result = {
+        sufficient: hasEnoughSamples && hasEnoughPeriod,
+        totalSamples,
+        minSamples,
+        hasEnoughPeriod,
+        dataStatus,
+        message: ''
+      }
+      
+      if (!hasEnoughSamples) {
+        result.message = `Insufficient samples: ${totalSamples} < ${minSamples}`
+      } else if (!hasEnoughPeriod) {
+        result.message = `Insufficient data period: need at least ${minDataPeriod / (24 * 60 * 60 * 1000)} days`
+      }
+      
+      this.logger.info(`Data availability check for ${modelType}:`, result)
+      return result
+    } catch (error) {
+      this.logger.error('Error checking data availability:', error)
+      return {
+        sufficient: false,
+        message: `Error checking data: ${error.message}`
+      }
     }
   }
 
@@ -296,30 +366,46 @@ export class ModelManager extends EventEmitter {
       const timeframes = ['1m', '5m', '15m', '1h']
       const allData = []
       
+      this.logger.info(`Preparing training data for ${modelType} model`)
+      
       for (const symbol of symbols) {
         for (const timeframe of timeframes) {
-          // Get OHLCV data
+          // Get OHLCV data - ensure we have enough data
           const ohlcv = await this.db.getOHLCVData(symbol, timeframe, this.config.training.lookbackPeriod)
           
-          if (ohlcv && ohlcv.length > 50) {
+          if (ohlcv && ohlcv.length > 200) { // Increased minimum from 50 to 200
+            this.logger.debug(`Processing ${ohlcv.length} bars for ${symbol} ${timeframe}`)
+            
             // Generate features
             const features = this.generateFeatures(ohlcv, symbol, timeframe)
             
             // Generate labels based on future price movement
             const labels = this.generateLabels(ohlcv)
             
-            // Combine features and labels
-            for (let i = 0; i < Math.min(features.length, labels.length); i++) {
-              allData.push({
-                features: features[i],
-                label: labels[i],
-                symbol,
-                timeframe,
-                timestamp: ohlcv[i][0]
-              })
+            // Combine features and labels - ensure they match
+            const minLength = Math.min(features.length, labels.length)
+            
+            for (let i = 0; i < minLength; i++) {
+              if (features[i] && labels[i] !== undefined) {
+                allData.push({
+                  features: features[i],
+                  label: labels[i],
+                  symbol,
+                  timeframe,
+                  timestamp: ohlcv[i + 20][0] // Adjust for lookback period
+                })
+              }
             }
+            
+            this.logger.debug(`Generated ${minLength} samples for ${symbol} ${timeframe}`)
+          } else {
+            this.logger.warn(`Insufficient data for ${symbol} ${timeframe}: ${ohlcv ? ohlcv.length : 0} bars`)
           }
         }
+      }
+      
+      if (allData.length === 0) {
+        throw new Error('No training data available. Please ensure sufficient historical data is collected.')
       }
       
       // Shuffle data
@@ -328,7 +414,7 @@ export class ModelManager extends EventEmitter {
         [allData[i], allData[j]] = [allData[j], allData[i]]
       }
       
-      this.logger.info(`Prepared ${allData.length} training samples`)
+      this.logger.info(`Prepared ${allData.length} training samples for ${modelType}`)
       return allData
     } catch (error) {
       this.logger.error('Error preparing training data:', error)
@@ -339,12 +425,18 @@ export class ModelManager extends EventEmitter {
   generateFeatures(ohlcv, symbol, timeframe) {
     const features = []
     
-    for (let i = 20; i < ohlcv.length - 5; i++) { // Need lookback and lookahead
+    // Need at least 25 bars for lookback (20) + current + future (5)
+    for (let i = 20; i < ohlcv.length - 5; i++) {
       const feature = []
       
       // Price features (last 20 bars)
       for (let j = i - 19; j <= i; j++) {
         const bar = ohlcv[j]
+        if (!bar || bar.length < 6) {
+          this.logger.warn(`Invalid bar data at index ${j}`)
+          continue
+        }
+        
         feature.push(
           bar[1], // open
           bar[2], // high
@@ -352,6 +444,12 @@ export class ModelManager extends EventEmitter {
           bar[4], // close
           bar[5]  // volume
         )
+      }
+      
+      // Ensure we have exactly 100 features (20 bars * 5 values)
+      if (feature.length !== 100) {
+        this.logger.warn(`Incomplete feature vector: ${feature.length} values`)
+        continue
       }
       
       // Technical indicators
@@ -395,6 +493,12 @@ export class ModelManager extends EventEmitter {
         date.getDate() / 31
       )
       
+      // Ensure all features are valid numbers
+      if (feature.some(val => isNaN(val) || !isFinite(val))) {
+        this.logger.warn(`Invalid feature values detected, skipping sample`)
+        continue
+      }
+      
       features.push(feature)
     }
     
@@ -407,6 +511,11 @@ export class ModelManager extends EventEmitter {
     for (let i = 20; i < ohlcv.length - 5; i++) {
       const currentPrice = ohlcv[i][4]
       const futurePrice = ohlcv[i + 5][4] // 5 bars ahead
+      
+      if (!currentPrice || !futurePrice || isNaN(currentPrice) || isNaN(futurePrice)) {
+        this.logger.warn(`Invalid price data for label generation`)
+        continue
+      }
       
       const priceChange = (futurePrice - currentPrice) / currentPrice
       

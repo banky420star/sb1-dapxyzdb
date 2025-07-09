@@ -1,0 +1,18 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy only essential files first
+COPY package*.json ./
+RUN npm ci --omit=dev || npm install --production
+
+# Copy application files
+COPY server ./server
+COPY dist ./dist
+COPY .env .env
+
+# Create directories
+RUN mkdir -p data logs models
+
+# Start the application
+CMD ["node", "server/index.js"]

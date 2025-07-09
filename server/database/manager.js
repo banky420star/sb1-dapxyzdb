@@ -212,6 +212,8 @@ export class DatabaseManager {
         training_date DATETIME,
         data_size INTEGER,
         version TEXT,
+        status TEXT DEFAULT 'offline',
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `)
@@ -266,6 +268,21 @@ export class DatabaseManager {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `)
+
+    // Notifications table
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id TEXT PRIMARY KEY,
+        level TEXT NOT NULL,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        category TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        read INTEGER DEFAULT 0,
+        data TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
     
     this.logger.info('Database tables created')
   }
@@ -305,6 +322,10 @@ export class DatabaseManager {
     // News events indexes
     await this.db.exec('CREATE INDEX IF NOT EXISTS idx_news_timestamp ON news_events(timestamp)')
     await this.db.exec('CREATE INDEX IF NOT EXISTS idx_news_currency ON news_events(currency)')
+
+    // Notifications indexes
+    await this.db.exec('CREATE INDEX IF NOT EXISTS idx_notifications_timestamp ON notifications(timestamp)')
+    await this.db.exec('CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read)')
     
     this.logger.info('Database indexes created')
   }
@@ -578,8 +599,8 @@ export class DatabaseManager {
   async getTradeHistory(limit = 100) {
     try {
       const rows = await this.db.all(`
-        SELECT * FROM trades
-        ORDER BY timestamp DESC
+        SELECT * FROM trades 
+        ORDER BY timestamp DESC 
         LIMIT ?
       `, [limit])
       
@@ -594,11 +615,112 @@ export class DatabaseManager {
         pnl: row.pnl,
         duration: row.duration,
         timestamp: row.timestamp,
-        reason: row.reason
+        reason: row.reason,
+        createdAt: row.created_at
       }))
     } catch (error) {
       this.logger.error('Error getting trade history:', error)
-      throw error
+      return []
+    }
+  }
+
+  async getRecentTrades(limit = 100) {
+    try {
+      const rows = await this.db.all(`
+        SELECT * FROM trades 
+        ORDER BY timestamp DESC 
+        LIMIT ?
+      `, [limit])
+      
+      return rows.map(row => ({
+        id: row.id,
+        symbol: row.symbol,
+        side: row.side,
+        size: row.size,
+        entryPrice: row.entry_price,
+        closePrice: row.close_price,
+        pnl: row.pnl,
+        timestamp: row.timestamp
+      }))
+    } catch (error) {
+      this.logger.error('Error getting recent trades:', error)
+      return []
+    }
+  }
+
+  async getModelStatus() {
+    try {
+      if (!this.db) {
+        this.logger.warn('Database not initialized for getModelStatus')
+        return []
+      }
+      
+      // Get model performance data
+      const rows = await this.db.all(`
+        SELECT model_type, accuracy, timestamp as last_update, status, version
+        FROM model_performance 
+        ORDER BY timestamp DESC
+      `)
+      
+      return rows.map(row => ({
+        name: row.model_type,
+        type: row.model_type.toLowerCase().replace(' ', ''),
+        status: row.status || 'offline',
+        accuracy: row.accuracy || 0,
+        lastUpdate: row.last_update,
+        version: row.version || '1.0.0'
+      }))
+    } catch (error) {
+      this.logger.error('Error getting model status:', error)
+      return []
+    }
+  }
+
+  async saveNotification(notification) {
+    try {
+      await this.db.run(`
+        INSERT INTO notifications (
+          id, level, title, message, category, timestamp, read, data
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        notification.id,
+        notification.level,
+        notification.title,
+        notification.message,
+        notification.category,
+        notification.timestamp,
+        notification.read ? 1 : 0,
+        JSON.stringify(notification.data || {})
+      ])
+      
+      return true
+    } catch (error) {
+      this.logger.error('Error saving notification:', error)
+      return false
+    }
+  }
+
+  async getNotifications(limit = 50) {
+    try {
+      const rows = await this.db.all(`
+        SELECT * FROM notifications 
+        ORDER BY timestamp DESC 
+        LIMIT ?
+      `, [limit])
+      
+      return rows.map(row => ({
+        id: row.id,
+        level: row.level,
+        title: row.title,
+        message: row.message,
+        category: row.category,
+        timestamp: row.timestamp,
+        read: Boolean(row.read),
+        data: row.data ? JSON.parse(row.data) : {}
+      }))
+    } catch (error) {
+      this.logger.error('Error getting notifications:', error)
+      return []
     }
   }
 
@@ -934,6 +1056,33 @@ export class DatabaseManager {
     } catch (error) {
       this.logger.error('Error getting news events:', error)
       throw error
+    }
+  }
+
+  async getEconomicEvents(hours = 24) {
+    try {
+      const cutoff = Date.now() - hours * 60 * 60 * 1000
+      
+      const rows = await this.db.all(`
+        SELECT * FROM economic_events
+        WHERE timestamp > ?
+        ORDER BY event_time DESC
+      `, [cutoff])
+      
+      return rows.map(row => ({
+        id: row.event_id,
+        country: row.country,
+        title: row.title,
+        actual: row.actual,
+        previous: row.previous,
+        forecast: row.forecast,
+        impact: row.impact,
+        timestamp: row.timestamp,
+        event_time: row.event_time
+      }))
+    } catch (error) {
+      this.logger.error('Error getting economic events:', error)
+      return []
     }
   }
 
