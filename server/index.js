@@ -498,6 +498,14 @@ async function startServer() {
         
         // Initialize Autonomous Orchestrator (optional)
         try {
+          // Pass system components to orchestrator
+          autonomousOrchestrator.setSystemComponents({
+            tradingEngine,
+            dataManager,
+            modelManager,
+            riskManager,
+            database: dataManager.db
+          })
           await autonomousOrchestrator.initialize()
         } catch (error) {
           logger.warn('Autonomous Orchestrator not available, continuing without it')
