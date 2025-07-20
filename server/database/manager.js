@@ -213,6 +213,7 @@ export class DatabaseManager {
         data_size INTEGER,
         version TEXT,
         status TEXT DEFAULT 'offline',
+        last_update DATETIME DEFAULT CURRENT_TIMESTAMP,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -269,6 +270,22 @@ export class DatabaseManager {
       )
     `)
 
+    // Economic events table
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS economic_events (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        currency TEXT,
+        impact TEXT,
+        actual TEXT,
+        forecast TEXT,
+        previous TEXT,
+        event_time DATETIME,
+        timestamp INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
     // Notifications table
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS notifications (
@@ -280,6 +297,46 @@ export class DatabaseManager {
         timestamp INTEGER NOT NULL,
         read INTEGER DEFAULT 0,
         data TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+    
+    // Trading Signals table
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS trading_signals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        symbol TEXT NOT NULL,
+        signal_type TEXT NOT NULL,
+        confidence REAL NOT NULL,
+        price REAL NOT NULL,
+        indicators TEXT,
+        timestamp INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Price Data table
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS price_data (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        symbol TEXT NOT NULL,
+        bid REAL NOT NULL,
+        ask REAL NOT NULL,
+        spread REAL NOT NULL,
+        timestamp INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Market Analysis table
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS market_analysis (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        overall_trend TEXT NOT NULL,
+        volatility REAL NOT NULL,
+        opportunities TEXT,
+        risks TEXT,
+        timestamp INTEGER NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `)
@@ -326,6 +383,17 @@ export class DatabaseManager {
     // Notifications indexes
     await this.db.exec('CREATE INDEX IF NOT EXISTS idx_notifications_timestamp ON notifications(timestamp)')
     await this.db.exec('CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(read)')
+    
+    // Trading Signals indexes
+    await this.db.exec('CREATE INDEX IF NOT EXISTS idx_trading_signals_symbol ON trading_signals(symbol)')
+    await this.db.exec('CREATE INDEX IF NOT EXISTS idx_trading_signals_timestamp ON trading_signals(timestamp)')
+
+    // Price Data indexes
+    await this.db.exec('CREATE INDEX IF NOT EXISTS idx_price_data_symbol ON price_data(symbol)')
+    await this.db.exec('CREATE INDEX IF NOT EXISTS idx_price_data_timestamp ON price_data(timestamp)')
+
+    // Market Analysis indexes
+    await this.db.exec('CREATE INDEX IF NOT EXISTS idx_market_analysis_timestamp ON market_analysis(timestamp)')
     
     this.logger.info('Database indexes created')
   }
@@ -657,9 +725,9 @@ export class DatabaseManager {
       
       // Get model performance data
       const rows = await this.db.all(`
-        SELECT model_type, accuracy, timestamp as last_update, status, version
+        SELECT model_type, accuracy, created_at as last_update, status, version
         FROM model_performance 
-        ORDER BY timestamp DESC
+        ORDER BY created_at DESC
       `)
       
       return rows.map(row => ({
@@ -1059,6 +1127,31 @@ export class DatabaseManager {
     }
   }
 
+  async saveEconomicEvent(economicEvent) {
+    try {
+      await this.db.run(`
+        INSERT OR REPLACE INTO economic_events
+        (id, title, currency, impact, actual, forecast, previous, event_time, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        economicEvent.id,
+        economicEvent.title,
+        economicEvent.currency,
+        economicEvent.impact,
+        economicEvent.actual,
+        economicEvent.forecast,
+        economicEvent.previous,
+        economicEvent.eventTime,
+        economicEvent.timestamp
+      ])
+      
+      return true
+    } catch (error) {
+      this.logger.error('Error saving economic event:', error)
+      throw error
+    }
+  }
+
   async getEconomicEvents(hours = 24) {
     try {
       const cutoff = Date.now() - hours * 60 * 60 * 1000
@@ -1082,6 +1175,150 @@ export class DatabaseManager {
       }))
     } catch (error) {
       this.logger.error('Error getting economic events:', error)
+      return []
+    }
+  }
+
+  // Trading Signals
+  async addTradingSignal(signal) {
+    try {
+      await this.db.run(`
+        INSERT INTO trading_signals
+        (symbol, signal_type, confidence, price, indicators, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `, [
+        signal.symbol,
+        signal.signal,
+        signal.confidence,
+        signal.price,
+        JSON.stringify(signal.indicators || {}),
+        signal.timestamp
+      ])
+      
+      return true
+    } catch (error) {
+      this.logger.error('Error saving trading signal:', error)
+      throw error
+    }
+  }
+
+  async getTradingSignals(symbol = null, limit = 50) {
+    try {
+      let query = `
+        SELECT * FROM trading_signals
+        WHERE 1=1
+      `
+      const params = []
+      
+      if (symbol) {
+        query += ` AND symbol = ?`
+        params.push(symbol)
+      }
+      
+      query += ` ORDER BY timestamp DESC LIMIT ?`
+      params.push(limit)
+      
+      const rows = await this.db.all(query, params)
+      
+      return rows.map(row => ({
+        id: row.id,
+        symbol: row.symbol,
+        signal: row.signal_type,
+        confidence: row.confidence,
+        price: row.price,
+        indicators: JSON.parse(row.indicators || '{}'),
+        timestamp: row.timestamp
+      }))
+    } catch (error) {
+      this.logger.error('Error getting trading signals:', error)
+      return []
+    }
+  }
+
+  // Price Data
+  async addPriceData(priceData) {
+    try {
+      await this.db.run(`
+        INSERT INTO price_data
+        (symbol, bid, ask, spread, timestamp)
+        VALUES (?, ?, ?, ?, ?)
+      `, [
+        priceData.symbol,
+        priceData.bid,
+        priceData.ask,
+        priceData.spread,
+        priceData.timestamp
+      ])
+      
+      return true
+    } catch (error) {
+      this.logger.error('Error saving price data:', error)
+      throw error
+    }
+  }
+
+  async getPriceData(symbol, limit = 100) {
+    try {
+      const rows = await this.db.all(`
+        SELECT * FROM price_data
+        WHERE symbol = ?
+        ORDER BY timestamp DESC
+        LIMIT ?
+      `, [symbol, limit])
+      
+      return rows.map(row => ({
+        symbol: row.symbol,
+        bid: row.bid,
+        ask: row.ask,
+        spread: row.spread,
+        timestamp: row.timestamp
+      }))
+    } catch (error) {
+      this.logger.error('Error getting price data:', error)
+      return []
+    }
+  }
+
+  // Market Analysis
+  async saveMarketAnalysis(analysis) {
+    try {
+      await this.db.run(`
+        INSERT INTO market_analysis
+        (overall_trend, volatility, opportunities, risks, timestamp)
+        VALUES (?, ?, ?, ?, ?)
+      `, [
+        analysis.overallTrend,
+        analysis.volatility,
+        JSON.stringify(analysis.opportunities || []),
+        JSON.stringify(analysis.risks || []),
+        analysis.timestamp
+      ])
+      
+      return true
+    } catch (error) {
+      this.logger.error('Error saving market analysis:', error)
+      throw error
+    }
+  }
+
+  async getMarketAnalysis(limit = 10) {
+    try {
+      const rows = await this.db.all(`
+        SELECT * FROM market_analysis
+        ORDER BY timestamp DESC
+        LIMIT ?
+      `, [limit])
+      
+      return rows.map(row => ({
+        id: row.id,
+        overallTrend: row.overall_trend,
+        volatility: row.volatility,
+        opportunities: JSON.parse(row.opportunities || '[]'),
+        risks: JSON.parse(row.risks || '[]'),
+        timestamp: row.timestamp
+      }))
+    } catch (error) {
+      this.logger.error('Error getting market analysis:', error)
       return []
     }
   }
@@ -1117,7 +1354,8 @@ export class DatabaseManager {
       const tables = [
         'ohlcv_data', 'positions', 'orders', 'trades',
         'account_balance', 'model_states', 'model_performance',
-        'risk_violations', 'metrics', 'news_events'
+        'risk_violations', 'metrics', 'news_events',
+        'trading_signals', 'price_data', 'market_analysis'
       ]
       
       for (const table of tables) {
@@ -1163,6 +1401,21 @@ export class DatabaseManager {
       // Clean up old risk violations
       await this.db.run(`
         DELETE FROM risk_violations WHERE timestamp < ?
+      `, [cutoff])
+
+      // Clean up old trading signals
+      await this.db.run(`
+        DELETE FROM trading_signals WHERE timestamp < ?
+      `, [cutoff])
+
+      // Clean up old price data
+      await this.db.run(`
+        DELETE FROM price_data WHERE timestamp < ?
+      `, [cutoff])
+
+      // Clean up old market analysis
+      await this.db.run(`
+        DELETE FROM market_analysis WHERE timestamp < ?
       `, [cutoff])
       
       this.logger.info(`Cleaned up data older than ${daysToKeep} days`)
@@ -1212,6 +1465,71 @@ export class DatabaseManager {
         error: error.message,
         timestamp: new Date().toISOString()
       }
+    }
+  }
+
+  // Training progress tracking
+  async saveTrainingProgress(sessionId, modelType, progress) {
+    try {
+      // Add null checks for progress object
+      if (!progress || typeof progress !== 'object') {
+        this.logger.warn(`Invalid progress object for ${modelType}, using defaults`)
+        progress = { epoch: 0, loss: null, accuracy: null }
+      }
+
+      await this.db.run(`
+        INSERT OR REPLACE INTO training_progress (
+          session_id, model_type, epoch, loss, accuracy, 
+          validation_loss, validation_accuracy, learning_rate,
+          progress_percent, status, metadata, timestamp
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        sessionId,
+        modelType,
+        progress.epoch || 0,
+        progress.loss || null,
+        progress.accuracy || null,
+        progress.validation_loss || null,
+        progress.validation_accuracy || null,
+        progress.learning_rate || null,
+        progress.progress_percent || 0,
+        progress.status || 'training',
+        JSON.stringify(progress.metadata || {}),
+        new Date().toISOString()
+      ])
+      
+      this.logger.info(`Training progress saved for ${modelType} - Epoch: ${progress.epoch || 0}`)
+    } catch (error) {
+      this.logger.error('Error saving training progress:', error)
+      throw error
+    }
+  }
+
+  async getTrainingProgress(sessionId) {
+    try {
+      const rows = await this.db.all(`
+        SELECT * FROM training_progress
+        WHERE session_id = ?
+        ORDER BY epoch ASC
+      `, [sessionId])
+
+      return rows.map(row => ({
+        sessionId: row.session_id,
+        modelType: row.model_type,
+        epoch: row.epoch,
+        loss: row.loss,
+        accuracy: row.accuracy,
+        validationLoss: row.validation_loss,
+        validationAccuracy: row.validation_accuracy,
+        learningRate: row.learning_rate,
+        progressPercent: row.progress_percent,
+        status: row.status,
+        metadata: JSON.parse(row.metadata || '{}'),
+        timestamp: row.timestamp
+      }))
+    } catch (error) {
+      this.logger.error('Error getting training progress:', error)
+      return []
     }
   }
 

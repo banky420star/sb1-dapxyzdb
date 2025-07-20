@@ -8,7 +8,7 @@ export class AINotificationAgent extends EventEmitter {
   constructor(options = {}) {
     super()
     this.logger = new Logger()
-    this.db = null // Will be set after initialization
+    this.db = options.db || null // Accept database instance from constructor
     this.metrics = new MetricsCollector()
     
     this.options = {
@@ -69,83 +69,46 @@ export class AINotificationAgent extends EventEmitter {
       this.generateDailySummary()
     })
     
+    // Send initial notification
+    await this.sendNotification({
+      level: this.alertLevels.INFO,
+      title: 'AI Notification Agent Started',
+      message: 'AI monitoring system is now active and monitoring your trading system',
+      category: 'system',
+      data: { status: 'started', timestamp: new Date().toISOString() }
+    })
+    
     this.logger.info('AI Notification Agent started successfully')
   }
 
-  async stop() {
-    if (!this.isRunning) return
-    
-    this.logger.info('Stopping AI Notification Agent')
-    this.isRunning = false
-    
-    // Clear all intervals
-    if (this.systemMonitorInterval) {
-      clearInterval(this.systemMonitorInterval)
-    }
-    if (this.tradingMonitorInterval) {
-      clearInterval(this.tradingMonitorInterval)
-    }
-    if (this.modelMonitorInterval) {
-      clearInterval(this.modelMonitorInterval)
-    }
-    if (this.dataStreamMonitorInterval) {
-      clearInterval(this.dataStreamMonitorInterval)
-    }
-    if (this.performanceMonitorInterval) {
-      clearInterval(this.performanceMonitorInterval)
-    }
-    
-    this.logger.info('AI Notification Agent stopped')
-  }
-
   startSystemMonitoring() {
-    this.systemMonitorInterval = setInterval(async () => {
-      try {
-        await this.checkSystemHealth()
-      } catch (error) {
-        this.logger.error('Error in system monitoring:', error)
-      }
+    setInterval(async () => {
+      await this.checkSystemHealth()
     }, this.options.checkInterval)
   }
 
   startTradingMonitoring() {
-    this.tradingMonitorInterval = setInterval(async () => {
-      try {
-        await this.checkTradingPerformance()
-      } catch (error) {
-        this.logger.error('Error in trading monitoring:', error)
-      }
-    }, this.options.checkInterval)
+    setInterval(async () => {
+      await this.checkTradingPerformance()
+    }, this.options.checkInterval * 2) // Check every 60 seconds
   }
 
   startModelMonitoring() {
-    this.modelMonitorInterval = setInterval(async () => {
-      try {
-        await this.checkModelHealth()
-      } catch (error) {
-        this.logger.error('Error in model monitoring:', error)
-      }
-    }, this.options.checkInterval * 2) // Check models less frequently
+    setInterval(async () => {
+      await this.checkModelHealth()
+    }, this.options.checkInterval * 4) // Check every 2 minutes
   }
 
   startDataStreamMonitoring() {
-    this.dataStreamMonitorInterval = setInterval(async () => {
-      try {
-        await this.checkDataStreamHealth()
-      } catch (error) {
-        this.logger.error('Error in data stream monitoring:', error)
-      }
+    setInterval(async () => {
+      await this.checkDataStreamHealth()
     }, this.options.checkInterval)
   }
 
   startPerformanceMonitoring() {
-    this.performanceMonitorInterval = setInterval(async () => {
-      try {
-        await this.checkPerformanceMetrics()
-      } catch (error) {
-        this.logger.error('Error in performance monitoring:', error)
-      }
-    }, this.options.checkInterval)
+    setInterval(async () => {
+      await this.checkPerformanceMetrics()
+    }, this.options.checkInterval * 3) // Check every 90 seconds
   }
 
   async checkSystemHealth() {
@@ -264,62 +227,68 @@ export class AINotificationAgent extends EventEmitter {
   }
 
   async checkDataStreamHealth() {
-    const timeSinceLastUpdate = Date.now() - this.lastDataUpdate
+    const now = Date.now()
+    const timeSinceLastUpdate = now - this.lastDataUpdate
     
     if (timeSinceLastUpdate > this.options.notificationThresholds.connectionTimeout) {
       await this.sendNotification({
-        level: this.alertLevels.ERROR,
-        title: 'Data Stream Interrupted',
+        level: this.alertLevels.WARNING,
+        title: 'Data Stream Alert',
         message: `No data updates for ${Math.floor(timeSinceLastUpdate / 1000)} seconds`,
         category: 'data',
-        data: { timeSinceLastUpdate }
+        data: { timeSinceLastUpdate, lastUpdate: this.lastDataUpdate }
       })
-      
-      this.systemState.dataStreamActive = false
-    } else {
-      this.systemState.dataStreamActive = true
     }
   }
 
   async checkPerformanceMetrics() {
-    const metrics = this.metrics.getMetrics()
-    
-    // Check API response times
-    if (metrics.api?.averageResponseTime > 1000) {
-      await this.sendNotification({
-        level: this.alertLevels.WARNING,
-        title: 'Slow API Response',
-        message: `Average API response time is ${metrics.api.averageResponseTime}ms`,
-        category: 'performance',
-        data: { responseTime: metrics.api.averageResponseTime }
-      })
-    }
-    
-    // Check error rates
-    if (metrics.errors?.rate > 0.05) {
-      await this.sendNotification({
-        level: this.alertLevels.ERROR,
-        title: 'High Error Rate',
-        message: `Error rate is ${(metrics.errors.rate * 100).toFixed(1)}%`,
-        category: 'performance',
-        data: { errorRate: metrics.errors.rate }
-      })
+    try {
+      const metrics = this.metrics.getMetrics()
+      
+      // Check API response times
+      const avgResponseTime = metrics.api?.averageResponseTime || 0
+      if (avgResponseTime > 1000) { // More than 1 second
+        await this.sendNotification({
+          level: this.alertLevels.WARNING,
+          title: 'Slow API Response',
+          message: `Average API response time is ${avgResponseTime.toFixed(0)}ms`,
+          category: 'performance',
+          data: { avgResponseTime }
+        })
+      }
+      
+      // Check error rates
+      const errorRate = metrics.api?.errorRate || 0
+      if (errorRate > 0.05) { // More than 5% errors
+        await this.sendNotification({
+          level: this.alertLevels.ERROR,
+          title: 'High Error Rate',
+          message: `API error rate is ${(errorRate * 100).toFixed(1)}%`,
+          category: 'performance',
+          data: { errorRate }
+        })
+      }
+      
+    } catch (error) {
+      this.logger.error('Error checking performance metrics:', error)
     }
   }
 
   calculateMaxDrawdown(trades) {
+    if (trades.length === 0) return 0
+    
     let peak = 0
     let maxDrawdown = 0
-    let runningPnL = 0
+    let runningTotal = 0
     
     for (const trade of trades) {
-      runningPnL += trade.pnl
+      runningTotal += trade.pnl
       
-      if (runningPnL > peak) {
-        peak = runningPnL
+      if (runningTotal > peak) {
+        peak = runningTotal
       }
       
-      const drawdown = (peak - runningPnL) / Math.max(peak, 1)
+      const drawdown = (peak - runningTotal) / Math.max(peak, 1)
       if (drawdown > maxDrawdown) {
         maxDrawdown = drawdown
       }
@@ -360,6 +329,10 @@ export class AINotificationAgent extends EventEmitter {
     return enrichedNotification
   }
 
+  getNotificationHistory() {
+    return this.notificationHistory
+  }
+
   async generateDailySummary() {
     try {
       const today = new Date()
@@ -392,22 +365,12 @@ export class AINotificationAgent extends EventEmitter {
     }
   }
 
-  getNotificationHistory(limit = 50) {
-    return this.notificationHistory.slice(0, limit)
+  stop() {
+    this.isRunning = false
+    this.logger.info('AI Notification Agent stopped')
   }
 
-  markNotificationAsRead(notificationId) {
-    const notification = this.notificationHistory.find(n => n.id === notificationId)
-    if (notification) {
-      notification.read = true
-    }
-  }
-
-  updateDataTimestamp() {
+  updateLastDataUpdate() {
     this.lastDataUpdate = Date.now()
-  }
-
-  getSystemState() {
-    return { ...this.systemState }
   }
 } 

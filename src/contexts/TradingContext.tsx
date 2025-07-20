@@ -20,6 +20,14 @@ interface TradingState {
   systemLoad: number
   modelAccuracy: number
   riskLevel: string
+  // Add real-time data properties
+  realTimePrices: Record<string, any>
+  realTimeSignals: any[]
+  aiStatus: {
+    dataFetcher: { connected: boolean, isRunning: boolean }
+    notificationAgent: any
+    models: any[]
+  }
 }
 
 interface Position {
@@ -113,6 +121,9 @@ type TradingAction =
   | { type: 'UPDATE_AI_NOTIFICATIONS'; payload: AINotification[] }
   | { type: 'ADD_AI_NOTIFICATION'; payload: AINotification }
   | { type: 'MARK_AI_NOTIFICATION_READ'; payload: string }
+  | { type: 'UPDATE_REAL_TIME_PRICES'; payload: Record<string, any> }
+  | { type: 'UPDATE_REAL_TIME_SIGNALS'; payload: any[] }
+  | { type: 'UPDATE_AI_STATUS'; payload: any }
 
 const initialState: TradingState = {
   isConnected: false,
@@ -171,7 +182,14 @@ const initialState: TradingState = {
   winRate: 0,
   systemLoad: 0,
   modelAccuracy: 0,
-  riskLevel: 'Low'
+  riskLevel: 'Low',
+  realTimePrices: {},
+  realTimeSignals: [],
+  aiStatus: {
+    dataFetcher: { connected: false, isRunning: false },
+    notificationAgent: null,
+    models: []
+  }
 }
 
 function tradingReducer(state: TradingState, action: TradingAction): TradingState {
@@ -232,6 +250,12 @@ function tradingReducer(state: TradingState, action: TradingAction): TradingStat
           notification.id === action.payload ? { ...notification, read: true } : notification
         )
       }
+    case 'UPDATE_REAL_TIME_PRICES':
+      return { ...state, realTimePrices: action.payload }
+    case 'UPDATE_REAL_TIME_SIGNALS':
+      return { ...state, realTimeSignals: action.payload }
+    case 'UPDATE_AI_STATUS':
+      return { ...state, aiStatus: action.payload }
     default:
       return state
   }
@@ -253,12 +277,27 @@ export function TradingProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = React.useState<Socket | null>(null)
 
   useEffect(() => {
-    const newSocket = io('http://localhost:8000')
+    const backendUrl = process.env.NODE_ENV === 'production'
+      ? 'http://45.76.136.30:8000'
+      : 'http://localhost:8000'
+    const newSocket = io(backendUrl)
     setSocket(newSocket)
 
     newSocket.on('connect', () => {
       dispatch({ type: 'SET_CONNECTION', payload: true })
       dispatch({ type: 'SET_SYSTEM_STATUS', payload: 'online' })
+    })
+
+    newSocket.on('connect_error', (err) => {
+      dispatch({ type: 'SET_CONNECTION', payload: false })
+      dispatch({ type: 'SET_SYSTEM_STATUS', payload: 'offline' })
+      dispatch({ type: 'ADD_ALERT', payload: {
+        id: Date.now().toString(),
+        type: 'error',
+        message: 'Failed to connect to backend server.',
+        timestamp: new Date().toISOString(),
+        read: false
+      }})
     })
 
     newSocket.on('disconnect', () => {
@@ -297,6 +336,45 @@ export function TradingProvider({ children }: { children: React.ReactNode }) {
     newSocket.on('notification', (notification: AINotification) => {
       dispatch({ type: 'ADD_AI_NOTIFICATION', payload: notification })
     })
+
+    // Add real-time data event listeners
+    newSocket.on('price_update', (prices: Record<string, any>) => {
+      dispatch({ type: 'UPDATE_REAL_TIME_PRICES', payload: prices })
+    })
+
+    newSocket.on('signals_update', (signals: any[]) => {
+      dispatch({ type: 'UPDATE_REAL_TIME_SIGNALS', payload: signals })
+    })
+
+    // Fetch initial real-time data
+    const fetchInitialData = async () => {
+      try {
+        const [pricesRes, signalsRes, aiStatusRes] = await Promise.all([
+          fetch('/api/data/prices'),
+          fetch('/api/data/signals'),
+          fetch('/api/ai/status')
+        ])
+        
+        if (pricesRes.ok) {
+          const pricesData = await pricesRes.json()
+          dispatch({ type: 'UPDATE_REAL_TIME_PRICES', payload: pricesData.prices })
+        }
+        
+        if (signalsRes.ok) {
+          const signalsData = await signalsRes.json()
+          dispatch({ type: 'UPDATE_REAL_TIME_SIGNALS', payload: signalsData.signals })
+        }
+        
+        if (aiStatusRes.ok) {
+          const aiData = await aiStatusRes.json()
+          dispatch({ type: 'UPDATE_AI_STATUS', payload: aiData })
+        }
+      } catch (error) {
+        console.error('Error fetching initial real-time data:', error)
+      }
+    }
+
+    fetchInitialData()
 
     return () => {
       newSocket.close()

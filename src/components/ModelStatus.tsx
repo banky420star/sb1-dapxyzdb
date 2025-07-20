@@ -53,8 +53,21 @@ export default function ModelStatus({ models = [] }: ModelStatusProps) {
     )
   }
 
+  // Apple-style model status card polish
+  const cardStyle = {
+    background: 'rgba(255,255,255,0.7)',
+    borderRadius: '18px',
+    boxShadow: '0 8px 32px 0 rgba(31,38,135,0.18)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255,255,255,0.18)',
+    padding: '1.5rem',
+    margin: '1rem 0',
+    transition: 'box-shadow 0.2s',
+  }
+
   return (
-    <div className="space-y-4">
+    <div style={cardStyle} className="model-status-card">
       {safeModels.map((model, index) => (
         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center space-x-3">

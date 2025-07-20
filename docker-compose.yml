@@ -1,7 +1,97 @@
 version: '3.8'
 
 services:
-  # AI Trading Backend - Optimized for 2 vCPU / 4GB RAM
+  # PostgreSQL + TimescaleDB Database
+  db:
+    image: timescale/timescaledb-ha:pg15-latest
+    container_name: trading-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=trading
+      - POSTGRES_USER=trading_app
+      - POSTGRES_PASSWORD=secure_trading_pass_2024!
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - trading-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trading_app -d trading"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Redis for rate limiting and caching
+  redis:
+    image: redis:7-alpine
+    container_name: trading-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - trading-network
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+
+  # Rate Gate Service for API quota management
+  rate-gate:
+    build:
+      context: .
+      dockerfile: Dockerfile.rate-gate
+    container_name: trading-rate-gate
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - ALPHA_VANTAGE_LIMIT=5
+      - BYBIT_LIMIT=120
+      - WARNING_THRESHOLD=0.8
+    depends_on:
+      - redis
+    networks:
+      - trading-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # AI Trading Backend with PM2 clustering
   trading-backend:
     build: .
     container_name: ai-trading-backend
@@ -13,18 +103,26 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=8000
-      - TRADING_MODE=paper  # Start in paper mode for safety
+      - TRADING_MODE=paper
       - ENABLE_LIVE_TRADING=false
       - MT5_INTEGRATION=true
       - ZMQ_COMMAND_PORT=5555
       - ZMQ_DATA_PORT=5556
+      - DATABASE_URL=postgres://trading_app:secure_trading_pass_2024!@db:5432/trading
+      - REDIS_URL=redis://redis:6379
+      - RATE_GATE_URL=http://rate-gate:3002
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
       - POSITION_SIZE_LIMIT=0.01
       - MAX_DAILY_LOSS=0.005
+      - WINSTON_LEVEL=info
     volumes:
-      - ./data:/app/data
       - ./logs:/app/logs
       - ./models:/app/models
       - ./config:/app/config
+    depends_on:
+      - db
+      - redis
+      - rate-gate
     networks:
       - trading-network
     healthcheck:
@@ -36,11 +134,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.5'
-          memory: 2G
+          cpus: '2.0'
+          memory: 3G
         reservations:
-          cpus: '0.5'
-          memory: 1G
+          cpus: '1.0'
+          memory: 2G
 
   # Frontend Dashboard
   trading-frontend:
@@ -52,8 +150,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - VITE_API_URL=http://45.76.136.30:8000
-      - VITE_WS_URL=ws://45.76.136.30:8000
+      - VITE_API_URL=http://localhost:8000
+      - VITE_WS_URL=ws://localhost:8000
     depends_on:
       - trading-backend
     networks:
@@ -67,28 +165,93 @@ services:
           cpus: '0.1'
           memory: 256M
 
-  # Redis for caching and sessions
-  redis:
-    image: redis:7-alpine
-    container_name: trading-redis
+  # MLflow Tracking Server
+  mlflow:
+    image: python:3.9-slim
+    container_name: trading-mlflow
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "5000:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow/mlflow.db
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
     volumes:
-      - redis-data:/data
+      - mlflow-data:/mlflow
     networks:
       - trading-network
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: >
+      bash -c "
+        pip install mlflow psycopg2-binary &&
+        mlflow server 
+          --backend-store-uri sqlite:///mlflow/mlflow.db 
+          --default-artifact-root /mlflow/artifacts 
+          --host 0.0.0.0 
+          --port 5000
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     deploy:
       resources:
         limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
           cpus: '0.2'
+          memory: 512M
+
+  # Loki for log aggregation
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: trading-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+      - ./monitoring/loki.yml:/etc/loki/local-config.yaml
+    networks:
+      - trading-network
+    command: -config.file=/etc/loki/local-config.yaml
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
           memory: 512M
         reservations:
           cpus: '0.1'
           memory: 256M
 
-  # Monitoring with Prometheus
+  # Promtail for log shipping
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: trading-promtail
+    restart: unless-stopped
+    volumes:
+      - ./logs:/var/log/trading
+      - ./monitoring/promtail.yml:/etc/promtail/config.yml
+    networks:
+      - trading-network
+    depends_on:
+      - loki
+    command: -config.file=/etc/promtail/config.yml
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+
+  # Prometheus for metrics
   prometheus:
     image: prom/prometheus:latest
     container_name: trading-prometheus
@@ -105,17 +268,23 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=7d'  # Keep data for 7 days only
+      - '--storage.tsdb.retention.time=14d'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     deploy:
       resources:
         limits:
-          cpus: '0.2'
+          cpus: '0.3'
           memory: 512M
         reservations:
           cpus: '0.1'
           memory: 256M
 
-  # Grafana for dashboards
+  # Grafana for dashboards and visualization
   grafana:
     image: grafana/grafana:latest
     container_name: trading-grafana
@@ -124,7 +293,8 @@ services:
       - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_INSTALL_PLUGINS=
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_FEATURE_TOGGLES_ENABLE=flameGraph
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana:/etc/grafana/provisioning
@@ -132,16 +302,76 @@ services:
       - trading-network
     depends_on:
       - prometheus
+      - loki
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     deploy:
       resources:
         limits:
-          cpus: '0.2'
-          memory: 256M
+          cpus: '0.3'
+          memory: 512M
         reservations:
           cpus: '0.1'
-          memory: 128M
+          memory: 256M
 
-  # Nginx reverse proxy
+  # Prefect Server for workflow orchestration
+  prefect-server:
+    image: prefecthq/prefect:2.10-python3.11
+    container_name: trading-prefect-server
+    restart: unless-stopped
+    ports:
+      - "4200:4200"
+    environment:
+      - PREFECT_API_URL=http://localhost:4200/api
+      - PREFECT_SERVER_API_HOST=0.0.0.0
+    volumes:
+      - prefect-data:/root/.prefect
+    networks:
+      - trading-network
+    command: prefect server start --host 0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.2'
+          memory: 512M
+
+  # Prefect Agent for running flows
+  prefect-agent:
+    image: prefecthq/prefect:2.10-python3.11
+    container_name: trading-prefect-agent
+    restart: unless-stopped
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    volumes:
+      - ./flows:/flows
+      - ./config:/config
+    networks:
+      - trading-network
+    depends_on:
+      - prefect-server
+      - db
+    command: prefect agent start --work-queue default
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.2'
+          memory: 512M
+
+  # Nginx reverse proxy and load balancer
   nginx:
     image: nginx:alpine
     container_name: trading-nginx
@@ -157,20 +387,33 @@ services:
     depends_on:
       - trading-backend
       - trading-frontend
+      - grafana
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     deploy:
       resources:
         limits:
+          cpus: '0.2'
+          memory: 256M
+        reservations:
           cpus: '0.1'
           memory: 128M
-        reservations:
-          cpus: '0.05'
-          memory: 64M
 
 volumes:
+  postgres-data:
   redis-data:
   prometheus-data:
   grafana-data:
+  loki-data:
+  mlflow-data:
+  prefect-data:
 
 networks:
   trading-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

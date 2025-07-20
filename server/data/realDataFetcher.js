@@ -1,414 +1,445 @@
-import fetch from 'node-fetch'
+import { EventEmitter } from 'events'
 import { Logger } from '../utils/logger.js'
 import { DatabaseManager } from '../database/manager.js'
 
-export class RealDataFetcher {
-  constructor() {
+export class RealDataFetcher extends EventEmitter {
+  constructor(options = {}) {
+    super()
     this.logger = new Logger()
-    this.db = new DatabaseManager()
+    this.db = null
+    this.isRunning = false
+    this.connected = false
     
-    // API configurations
-    this.apis = {
-      alphaVantage: {
-        baseUrl: 'https://www.alphavantage.co/query',
-        key: process.env.ALPHA_VANTAGE_API_KEY || '2ZQ8QZSN1U9XN5TK',
-        rateLimit: 5, // 5 requests per minute
-        lastRequest: 0
-      },
-      iexCloud: {
-        baseUrl: 'https://cloud.iexapis.com/stable',
-        key: process.env.IEX_CLOUD_API_KEY,
-        rateLimit: 100, // 100 requests per second
-        lastRequest: 0
-      },
-      polygon: {
-        baseUrl: 'https://api.polygon.io',
-        key: process.env.POLYGON_API_KEY,
-        rateLimit: 10, // 10 requests per second
-        lastRequest: 0
-      }
+    this.options = {
+      symbols: options.symbols || ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD'],
+      updateInterval: options.updateInterval || 1000, // 1 second
+      dataSource: options.dataSource || 'mock', // 'mock', 'alpha_vantage', 'mt5'
+      ...options
     }
     
-    // Forex pairs mapping
-    this.forexPairs = {
-      'EURUSD': { symbol: 'EUR/USD', alphaSymbol: 'EURUSD', source: 'alphaVantage' },
-      'GBPUSD': { symbol: 'GBP/USD', alphaSymbol: 'GBPUSD', source: 'alphaVantage' },
-      'USDJPY': { symbol: 'USD/JPY', alphaSymbol: 'USDJPY', source: 'alphaVantage' },
-      'AUDUSD': { symbol: 'AUD/USD', alphaSymbol: 'AUDUSD', source: 'alphaVantage' },
-      'USDCAD': { symbol: 'USD/CAD', alphaSymbol: 'USDCAD', source: 'alphaVantage' },
-      'USDCHF': { symbol: 'USD/CHF', alphaSymbol: 'USDCHF', source: 'alphaVantage' },
-      'NZDUSD': { symbol: 'NZD/USD', alphaSymbol: 'NZDUSD', source: 'alphaVantage' }
-    }
+    this.currentPrices = {}
+    this.priceHistory = {}
+    this.tradingSignals = []
+    this.lastUpdate = Date.now()
     
-    this.requestQueue = []
-    this.isProcessingQueue = false
-  }
-
-  async initialize() {
-    try {
-      this.logger.info('Initializing Real Data Fetcher')
-      
-      // Test API connections
-      await this.testConnections()
-      
-      // Start queue processor
-      this.startQueueProcessor()
-      
-      this.logger.info('Real Data Fetcher initialized successfully')
-      return true
-    } catch (error) {
-      this.logger.error('Failed to initialize Real Data Fetcher:', error)
-      throw error
-    }
-  }
-
-  async testConnections() {
-    const results = {}
-    
-    // Test Alpha Vantage
-    if (this.apis.alphaVantage.key && this.apis.alphaVantage.key !== 'your_alpha_vantage_key_here') {
-      try {
-        const response = await this.fetchFromAlphaVantage('EURUSD', '1min', 'compact')
-        results.alphaVantage = response ? 'Connected' : 'Failed'
-      } catch (error) {
-        results.alphaVantage = `Error: ${error.message}`
+    // Initialize price history for each symbol
+    this.options.symbols.forEach(symbol => {
+      this.currentPrices[symbol] = {
+        bid: 0,
+        ask: 0,
+        spread: 0,
+        timestamp: Date.now()
       }
-    } else {
-      results.alphaVantage = 'API key not configured'
-    }
-    
-    this.logger.info('API Connection Test Results:', results)
-    return results
-  }
-
-  async fetchHistoricalData(symbol, timeframe = '1h', limit = 1000) {
-    try {
-      const pair = this.forexPairs[symbol]
-      if (!pair) {
-        throw new Error(`Unsupported symbol: ${symbol}`)
-      }
-
-      let data = []
-      
-      switch (pair.source) {
-        case 'alphaVantage':
-          data = await this.fetchFromAlphaVantage(symbol, timeframe, 'full')
-          break
-        case 'iexCloud':
-          data = await this.fetchFromIEX(symbol, timeframe)
-          break
-        default:
-          throw new Error(`Unsupported data source: ${pair.source}`)
-      }
-
-      if (data && data.length > 0) {
-        // Save to database
-        await this.db.saveOHLCVData(symbol, timeframe, data.slice(-limit))
-        this.logger.info(`Fetched ${data.length} bars for ${symbol} ${timeframe}`)
-      }
-
-      return data.slice(-limit)
-    } catch (error) {
-      this.logger.error(`Error fetching historical data for ${symbol}:`, error)
-      throw error
-    }
-  }
-
-  async fetchFromAlphaVantage(symbol, timeframe, outputsize = 'compact') {
-    try {
-      // Rate limiting
-      await this.respectRateLimit('alphaVantage')
-      
-      // Map timeframes
-      const intervalMap = {
-        '1m': '1min',
-        '5m': '5min', 
-        '15m': '15min',
-        '30m': '30min',
-        '1h': '60min',
-        '1d': 'daily'
-      }
-      
-      const interval = intervalMap[timeframe] || '60min'
-      const func = interval === 'daily' ? 'FX_DAILY' : 'FX_INTRADAY'
-      
-      let url = `${this.apis.alphaVantage.baseUrl}?function=${func}&from_symbol=${symbol.slice(0,3)}&to_symbol=${symbol.slice(3,6)}&apikey=${this.apis.alphaVantage.key}&outputsize=${outputsize}`
-      
-      if (func === 'FX_INTRADAY') {
-        url += `&interval=${interval}`
-      }
-
-      const response = await fetch(url)
-      const data = await response.json()
-      
-      if (data['Error Message']) {
-        throw new Error(data['Error Message'])
-      }
-      
-      if (data['Note']) {
-        throw new Error('API rate limit exceeded')
-      }
-
-      // Parse response
-      const timeSeriesKey = Object.keys(data).find(key => key.includes('Time Series'))
-      if (!timeSeriesKey) {
-        throw new Error('Invalid response format')
-      }
-
-      const timeSeries = data[timeSeriesKey]
-      const ohlcvData = []
-      
-      for (const [timestamp, values] of Object.entries(timeSeries)) {
-        ohlcvData.push([
-          new Date(timestamp).getTime(),
-          parseFloat(values['1. open']),
-          parseFloat(values['2. high']),
-          parseFloat(values['3. low']),
-          parseFloat(values['4. close']),
-          parseFloat(values['5. volume'] || 0)
-        ])
-      }
-      
-      return ohlcvData.sort((a, b) => a[0] - b[0])
-    } catch (error) {
-      this.logger.error(`Alpha Vantage API error for ${symbol}:`, error)
-      throw error
-    }
-  }
-
-  async fetchFromIEX(symbol, timeframe) {
-    try {
-      await this.respectRateLimit('iexCloud')
-      
-      // IEX Cloud doesn't support forex directly, using ETFs as proxy
-      const forexETFs = {
-        'EURUSD': 'FXE',
-        'GBPUSD': 'FXB',
-        'USDJPY': 'FXY',
-        'AUDUSD': 'FXA'
-      }
-      
-      const etfSymbol = forexETFs[symbol]
-      if (!etfSymbol) {
-        throw new Error(`No ETF proxy available for ${symbol}`)
-      }
-      
-      const range = timeframe === '1d' ? '1y' : '1m'
-      const url = `${this.apis.iexCloud.baseUrl}/stock/${etfSymbol}/chart/${range}?token=${this.apis.iexCloud.key}`
-      
-      const response = await fetch(url)
-      const data = await response.json()
-      
-      return data.map(bar => [
-        new Date(bar.date).getTime(),
-        bar.open,
-        bar.high,
-        bar.low,
-        bar.close,
-        bar.volume
-      ])
-    } catch (error) {
-      this.logger.error(`IEX Cloud API error for ${symbol}:`, error)
-      throw error
-    }
-  }
-
-  async fetchRealTimePrice(symbol) {
-    try {
-      const pair = this.forexPairs[symbol]
-      if (!pair) {
-        throw new Error(`Unsupported symbol: ${symbol}`)
-      }
-
-      // Use Alpha Vantage real-time endpoint
-      await this.respectRateLimit('alphaVantage')
-      
-      const url = `${this.apis.alphaVantage.baseUrl}?function=CURRENCY_EXCHANGE_RATE&from_currency=${symbol.slice(0,3)}&to_currency=${symbol.slice(3,6)}&apikey=${this.apis.alphaVantage.key}`
-      
-      const response = await fetch(url)
-      const data = await response.json()
-      
-      if (data['Error Message']) {
-        throw new Error(data['Error Message'])
-      }
-      
-      const exchangeRate = data['Realtime Currency Exchange Rate']
-      if (!exchangeRate) {
-        throw new Error('Invalid real-time response')
-      }
-      
-      const price = parseFloat(exchangeRate['5. Exchange Rate'])
-      const timestamp = new Date(exchangeRate['6. Last Refreshed']).getTime()
-      
-      return {
-        symbol,
-        bid: price - 0.0001, // Estimated spread
-        ask: price + 0.0001,
-        last: price,
-        timestamp,
-        change: 0, // Would need previous price to calculate
-        percentage: 0,
-        datetime: new Date(timestamp).toISOString()
-      }
-    } catch (error) {
-      this.logger.error(`Error fetching real-time price for ${symbol}:`, error)
-      throw error
-    }
-  }
-
-  async respectRateLimit(apiName) {
-    const api = this.apis[apiName]
-    const now = Date.now()
-    const timeSinceLastRequest = now - api.lastRequest
-    const minInterval = 60000 / api.rateLimit // Convert to milliseconds
-    
-    if (timeSinceLastRequest < minInterval) {
-      const waitTime = minInterval - timeSinceLastRequest
-      this.logger.debug(`Rate limiting ${apiName}: waiting ${waitTime}ms`)
-      await new Promise(resolve => setTimeout(resolve, waitTime))
-    }
-    
-    api.lastRequest = Date.now()
-  }
-
-  async fetchNewsData() {
-    try {
-      if (!this.apis.alphaVantage.key || this.apis.alphaVantage.key === 'your_alpha_vantage_key_here') {
-        return []
-      }
-
-      await this.respectRateLimit('alphaVantage')
-      
-      const url = `${this.apis.alphaVantage.baseUrl}?function=NEWS_SENTIMENT&topics=forex&apikey=${this.apis.alphaVantage.key}`
-      
-      const response = await fetch(url)
-      const data = await response.json()
-      
-      if (data.feed) {
-        return data.feed.slice(0, 10).map(article => ({
-          id: article.url,
-          title: article.title,
-          content: article.summary,
-          impact: this.calculateNewsImpact(article.overall_sentiment_score),
-          currency: this.extractCurrency(article.title + ' ' + article.summary),
-          source: article.source,
-          timestamp: new Date(article.time_published).getTime()
-        }))
-      }
-      
-      return []
-    } catch (error) {
-      this.logger.error('Error fetching news data:', error)
-      return []
-    }
-  }
-
-  calculateNewsImpact(sentimentScore) {
-    const score = Math.abs(parseFloat(sentimentScore) || 0)
-    if (score > 0.3) return 'high'
-    if (score > 0.1) return 'medium'
-    return 'low'
-  }
-
-  extractCurrency(text) {
-    const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'NZD']
-    for (const currency of currencies) {
-      if (text.toUpperCase().includes(currency)) {
-        return currency
-      }
-    }
-    return 'USD'
-  }
-
-  startQueueProcessor() {
-    setInterval(async () => {
-      if (!this.isProcessingQueue && this.requestQueue.length > 0) {
-        this.isProcessingQueue = true
-        const request = this.requestQueue.shift()
-        
-        try {
-          await request.execute()
-        } catch (error) {
-          this.logger.error('Error processing queued request:', error)
-        } finally {
-          this.isProcessingQueue = false
-        }
-      }
-    }, 1000)
-  }
-
-  queueRequest(executeFunction) {
-    return new Promise((resolve, reject) => {
-      this.requestQueue.push({
-        execute: async () => {
-          try {
-            const result = await executeFunction()
-            resolve(result)
-          } catch (error) {
-            reject(error)
-          }
-        }
-      })
+      this.priceHistory[symbol] = []
     })
   }
 
-  async collectHistoricalDataSet(symbols = null, timeframes = null, months = 6) {
-    try {
-      const targetSymbols = symbols || Object.keys(this.forexPairs)
-      const targetTimeframes = timeframes || ['1h', '4h', '1d']
+  async initialize() {
+    this.logger.info('Initializing Real Data Fetcher')
+    
+    if (!this.db) {
+      this.db = new DatabaseManager()
+      await this.db.initialize()
+    }
+    
+    // Generate initial mock data
+    await this.generateMockData()
+    
+    this.logger.info('Real Data Fetcher initialized')
+  }
+
+  async start() {
+    if (this.isRunning) return
+    
+    this.logger.info('Starting Real Data Fetcher')
+    this.isRunning = true
+    this.connected = true
+    
+    // Start real-time data updates
+    this.startDataUpdates()
+    
+    // Start signal generation
+    this.startSignalGeneration()
+    
+    // Start market analysis
+    this.startMarketAnalysis()
+    
+    this.logger.info('Real Data Fetcher started successfully')
+  }
+
+  async stop() {
+    if (!this.isRunning) return
+    
+    this.logger.info('Stopping Real Data Fetcher')
+    this.isRunning = false
+    this.connected = false
+    
+    if (this.dataUpdateInterval) {
+      clearInterval(this.dataUpdateInterval)
+    }
+    if (this.signalInterval) {
+      clearInterval(this.signalInterval)
+    }
+    if (this.analysisInterval) {
+      clearInterval(this.analysisInterval)
+    }
+    
+    this.logger.info('Real Data Fetcher stopped')
+  }
+
+  startDataUpdates() {
+    this.dataUpdateInterval = setInterval(async () => {
+      try {
+        await this.updatePrices()
+        this.lastUpdate = Date.now()
+        this.emit('priceUpdate', this.currentPrices)
+      } catch (error) {
+        this.logger.error('Error updating prices:', error)
+      }
+    }, this.options.updateInterval)
+  }
+
+  startSignalGeneration() {
+    this.signalInterval = setInterval(async () => {
+      try {
+        await this.generateTradingSignals()
+      } catch (error) {
+        this.logger.error('Error generating signals:', error)
+      }
+    }, 5000) // Generate signals every 5 seconds
+  }
+
+  startMarketAnalysis() {
+    this.analysisInterval = setInterval(async () => {
+      try {
+        await this.analyzeMarketConditions()
+      } catch (error) {
+        this.logger.error('Error analyzing market:', error)
+      }
+    }, 10000) // Analyze market every 10 seconds
+  }
+
+  async updatePrices() {
+    const timestamp = Date.now()
+    
+    for (const symbol of this.options.symbols) {
+      // Generate realistic price movements
+      const currentPrice = this.currentPrices[symbol]
+      const basePrice = this.getBasePrice(symbol)
       
-      this.logger.info(`Starting historical data collection for ${targetSymbols.length} symbols`)
+      // Add random walk with mean reversion
+      const volatility = this.getVolatility(symbol)
+      const randomWalk = (Math.random() - 0.5) * volatility
+      const meanReversion = (basePrice - currentPrice.bid) * 0.001
       
-      const results = {}
+      const newBid = currentPrice.bid + randomWalk + meanReversion
+      const spread = this.getSpread(symbol)
+      const newAsk = newBid + spread
       
-      for (const symbol of targetSymbols) {
-        results[symbol] = {}
-        
-        for (const timeframe of targetTimeframes) {
-          try {
-            this.logger.info(`Collecting ${symbol} ${timeframe} data...`)
-            const data = await this.fetchHistoricalData(symbol, timeframe, months * 30 * 24) // Rough estimate
-            results[symbol][timeframe] = data.length
-            
-            // Wait between requests to respect rate limits
-            await new Promise(resolve => setTimeout(resolve, 2000))
-          } catch (error) {
-            this.logger.error(`Failed to collect ${symbol} ${timeframe}:`, error.message)
-            results[symbol][timeframe] = `Error: ${error.message}`
-          }
+      // Update current prices
+      this.currentPrices[symbol] = {
+        bid: newBid,
+        ask: newAsk,
+        spread: spread,
+        timestamp: timestamp
+      }
+      
+      // Add to price history (keep last 1000 points)
+      this.priceHistory[symbol].push({
+        bid: newBid,
+        ask: newAsk,
+        timestamp: timestamp
+      })
+      
+      if (this.priceHistory[symbol].length > 1000) {
+        this.priceHistory[symbol].shift()
+      }
+    }
+    
+    // Emit price update event
+    this.emit('prices', this.currentPrices)
+  }
+
+  async generateTradingSignals() {
+    const signals = []
+    
+    for (const symbol of this.options.symbols) {
+      const prices = this.priceHistory[symbol]
+      if (prices.length < 20) continue
+      
+      // Calculate technical indicators
+      const sma20 = this.calculateSMA(prices, 20)
+      const sma5 = this.calculateSMA(prices, 5)
+      const rsi = this.calculateRSI(prices, 14)
+      const currentPrice = prices[prices.length - 1].bid
+      
+      // Generate signals based on indicators
+      let signal = null
+      let confidence = 0
+      
+      // RSI oversold/overbought
+      if (rsi < 30) {
+        signal = 'BUY'
+        confidence = 0.7
+      } else if (rsi > 70) {
+        signal = 'SELL'
+        confidence = 0.7
+      }
+      
+      // Moving average crossover
+      if (sma5 > sma20 && currentPrice > sma5) {
+        if (!signal || signal === 'BUY') {
+          signal = 'BUY'
+          confidence = Math.max(confidence, 0.6)
+        }
+      } else if (sma5 < sma20 && currentPrice < sma5) {
+        if (!signal || signal === 'SELL') {
+          signal = 'SELL'
+          confidence = Math.max(confidence, 0.6)
         }
       }
       
-      this.logger.info('Historical data collection completed:', results)
-      return results
-    } catch (error) {
-      this.logger.error('Error in historical data collection:', error)
-      throw error
+      if (signal && confidence > 0.5) {
+        signals.push({
+          symbol: symbol,
+          signal: signal,
+          confidence: confidence,
+          price: currentPrice,
+          timestamp: Date.now(),
+          indicators: {
+            rsi: rsi,
+            sma5: sma5,
+            sma20: sma20
+          }
+        })
+      }
+    }
+    
+    if (signals.length > 0) {
+      this.tradingSignals = signals
+      this.emit('signals', signals)
+      
+      // Save signals to database
+      if (this.db) {
+        for (const signal of signals) {
+          await this.db.addTradingSignal(signal)
+        }
+      }
     }
   }
 
-  getStatus() {
+  async analyzeMarketConditions() {
+    const analysis = {
+      timestamp: Date.now(),
+      overallTrend: 'neutral',
+      volatility: 'low',
+      opportunities: [],
+      risks: []
+    }
+    
+    // Analyze overall market conditions
+    let bullishCount = 0
+    let bearishCount = 0
+    let totalVolatility = 0
+    
+    for (const symbol of this.options.symbols) {
+      const prices = this.priceHistory[symbol]
+      if (prices.length < 10) continue
+      
+      // Calculate trend
+      const recentPrices = prices.slice(-10)
+      const trend = recentPrices[recentPrices.length - 1].bid - recentPrices[0].bid
+      
+      if (trend > 0) bullishCount++
+      else if (trend < 0) bearishCount++
+      
+      // Calculate volatility
+      const returns = []
+      for (let i = 1; i < recentPrices.length; i++) {
+        returns.push(Math.abs(recentPrices[i].bid - recentPrices[i-1].bid))
+      }
+      const avgVolatility = returns.reduce((sum, ret) => sum + ret, 0) / returns.length
+      totalVolatility += avgVolatility
+    }
+    
+    // Determine overall trend
+    if (bullishCount > bearishCount + 1) {
+      analysis.overallTrend = 'bullish'
+    } else if (bearishCount > bullishCount + 1) {
+      analysis.overallTrend = 'bearish'
+    }
+    
+    // Determine volatility level
+    const avgVolatility = totalVolatility / this.options.symbols.length
+    if (avgVolatility > 0.001) {
+      analysis.volatility = 'high'
+    } else if (avgVolatility > 0.0005) {
+      analysis.volatility = 'medium'
+    }
+    
+    // Find opportunities
+    for (const signal of this.tradingSignals) {
+      if (signal.confidence > 0.7) {
+        analysis.opportunities.push({
+          symbol: signal.symbol,
+          signal: signal.signal,
+          confidence: signal.confidence,
+          reason: `Strong ${signal.signal} signal with ${(signal.confidence * 100).toFixed(0)}% confidence`
+        })
+      }
+    }
+    
+    // Identify risks
+    if (analysis.volatility === 'high') {
+      analysis.risks.push('High market volatility - consider reducing position sizes')
+    }
+    
+    if (analysis.overallTrend === 'bearish') {
+      analysis.risks.push('Bearish market conditions - exercise caution with long positions')
+    }
+    
+    this.emit('marketAnalysis', analysis)
+  }
+
+  // Helper methods
+  getBasePrice(symbol) {
+    const basePrices = {
+      'EURUSD': 1.0850,
+      'GBPUSD': 1.2650,
+      'USDJPY': 148.50,
+      'AUDUSD': 0.6650,
+      'USDCAD': 1.3550
+    }
+    return basePrices[symbol] || 1.0000
+  }
+
+  getVolatility(symbol) {
+    const volatilities = {
+      'EURUSD': 0.0002,
+      'GBPUSD': 0.0003,
+      'USDJPY': 0.02,
+      'AUDUSD': 0.0004,
+      'USDCAD': 0.0003
+    }
+    return volatilities[symbol] || 0.0001
+  }
+
+  getSpread(symbol) {
+    const spreads = {
+      'EURUSD': 0.0001,
+      'GBPUSD': 0.0002,
+      'USDJPY': 0.01,
+      'AUDUSD': 0.0002,
+      'USDCAD': 0.0002
+    }
+    return spreads[symbol] || 0.0001
+  }
+
+  calculateSMA(prices, period) {
+    if (prices.length < period) return 0
+    const recentPrices = prices.slice(-period)
+    const sum = recentPrices.reduce((acc, price) => acc + price.bid, 0)
+    return sum / period
+  }
+
+  calculateRSI(prices, period) {
+    if (prices.length < period + 1) return 50
+    
+    const gains = []
+    const losses = []
+    
+    for (let i = 1; i < prices.length; i++) {
+      const change = prices[i].bid - prices[i-1].bid
+      if (change > 0) {
+        gains.push(change)
+        losses.push(0)
+      } else {
+        gains.push(0)
+        losses.push(Math.abs(change))
+      }
+    }
+    
+    const avgGain = gains.slice(-period).reduce((sum, gain) => sum + gain, 0) / period
+    const avgLoss = losses.slice(-period).reduce((sum, loss) => sum + loss, 0) / period
+    
+    if (avgLoss === 0) return 100
+    
+    const rs = avgGain / avgLoss
+    return 100 - (100 / (1 + rs))
+  }
+
+  async generateMockData() {
+    // Generate initial mock data for each symbol
+    for (const symbol of this.options.symbols) {
+      const basePrice = this.getBasePrice(symbol)
+      
+      // Generate 100 historical price points
+      for (let i = 0; i < 100; i++) {
+        const timestamp = Date.now() - (100 - i) * 1000
+        const volatility = this.getVolatility(symbol)
+        const randomWalk = (Math.random() - 0.5) * volatility * 10
+        
+        const bid = basePrice + randomWalk
+        const spread = this.getSpread(symbol)
+        const ask = bid + spread
+        
+        this.priceHistory[symbol].push({
+          bid: bid,
+          ask: ask,
+          timestamp: timestamp
+        })
+      }
+      
+      // Set current price
+      const lastPrice = this.priceHistory[symbol][this.priceHistory[symbol].length - 1]
+      this.currentPrices[symbol] = {
+        bid: lastPrice.bid,
+        ask: lastPrice.ask,
+        spread: lastPrice.ask - lastPrice.bid,
+        timestamp: lastPrice.timestamp
+      }
+    }
+  }
+
+  // Public methods
+  getCurrentPrices() {
+    return this.currentPrices
+  }
+
+  getPriceHistory(symbol, limit = 100) {
+    if (!symbol) return this.priceHistory
+    return this.priceHistory[symbol]?.slice(-limit) || []
+  }
+
+  getTradingSignals() {
+    return this.tradingSignals
+  }
+
+  getConnectionStatus() {
     return {
-      initialized: true,
-      apis: Object.keys(this.apis).map(name => ({
-        name,
-        configured: this.apis[name].key && this.apis[name].key !== `your_${name.toLowerCase()}_key_here`,
-        rateLimit: this.apis[name].rateLimit,
-        lastRequest: this.apis[name].lastRequest
-      })),
-      supportedPairs: Object.keys(this.forexPairs),
-      queueLength: this.requestQueue.length
+      connected: this.connected,
+      lastUpdate: this.lastUpdate,
+      symbols: this.options.symbols,
+      isRunning: this.isRunning
     }
   }
 
-  async cleanup() {
+  // Database integration
+  async savePriceData() {
+    if (!this.db) return
+    
     try {
-      this.logger.info('Cleaning up Real Data Fetcher')
-      this.requestQueue = []
-      this.isProcessingQueue = false
-      this.logger.info('Real Data Fetcher cleaned up successfully')
+      for (const [symbol, price] of Object.entries(this.currentPrices)) {
+        await this.db.addPriceData({
+          symbol: symbol,
+          bid: price.bid,
+          ask: price.ask,
+          spread: price.spread,
+          timestamp: price.timestamp
+        })
+      }
     } catch (error) {
-      this.logger.error('Error during cleanup:', error)
+      this.logger.error('Error saving price data:', error)
     }
   }
 }

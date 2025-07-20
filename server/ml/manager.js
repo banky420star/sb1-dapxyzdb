@@ -4,12 +4,19 @@ import { DatabaseManager } from '../database/manager.js'
 import { RandomForestModel } from './models/randomforest.js'
 import { LSTMModel } from './models/lstm.js'
 import { DDQNModel } from './models/ddqn.js'
+import { TrainingVisualizer } from './training-visualizer.js'
+import { ModelRewardSystem } from './reward-system.js'
+import fs from 'fs'
+import path from 'path'
+import cron from 'node-cron'
 
 export class ModelManager extends EventEmitter {
   constructor() {
     super()
     this.logger = new Logger()
     this.db = new DatabaseManager()
+    this.trainingVisualizer = new TrainingVisualizer()
+    this.rewardSystem = new ModelRewardSystem()
     this.isInitialized = false
     
     // Model instances
@@ -25,21 +32,30 @@ export class ModelManager extends EventEmitter {
           weight: 0.4,
           retrainInterval: 24 * 60 * 60 * 1000, // 24 hours
           minAccuracy: 0.55,
-          minSamples: 1000 // Minimum samples required for training
+          minSamples: 1000, // Minimum samples required for training
+          epochs: 100,
+          batchSize: 32,
+          learningRate: 0.001
         },
         lstm: {
           enabled: true,
           weight: 0.35,
           retrainInterval: 12 * 60 * 60 * 1000, // 12 hours
           minAccuracy: 0.60,
-          minSamples: 2000 // LSTM needs more data
+          minSamples: 2000, // LSTM needs more data
+          epochs: 50,
+          batchSize: 64,
+          learningRate: 0.001
         },
         ddqn: {
           enabled: true,
           weight: 0.25,
           retrainInterval: 6 * 60 * 60 * 1000, // 6 hours
           minAccuracy: 0.50,
-          minSamples: 1500 // DDQN needs substantial data
+          minSamples: 1500, // DDQN needs substantial data
+          epochs: 200,
+          batchSize: 32,
+          learningRate: 0.0001
         }
       },
       ensemble: {
@@ -75,6 +91,12 @@ export class ModelManager extends EventEmitter {
       // Initialize database
       await this.db.initialize()
       
+      // Initialize training visualizer
+      await this.trainingVisualizer.initialize()
+      
+      // Initialize reward system
+      await this.rewardSystem.initialize()
+      
       // Initialize models
       await this.initializeModels()
       
@@ -95,6 +117,16 @@ export class ModelManager extends EventEmitter {
       this.logger.error('Failed to initialize Model Manager:', error)
       throw error
     }
+  }
+
+  // Set Socket.IO instance for real-time updates
+  setSocketIO(io) {
+    this.trainingVisualizer.setSocketIO(io)
+    
+    // Forward reward system events to Socket.IO
+    this.rewardSystem.on('reward_update', (data) => {
+      io.emit('reward_update', data)
+    })
   }
 
   async reinitialize() {
@@ -187,22 +219,28 @@ export class ModelManager extends EventEmitter {
   }
 
   startTrainingScheduler() {
-    // Check training queue every minute
+    // STAGED TRAINING APPROACH - Check training queue every 5 minutes instead of every minute
     setInterval(async () => {
       if (!this.isTraining && this.trainingQueue.length > 0) {
         const modelType = this.trainingQueue.shift()
         await this.trainModel(modelType)
       }
-    }, 60 * 1000)
+    }, 5 * 60 * 1000) // Changed from 1 minute to 5 minutes
     
-    // Schedule periodic retraining
-    for (const [modelType, config] of Object.entries(this.config.models)) {
-      if (config.enabled) {
-        setInterval(() => {
+    // SCHEDULED DAILY TRAINING - Instead of continuous retraining
+    cron.schedule('0 2 * * *', () => {
+      this.logger.info('Starting scheduled daily training...')
+      for (const [modelType, config] of Object.entries(this.config.models)) {
+        if (config.enabled) {
           this.scheduleTraining(modelType)
-        }, config.retrainInterval)
+        }
       }
-    }
+    })
+    
+    // Emergency retraining only if model performance degrades significantly
+    setInterval(() => {
+      this.checkModelPerformanceAndRetrain()
+    }, 4 * 60 * 60 * 1000) // Check every 4 hours instead of continuous
   }
 
   scheduleTraining(modelType) {
@@ -212,7 +250,20 @@ export class ModelManager extends EventEmitter {
     }
   }
 
+  checkModelPerformanceAndRetrain() {
+    // Check if models need emergency retraining based on performance degradation
+    for (const [modelType, model] of this.models) {
+      const performance = model.getLastPerformance()
+      if (performance && performance.accuracy < 0.45) { // If accuracy drops below 45%
+        this.logger.warn(`Model ${modelType} performance degraded (accuracy: ${performance.accuracy}). Scheduling emergency retraining.`)
+        this.scheduleTraining(modelType)
+      }
+    }
+  }
+
   async trainModel(modelType) {
+    const sessionId = `training_${modelType}_${Date.now()}`
+    
     try {
       this.logger.info(`Starting training for ${modelType} model`)
       this.isTraining = true
@@ -222,41 +273,109 @@ export class ModelManager extends EventEmitter {
         throw new Error(`Model ${modelType} not found`)
       }
       
+      // Start training session in visualizer
+      const trainingConfig = {
+        epochs: this.config.models[modelType].epochs || 100,
+        batchSize: this.config.models[modelType].batchSize || 32,
+        learningRate: this.config.models[modelType].learningRate || 0.001
+      }
+      
+      this.trainingVisualizer.startTrainingSession(sessionId, modelType, trainingConfig)
+      
       // Check data availability before training
       const dataCheck = await this.checkDataAvailability(modelType)
       if (!dataCheck.sufficient) {
+        this.trainingVisualizer.failTrainingSession(sessionId, new Error(dataCheck.message))
         throw new Error(`Insufficient data for ${modelType} training: ${dataCheck.message}`)
       }
       
       const startTime = Date.now()
       
+      // Update progress - data preparation
+      this.trainingVisualizer.updateTrainingProgress(sessionId, 0.1, 0, {
+        status: 'Preparing training data...',
+        dataCheck: dataCheck
+      })
+      
       // Prepare training data
       const trainingData = await this.prepareTrainingData(modelType)
       
       if (!trainingData || trainingData.length === 0) {
+        this.trainingVisualizer.failTrainingSession(sessionId, new Error('No training data available'))
         throw new Error('No training data available')
       }
       
       // Check minimum samples requirement
       const minSamples = this.config.models[modelType].minSamples
       if (trainingData.length < minSamples) {
+        this.trainingVisualizer.failTrainingSession(sessionId, new Error(`Insufficient training samples: ${trainingData.length} < ${minSamples}`))
         throw new Error(`Insufficient training samples: ${trainingData.length} < ${minSamples}`)
       }
       
       this.logger.info(`Training ${modelType} with ${trainingData.length} samples`)
       
+      // Update progress - data split
+      this.trainingVisualizer.updateTrainingProgress(sessionId, 0.2, 0, {
+        status: 'Splitting data...',
+        samples: trainingData.length
+      })
+      
       // Split data
       const { trainData, validData, testData } = this.splitData(trainingData)
       
-      // Train model
-      const result = await model.train(trainData, validData, testData)
+      // Update progress - starting training
+      this.trainingVisualizer.updateTrainingProgress(sessionId, 0.3, 0, {
+        status: 'Starting model training...',
+        trainSamples: trainData.length,
+        validSamples: validData.length,
+        testSamples: testData.length
+      })
+      
+      // Set up training progress callback
+      const onTrainingProgress = (epoch, totalEpochs, metrics) => {
+        const progress = 0.3 + (epoch / totalEpochs) * 0.6 // 30% to 90%
+        const trainingTime = Date.now() - startTime
+        
+        // Update training visualizer
+        this.trainingVisualizer.updateTrainingProgress(sessionId, progress, epoch, {
+          ...metrics,
+          status: `Training epoch ${epoch}/${totalEpochs}`
+        })
+        
+        // Update reward system
+        const reward = this.rewardSystem.updateTrainingReward(
+          sessionId, 
+          modelType, 
+          metrics, 
+          trainingTime, 
+          epoch, 
+          totalEpochs
+        )
+        
+        // Add reward to training progress update
+        this.trainingVisualizer.updateTrainingProgress(sessionId, progress, epoch, {
+          ...metrics,
+          status: `Training epoch ${epoch}/${totalEpochs}`,
+          reward: reward.totalReward,
+          rewardBreakdown: reward.rewardBreakdown
+        })
+      }
+      
+      // Train model with progress tracking
+      const result = await model.train(trainData, validData, testData, onTrainingProgress)
+      
+      // Update progress - saving model
+      this.trainingVisualizer.updateTrainingProgress(sessionId, 0.9, trainingConfig.epochs, {
+        status: 'Saving model...',
+        accuracy: result.accuracy
+      })
       
       // Save model state
       const modelState = await model.getState()
       await this.db.saveModelState(modelType, modelState)
       
       // Save performance metrics
-      await this.db.saveModelPerformance(modelType, {
+      const performanceMetrics = {
         modelType,
         accuracy: result.accuracy,
         precision: result.precision,
@@ -266,11 +385,20 @@ export class ModelManager extends EventEmitter {
         trainingDate: new Date().toISOString(),
         dataSize: trainingData.length,
         version: '1.0.0'
-      })
+      }
+      
+      await this.db.saveModelPerformance(modelType, performanceMetrics)
       
       // Update active models
       this.activeModels.set(modelType, model)
       this.modelPerformance.set(modelType, result)
+      
+      // Complete training session
+      this.trainingVisualizer.completeTrainingSession(sessionId, {
+        ...performanceMetrics,
+        finalAccuracy: result.accuracy,
+        trainingDuration: Date.now() - startTime
+      })
       
       this.logger.info(`${modelType} training completed in ${Date.now() - startTime}ms`)
       this.logger.info(`Accuracy: ${result.accuracy.toFixed(4)}`)
@@ -278,6 +406,10 @@ export class ModelManager extends EventEmitter {
       return result
     } catch (error) {
       this.logger.error(`Error training ${modelType} model:`, error)
+      
+      // Fail training session
+      this.trainingVisualizer.failTrainingSession(sessionId, error)
+      
       throw error
     } finally {
       this.isTraining = false
@@ -843,22 +975,89 @@ export class ModelManager extends EventEmitter {
     for (const [modelType, model] of this.models) {
       const performance = this.modelPerformance.get(modelType)
       const isActive = this.activeModels.has(modelType)
-      const isTraining = this.trainingQueue.includes(modelType) || 
-                        (this.isTraining && this.trainingQueue[0] === modelType)
       
       status.push({
-        name: modelType.charAt(0).toUpperCase() + modelType.slice(1),
-        type: modelType,
-        status: isTraining ? 'training' : isActive ? 'active' : 'offline',
-        accuracy: performance ? performance.accuracy : 0,
-        recentAccuracy: performance ? performance.recentAccuracy : 0,
-        lastUpdate: performance ? performance.trainingDate : null,
-        version: performance ? performance.version : '0.0.0',
-        weight: this.config.models[modelType] ? this.config.models[modelType].weight : 0
+        name: modelType,
+        status: isActive ? 'active' : 'inactive',
+        accuracy: performance?.accuracy || 0,
+        precision: performance?.precision || 0,
+        recall: performance?.recall || 0,
+        f1Score: performance?.f1Score || 0,
+        lastTraining: performance?.trainingDate || null,
+        dataSize: performance?.dataSize || 0,
+        version: performance?.version || '1.0.0'
       })
     }
     
     return status
+  }
+
+  // Get training visualization data
+  getTrainingVisualizationData() {
+    return {
+      activeTrainings: this.trainingVisualizer.getActiveTrainings(),
+      trainingHistory: this.trainingVisualizer.getTrainingHistory(),
+      trainingStats: this.trainingVisualizer.getTrainingStats(),
+      trainingSummary: this.trainingVisualizer.getTrainingSummary()
+    }
+  }
+
+  // Get specific training session data
+  getTrainingSessionData(sessionId) {
+    return this.trainingVisualizer.getTrainingStatus(sessionId)
+  }
+
+  // Get training metrics for a session
+  getTrainingMetrics(sessionId, metricType = 'all') {
+    return this.trainingVisualizer.getTrainingMetrics(sessionId, metricType)
+  }
+
+  // Get real-time training updates
+  getRealTimeTrainingUpdates() {
+    return {
+      activeSessions: this.trainingVisualizer.getActiveTrainings().map(session => ({
+        id: session.id,
+        modelName: session.modelName,
+        progress: session.progress,
+        currentEpoch: session.currentEpoch,
+        totalEpochs: session.totalEpochs,
+        status: session.status,
+        startTime: session.startTime
+      })),
+      recentEvents: this.trainingVisualizer.getTrainingHistory(5)
+    }
+  }
+
+  // Get reward system data
+  getRewardSystemData() {
+    return {
+      activeRewards: this.rewardSystem.getActiveRewards(),
+      rewardStats: {
+        randomforest: this.rewardSystem.getRewardStats('randomforest'),
+        lstm: this.rewardSystem.getRewardStats('lstm'),
+        ddqn: this.rewardSystem.getRewardStats('ddqn')
+      },
+      rewardMetrics: {
+        randomforest: this.rewardSystem.getRewardMetrics('randomforest'),
+        lstm: this.rewardSystem.getRewardMetrics('lstm'),
+        ddqn: this.rewardSystem.getRewardMetrics('ddqn')
+      }
+    }
+  }
+
+  // Get reward breakdown for a session
+  getRewardBreakdown(sessionId) {
+    return this.rewardSystem.getRewardBreakdown(sessionId)
+  }
+
+  // Get reward history for a session
+  getRewardHistory(sessionId) {
+    return this.rewardSystem.getRewardHistory(sessionId)
+  }
+
+  // Update reward metrics configuration
+  updateRewardMetrics(modelType, newMetrics) {
+    this.rewardSystem.updateRewardMetrics(modelType, newMetrics)
   }
 
   getTrainingHistory() {

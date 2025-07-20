@@ -1,0 +1,267 @@
+# AI Trading System - Default Configuration
+# Environment: development (overridden by NODE_ENV)
+
+# Server Configuration
+server:
+  port: 8000
+  host: "0.0.0.0"
+  cors:
+    enabled: true
+    origins: 
+      - "http://localhost:3000"
+      - "http://localhost:5173"
+  compression: true
+  helmet:
+    enabled: true
+  rateLimit:
+    windowMs: 900000  # 15 minutes
+    max: 100  # requests per window
+  timeout: 30000  # 30 seconds
+
+# Database Configuration
+database:
+  url: "postgres://trading_app:secure_trading_pass_2024!@localhost:5432/trading"
+  pool:
+    max: 20
+    min: 5
+    idle: 10000
+    acquire: 60000
+    evict: 1000
+  ssl: false
+  logging: false
+  migrations:
+    directory: "./migrations"
+    tableName: "schema_migrations"
+  retries:
+    max: 3
+    delay: 1000
+
+# Redis Configuration  
+redis:
+  url: "redis://localhost:6379"
+  db: 0
+  keyPrefix: "trading:"
+  retryDelayOnFailover: 100
+  enableReadyCheck: false
+  maxRetriesPerRequest: 3
+  lazyConnect: true
+
+# Rate Limiting Service
+rateGate:
+  url: "http://localhost:3002"
+  providers:
+    alphaVantage:
+      limit: 5
+      window: 60  # seconds
+      warningThreshold: 0.8
+    bybit:
+      limit: 120
+      window: 60
+      warningThreshold: 0.8
+    binance:
+      limit: 1200
+      window: 60
+      warningThreshold: 0.8
+
+# Trading Configuration
+trading:
+  mode: "paper"  # paper | live
+  enableLiveTrading: false
+  riskManagement:
+    maxPositionSize: 0.01  # 1% of account
+    maxDailyLoss: 0.005    # 0.5% of account
+    maxDrawdown: 0.15      # 15%
+    stopLossPercentage: 0.02  # 2%
+    takeProfitRatio: 2.0   # 2:1 risk/reward
+    maxOpenPositions: 5
+  fees:
+    transactionBps: 7      # 0.07% transaction fee
+    slippageBps: 5         # 0.05% slippage
+  symbols:
+    - "EURUSD"
+    - "GBPUSD" 
+    - "USDJPY"
+    - "AUDUSD"
+    - "USDCAD"
+    - "USDCHF"
+    - "NZDUSD"
+  timeframes:
+    - "1m"
+    - "5m"
+    - "15m"
+    - "1h"
+    - "4h"
+    - "1d"
+
+# Machine Learning Configuration
+ml:
+  models:
+    randomForest:
+      enabled: true
+      nEstimators: 100
+      maxDepth: 10
+      minSamplesPlot: 5
+      trainingFrequency: "1h"
+    lstm:
+      enabled: true
+      layers: [50, 50, 25]
+      epochs: 100
+      batchSize: 32
+      sequenceLength: 60
+      trainingFrequency: "4h"
+    ddqn:
+      enabled: true
+      hiddenLayers: [128, 128, 64]
+      learningRate: 0.001
+      batchSize: 64
+      memorySize: 10000
+      trainingFrequency: "6h"
+  features:
+    lookbackPeriods: [5, 10, 20, 50]
+    indicators:
+      - "sma"
+      - "ema"
+      - "rsi"
+      - "macd"
+      - "bollinger"
+      - "stochastic"
+    minDataPoints: 1000
+  training:
+    splitRatio: 0.8  # 80% training, 20% validation
+    crossValidation: 5
+    earlyStoppingPatience: 10
+    saveBestOnly: true
+
+# MLflow Configuration
+mlflow:
+  trackingUri: "http://localhost:5000"
+  experimentName: "ai-trading-experiments"
+  artifactLocation: "./models/artifacts"
+  enableAutolog: true
+
+# Logging Configuration
+logging:
+  level: "info"
+  format: "json"
+  colorize: false
+  timestamp: true
+  rotation:
+    enabled: true
+    frequency: "daily"
+    maxFiles: 14  # Keep 14 days
+    maxSize: "100m"
+  destinations:
+    console:
+      enabled: true
+      level: "info"
+    file:
+      enabled: true
+      level: "debug"
+      filename: "./logs/trading.log"
+    error:
+      enabled: true
+      level: "error"
+      filename: "./logs/error.log"
+    performance:
+      enabled: true
+      level: "info"
+      filename: "./logs/performance.log"
+
+# Monitoring Configuration
+monitoring:
+  prometheus:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+  health:
+    enabled: true
+    path: "/api/health"
+    interval: 30000  # 30 seconds
+  alerts:
+    enabled: true
+    slack:
+      webhook: ""  # Set in environment-specific config
+    email:
+      enabled: false
+      smtp: ""
+
+# WebSocket Configuration
+websocket:
+  enabled: true
+  path: "/socket.io"
+  cors:
+    origin: "*"
+    methods: ["GET", "POST"]
+  pingTimeout: 60000
+  pingInterval: 25000
+  maxConnections: 1000
+
+# Data Sources
+dataSources:
+  alphaVantage:
+    enabled: true
+    apiKey: ""  # Set in environment variables
+    baseUrl: "https://www.alphavantage.co"
+    timeout: 30000
+  bybit:
+    enabled: false
+    apiKey: ""
+    apiSecret: ""
+    sandbox: true
+    timeout: 30000
+  mt5:
+    enabled: false
+    server: ""
+    login: ""
+    password: ""
+    zmq:
+      commandPort: 5555
+      dataPort: 5556
+
+# Security Configuration
+security:
+  jwt:
+    secret: ""  # Set in environment variables
+    expiresIn: "24h"
+  bcrypt:
+    saltRounds: 12
+  headers:
+    hsts: true
+    nosniff: true
+    xssFilter: true
+    referrerPolicy: "same-origin"
+
+# Performance Configuration
+performance:
+  clustering:
+    enabled: true
+    workers: 4
+  caching:
+    enabled: true
+    ttl: 300  # 5 minutes
+    maxSize: 1000
+  compression:
+    enabled: true
+    threshold: 1024  # bytes
+  keepAlive:
+    enabled: true
+    timeout: 5000
+
+# Feature Flags
+features:
+  paperTrading: true
+  liveTrading: false
+  backtesting: true
+  modelTraining: true
+  risManagement: true
+  notifications: true
+  analytics: true
+  apiDocumentation: true
+
+# Development Tools
+development:
+  hotReload: false
+  debugMode: false
+  mockData: false
+  profiling: false
+  sourceMapss: false 

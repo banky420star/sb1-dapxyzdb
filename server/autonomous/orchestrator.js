@@ -93,13 +93,15 @@ export class AutonomousOrchestrator extends EventEmitter {
     
     try {
       // Set trading mode
-      if (this.systemComponents.tradingEngine) {
+      if (this.systemComponents.tradingEngine && typeof this.systemComponents.tradingEngine.setMode === 'function') {
         await this.systemComponents.tradingEngine.setMode(this.config.autonomous.mode)
         this.logger.info(`Trading mode set to: ${this.config.autonomous.mode}`)
+      } else {
+        this.logger.warn('Trading engine not available or missing setMode method')
       }
 
       // Configure risk management
-      if (this.systemComponents.riskManager) {
+      if (this.systemComponents.riskManager && typeof this.systemComponents.riskManager.configure === 'function') {
         await this.systemComponents.riskManager.configure({
           maxPositions: this.config.trading.maxPositions,
           maxRiskPerTrade: this.config.trading.maxRiskPerTrade,
@@ -108,6 +110,8 @@ export class AutonomousOrchestrator extends EventEmitter {
           takeProfit: this.config.trading.takeProfit
         })
         this.logger.info('Risk management configured for autonomous trading')
+      } else {
+        this.logger.warn('Risk manager not available or missing configure method')
       }
 
       // Start trading if auto-start is enabled
@@ -137,9 +141,11 @@ export class AutonomousOrchestrator extends EventEmitter {
     
     this.dataFetchInterval = setInterval(async () => {
       try {
-        if (this.systemComponents.dataManager) {
+        if (this.systemComponents.dataManager && typeof this.systemComponents.dataManager.fetchLatestData === 'function') {
           await this.systemComponents.dataManager.fetchLatestData()
           this.logger.debug('Autonomous data fetch completed')
+        } else {
+          this.logger.warn('Data manager not available or missing fetchLatestData method')
         }
       } catch (error) {
         this.logger.error('Error in autonomous data fetch:', error)
@@ -154,10 +160,12 @@ export class AutonomousOrchestrator extends EventEmitter {
     
     this.modelTrainInterval = setInterval(async () => {
       try {
-        if (this.systemComponents.modelManager) {
+        if (this.systemComponents.modelManager && typeof this.systemComponents.modelManager.retrainAll === 'function') {
           this.logger.info('🔄 Starting autonomous model retraining')
           await this.systemComponents.modelManager.retrainAll()
           this.logger.info('✅ Autonomous model retraining completed')
+        } else {
+          this.logger.warn('Model manager not available or missing retrainAll method')
         }
       } catch (error) {
         this.logger.error('Error in autonomous model training:', error)
@@ -269,19 +277,31 @@ export class AutonomousOrchestrator extends EventEmitter {
     try {
       switch (componentName) {
         case 'dataManager':
-          if (this.systemComponents.dataManager) {
+          if (this.systemComponents.dataManager && typeof this.systemComponents.dataManager.reconnect === 'function') {
             await this.systemComponents.dataManager.reconnect()
+          } else {
+            this.logger.warn('Data manager not available or missing reconnect method')
           }
           break
         case 'modelManager':
-          if (this.systemComponents.modelManager) {
+          if (this.systemComponents.modelManager && typeof this.systemComponents.modelManager.reinitialize === 'function') {
             await this.systemComponents.modelManager.reinitialize()
+          } else {
+            this.logger.warn('Model manager not available or missing reinitialize method')
           }
           break
         case 'tradingEngine':
-          if (this.systemComponents.tradingEngine) {
+          if (this.systemComponents.tradingEngine && typeof this.systemComponents.tradingEngine.restart === 'function') {
             await this.systemComponents.tradingEngine.restart()
+          } else {
+            this.logger.warn('Trading engine not available or missing restart method')
           }
+          break
+        case 'riskManager':
+          this.logger.warn('Risk manager restart not implemented')
+          break
+        case 'database':
+          this.logger.warn('Database restart not implemented')
           break
         default:
           this.logger.warn(`Unknown component to restart: ${componentName}`)

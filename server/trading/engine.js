@@ -2,7 +2,7 @@ import { EventEmitter } from 'events'
 import zmq from 'zeromq'
 import { Logger } from '../utils/logger.js'
 import { DatabaseManager } from '../database/manager.js'
-import { DataManager } from '../data/manager.js'
+import { EnhancedDataManager } from '../data/enhanced-data-manager.js'
 import { ModelManager } from '../ml/manager.js'
 import { RiskManager } from '../risk/manager.js'
 import { MetricsCollector } from '../monitoring/metrics.js'
@@ -12,7 +12,7 @@ export class TradingEngine extends EventEmitter {
     super()
     this.logger = new Logger()
     this.db = new DatabaseManager()
-    this.dataManager = options.dataManager || new DataManager()
+    this.dataManager = options.dataManager || new EnhancedDataManager()
     this.modelManager = options.modelManager || new ModelManager()
     this.riskManager = options.riskManager || new RiskManager()
     this.metrics = options.metrics || new MetricsCollector()

@@ -120,10 +120,23 @@ export default function AINotificationPanel({ isOpen, onClose }: AINotificationP
     }
   }
 
+  // Apple-style notification panel polish
+  const panelStyle = {
+    background: 'rgba(255,255,255,0.7)',
+    borderRadius: '18px',
+    boxShadow: '0 8px 32px 0 rgba(31,38,135,0.18)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255,255,255,0.18)',
+    padding: '1.5rem',
+    maxWidth: '400px',
+    margin: '1rem auto',
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div style={panelStyle} className="notification-panel">
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose} />
       
       <div className="absolute right-0 top-0 h-full w-96 bg-white shadow-xl flex flex-col">

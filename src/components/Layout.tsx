@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import { 
   BarChart3, 
   Brain, 
@@ -17,7 +17,10 @@ import {
   Activity,
   Wifi,
   WifiOff,
-  Zap
+  Zap,
+  Home,
+  BarChart,
+  AlertCircle
 } from 'lucide-react'
 import { useTradingContext } from '../contexts/TradingContext'
 import StatusIndicator from './StatusIndicator'
@@ -25,27 +28,40 @@ import AlertPanel from './AlertPanel'
 import AINotificationPanel from './AINotificationPanel'
 
 interface LayoutProps {
-  children: React.ReactNode
+  children?: React.ReactNode
 }
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: BarChart3, description: 'System overview' },
-  { name: 'Trading', href: '/trading', icon: TrendingUp, description: 'Live trading' },
+  { name: 'Trading', href: '/trading', icon: Zap, description: 'Live trading' },
   { name: 'Models', href: '/models', icon: Brain, description: 'AI models' },
   { name: 'Risk', href: '/risk', icon: Shield, description: 'Risk management' },
-  { name: 'Analytics', href: '/analytics', icon: Activity, description: 'Performance analytics' },
+  { name: 'Analytics', href: '/analytics', icon: TrendingUp, description: 'Performance analytics' },
   { name: 'Settings', href: '/settings', icon: Settings, description: 'System settings' },
+]
+
+// Mobile navigation with fewer items
+const mobileNavigation = [
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Trading', href: '/trading', icon: Zap },
+  { name: 'Analytics', href: '/analytics', icon: TrendingUp },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [alertsOpen, setAlertsOpen] = useState(false)
   const [aiNotificationsOpen, setAINotificationsOpen] = useState(false)
-  const [darkMode, setDarkMode] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const [darkMode, setDarkMode] = useState(true) // Default to dark mode
   const location = useLocation()
-  const { state, toggleTradingMode, emergencyStop } = useTradingContext()
+  const { state, toggleTradingMode, emergencyStop, socket } = useTradingContext()
+  const [trainingActive, setTrainingActive] = useState(false)
 
   useEffect(() => {
+    // Force dark mode initialization
+    document.documentElement.classList.add('dark')
+    document.body.classList.add('dark')
+    
     if (darkMode) {
       document.documentElement.classList.add('dark')
     } else {
@@ -53,11 +69,39 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [darkMode])
 
+  useEffect(() => {
+    if (!socket) return
+    const handleTraining = (sessions) => {
+      setTrainingActive(Array.isArray(sessions) && sessions.length > 0)
+    }
+    socket.on('training_started', () => setTrainingActive(true))
+    socket.on('training_completed', () => setTrainingActive(false))
+    socket.on('training_failed', () => setTrainingActive(false))
+    // Optionally, listen for full session list
+    socket.on('models_update', (models) => {
+      setTrainingActive(models.some(m => m.status === 'training'))
+    })
+    return () => {
+      socket.off('training_started')
+      socket.off('training_completed')
+      socket.off('training_failed')
+      socket.off('models_update')
+    }
+  }, [socket])
+
   const unreadAlerts = state.alerts.filter(alert => !alert.read).length
   const unreadAINotifications = state.aiNotifications.filter(not => !not.read).length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      {trainingActive && (
+        <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-800 px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5 text-yellow-600" />
+            <span>Model training in progress. <a href="/models" className="underline font-semibold">View Training Visualization</a></span>
+          </div>
+        </div>
+      )}
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
@@ -74,7 +118,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="touch-target text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               <X className="h-6 w-6" />
             </button>
@@ -152,17 +196,17 @@ export default function Layout({ children }: LayoutProps) {
       <div className="lg:pl-80">
         {/* Top bar */}
         <div className="sticky top-0 z-40 glass-card border-b border-white/20">
-          <div className="flex h-20 items-center justify-between px-6">
+          <div className="flex h-20 items-center justify-between px-4 md:px-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 lg:hidden transition-colors"
+              className="touch-target text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 lg:hidden transition-colors"
             >
               <Menu className="h-6 w-6" />
             </button>
 
-            <div className="flex items-center space-x-4">
-              {/* Connection Status */}
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 md:space-x-4">
+              {/* Connection Status - Hidden on mobile */}
+              <div className="hidden md:flex items-center space-x-2">
                 {state.systemStatus === 'online' ? (
                   <Wifi className="h-4 w-4 text-green-500" />
                 ) : (
@@ -173,12 +217,12 @@ export default function Layout({ children }: LayoutProps) {
                 </span>
               </div>
 
-              {/* Trading Mode Toggle */}
+              {/* Trading Mode Toggle - Responsive */}
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Mode:</span>
+                <span className="hidden sm:inline text-sm text-gray-600 dark:text-gray-400">Mode:</span>
                 <button
                   onClick={toggleTradingMode}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                  className={`px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all duration-200 touch-target ${
                     state.tradingMode === 'live'
                       ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg'
                       : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
@@ -188,23 +232,24 @@ export default function Layout({ children }: LayoutProps) {
                 </button>
               </div>
 
-              {/* Emergency Stop */}
+              {/* Emergency Stop - Responsive */}
               <button
                 onClick={emergencyStop}
-                className="btn-danger px-4 py-2 text-sm"
+                className="btn-danger px-3 md:px-4 py-2 text-xs md:text-sm touch-target"
               >
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                Emergency Stop
+                <Power className="h-4 w-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Emergency Stop</span>
+                <span className="sm:hidden">STOP</span>
               </button>
 
               {/* Alerts */}
               <button
                 onClick={() => setAlertsOpen(!alertsOpen)}
-                className="relative p-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-xl hover:bg-white/10"
+                className="relative touch-target p-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-xl hover:bg-white/10"
               >
-                <Bell className="h-6 w-6" />
+                <Bell className="h-5 w-5 md:h-6 md:w-6" />
                 {unreadAlerts > 0 && (
-                  <span className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs flex items-center justify-center font-semibold">
+                  <span className="absolute -top-1 -right-1 h-5 w-5 md:h-6 md:w-6 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs flex items-center justify-center font-semibold">
                     {unreadAlerts > 9 ? '9+' : unreadAlerts}
                   </span>
                 )}
@@ -213,11 +258,11 @@ export default function Layout({ children }: LayoutProps) {
               {/* AI Notifications */}
               <button
                 onClick={() => setAINotificationsOpen(!aiNotificationsOpen)}
-                className="relative p-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-xl hover:bg-white/10"
+                className="relative touch-target p-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-xl hover:bg-white/10"
               >
-                <Bot className="h-6 w-6" />
+                <Bot className="h-5 w-5 md:h-6 md:w-6" />
                 {unreadAINotifications > 0 && (
-                  <span className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs flex items-center justify-center font-semibold">
+                  <span className="absolute -top-1 -right-1 h-5 w-5 md:h-6 md:w-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs flex items-center justify-center font-semibold">
                     {unreadAINotifications}
                   </span>
                 )}
@@ -226,7 +271,7 @@ export default function Layout({ children }: LayoutProps) {
               {/* Dark mode toggle */}
               <button
                 onClick={() => setDarkMode(dm => !dm)}
-                className="p-3 text-gray-400 hover:text-gray-600 dark:hover:text-yellow-400 transition-colors rounded-xl hover:bg-white/10"
+                className="touch-target p-3 text-gray-400 hover:text-gray-600 dark:hover:text-yellow-400 transition-colors rounded-xl hover:bg-white/10"
                 aria-label="Toggle dark mode"
               >
                 {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -236,28 +281,44 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         {/* Main content area */}
-        <main className="p-6">
+        <main className="p-4 md:p-6 pb-20 lg:pb-6">
           <div className="fade-in">
             {children}
           </div>
         </main>
       </div>
 
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden mobile-nav">
+        <div className="grid grid-cols-4 gap-1 p-2">
+          {mobileNavigation.map((item) => {
+            const Icon = item.icon
+            const isActive = location.pathname === item.href
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+              >
+                <Icon className="h-5 w-5 mb-1" />
+                <span className="text-xs">{item.name}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Alert Panel */}
-      {alertsOpen && (
-        <AlertPanel 
-          alerts={state.alerts} 
-          onClose={() => setAlertsOpen(false)} 
-        />
-      )}
+      <AlertPanel 
+        isOpen={alertsOpen}
+        onClose={() => setAlertsOpen(false)}
+      />
 
       {/* AI Notification Panel */}
-      {aiNotificationsOpen && (
-        <AINotificationPanel 
-          notifications={state.aiNotifications} 
-          onClose={() => setAINotificationsOpen(false)} 
-        />
-      )}
+      <AINotificationPanel 
+        isOpen={aiNotificationsOpen}
+        onClose={() => setAINotificationsOpen(false)}
+      />
     </div>
   )
 }
