@@ -8,7 +8,6 @@ import { TrainingVisualizer } from './training-visualizer.js'
 import { ModelRewardSystem } from './reward-system.js'
 import fs from 'fs'
 import path from 'path'
-import cron from 'node-cron'
 
 export class ModelManager extends EventEmitter {
   constructor() {
@@ -107,7 +106,7 @@ export class ModelManager extends EventEmitter {
       this.startPerformanceMonitoring()
       
       // Start training scheduler
-      this.startTrainingScheduler()
+      await this.startTrainingScheduler()
       
       this.isInitialized = true
       this.logger.info('Model Manager initialized successfully')
@@ -218,7 +217,7 @@ export class ModelManager extends EventEmitter {
     }, 60 * 60 * 1000)
   }
 
-  startTrainingScheduler() {
+  async startTrainingScheduler() {
     // STAGED TRAINING APPROACH - Check training queue every 5 minutes instead of every minute
     setInterval(async () => {
       if (!this.isTraining && this.trainingQueue.length > 0) {
@@ -228,14 +227,19 @@ export class ModelManager extends EventEmitter {
     }, 5 * 60 * 1000) // Changed from 1 minute to 5 minutes
     
     // SCHEDULED DAILY TRAINING - Instead of continuous retraining
-    cron.schedule('0 2 * * *', () => {
-      this.logger.info('Starting scheduled daily training...')
-      for (const [modelType, config] of Object.entries(this.config.models)) {
-        if (config.enabled) {
-          this.scheduleTraining(modelType)
+    try {
+      const cron = await import('node-cron')
+      cron.default.schedule('0 2 * * *', () => {
+        this.logger.info('Starting scheduled daily training...')
+        for (const [modelType, config] of Object.entries(this.config.models)) {
+          if (config.enabled) {
+            this.scheduleTraining(modelType)
+          }
         }
-      }
-    })
+      })
+    } catch (error) {
+      this.logger.warn('Could not initialize cron scheduler:', error.message)
+    }
     
     // Emergency retraining only if model performance degrades significantly
     setInterval(() => {

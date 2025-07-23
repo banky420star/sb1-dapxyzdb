@@ -1,2 +1,0 @@
-# Monitor AI Trading System every 5 minutes
-*/5 * * * * cd /Users/mac/sb1-dapxyzdb && ./orchestrator-simple.sh status >> logs/monitor.log 2>&1

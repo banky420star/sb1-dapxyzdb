@@ -1,0 +1,152 @@
+name: Secure AI Trading System Deployment
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+env:
+  VULTR_REGION: sgp
+  DOMAIN: trade.yourdomain.com
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Run GitGuardian Secret Scan
+      uses: GitGuardian/ggshield/actions/secret@v1.25.0
+      env:
+        GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+        GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
+        GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+    - name: Scan Docker Images for Vulnerabilities
+      run: |
+        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+          -v $(pwd):/src aquasec/trivy fs --security-checks vuln /src
+
+  deploy:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup SOPS
+      run: |
+        curl -LO https://github.com/mozilla/sops/releases/latest/download/sops-v3.8.1.linux.amd64
+        chmod +x sops-v3.8.1.linux.amd64
+        sudo mv sops-v3.8.1.linux.amd64 /usr/local/bin/sops
+
+    - name: Setup Vultr CLI
+      run: |
+        curl -L https://github.com/vultr/vultr-cli/releases/latest/download/vultr-cli_linux_amd64.tar.gz | tar xz
+        sudo mv vultr-cli /usr/local/bin/
+        
+    - name: Configure Vultr CLI
+      env:
+        VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}
+      run: |
+        echo "$VULTR_API_KEY" | vultr-cli config
+
+    - name: Setup SSH Key
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/vultr-deploy
+        chmod 600 ~/.ssh/vultr-deploy
+        ssh-keygen -y -f ~/.ssh/vultr-deploy > ~/.ssh/vultr-deploy.pub
+
+    - name: Create Secure Environment File
+      env:
+        PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        PROD_REDIS_URL: ${{ secrets.PROD_REDIS_URL }}
+        PROD_ALPHA_KEY: ${{ secrets.PROD_ALPHA_KEY }}
+        PROD_BYBIT_KEY: ${{ secrets.PROD_BYBIT_KEY }}
+        PROD_BYBIT_SECRET: ${{ secrets.PROD_BYBIT_SECRET }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        GRAFANA_PASSWORD: ${{ secrets.GRAFANA_PASSWORD }}
+        SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+      run: |
+        # Create production environment file
+        cat > vultr-production.env << EOF
+        DATABASE_URL=$PROD_DATABASE_URL
+        REDIS_URL=$PROD_REDIS_URL
+        ALPHAVANTAGE_API_KEY=$PROD_ALPHA_KEY
+        BYBIT_API_KEY=$PROD_BYBIT_KEY
+        BYBIT_SECRET_KEY=$PROD_BYBIT_SECRET
+        JWT_SECRET=$JWT_SECRET
+        GRAFANA_PASSWORD=$GRAFANA_PASSWORD
+        NODE_ENV=production
+        TRADING_MODE=paper
+        DOMAIN=$DOMAIN
+        EOF
+        
+        # Encrypt with SOPS
+        echo "$SOPS_AGE_KEY" > age.key
+        sops --encrypt --age $(age-keygen -y age.key) vultr-production.env > .env.enc
+
+    - name: Deploy to Vultr
+      env:
+        SSH_KEY_PATH: ~/.ssh/vultr-deploy
+        DOMAIN: ${{ env.DOMAIN }}
+      run: |
+        # Make deployment script executable
+        chmod +x deploy-vultr-secure.sh
+        
+        # Execute secure deployment
+        ./deploy-vultr-secure.sh
+
+    - name: Run Security Verification
+      run: |
+        # Wait for deployment to stabilize
+        sleep 60
+        
+        # Get instance IP
+        INSTANCE_IP=$(cat .vultr_instance_ip)
+        
+        # Run security sanity check
+        CONTAINER_NAME=ats_api API_ENDPOINT=http://$INSTANCE_IP:8000 ./scripts/secrets-sanity-check.sh
+
+    - name: Cleanup Secrets
+      if: always()
+      run: |
+        # Remove any local secret files
+        rm -f vultr-production.env .env age.key ~/.ssh/vultr-deploy*
+
+    - name: Notify Deployment Status
+      if: always()
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      run: |
+        INSTANCE_IP=$(cat .vultr_instance_ip 2>/dev/null || echo "unknown")
+        STATUS="${{ job.status }}"
+        
+        if [ "$STATUS" = "success" ]; then
+          MESSAGE="✅ AI Trading System deployed successfully to https://$DOMAIN (IP: $INSTANCE_IP)"
+        else
+          MESSAGE="❌ AI Trading System deployment failed"
+        fi
+        
+        if [ -n "$SLACK_WEBHOOK" ]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"$MESSAGE\"}" \
+            "$SLACK_WEBHOOK"
+        fi 

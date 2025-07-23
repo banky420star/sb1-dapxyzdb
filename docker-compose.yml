@@ -1,419 +1,180 @@
-version: '3.8'
-
 services:
-  # PostgreSQL + TimescaleDB Database
+  # PostgreSQL Database (containerized - no apt-install)
   db:
-    image: timescale/timescaledb-ha:pg15-latest
-    container_name: trading-db
-    restart: unless-stopped
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: trading
+      POSTGRES_USER: trading_app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password_change_me}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d/
     ports:
       - "5432:5432"
-    environment:
-      - POSTGRES_DB=trading
-      - POSTGRES_USER=trading_app
-      - POSTGRES_PASSWORD=secure_trading_pass_2024!
-      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d
-    networks:
-      - trading-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U trading_app -d trading"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 2G
-        reservations:
-          cpus: '0.5'
-          memory: 1G
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
 
-  # Redis for rate limiting and caching
+  # Redis Cache & Session Store
   redis:
     image: redis:7-alpine
-    container_name: trading-redis
-    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
     ports:
       - "6379:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - trading-network
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.2'
-          memory: 512M
-        reservations:
-          cpus: '0.1'
-          memory: 256M
-
-  # Rate Gate Service for API quota management
-  rate-gate:
-    build:
-      context: .
-      dockerfile: Dockerfile.rate-gate
-    container_name: trading-rate-gate
-    restart: unless-stopped
-    ports:
-      - "3002:3002"
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - ALPHA_VANTAGE_LIMIT=5
-      - BYBIT_LIMIT=120
-      - WARNING_THRESHOLD=0.8
-    depends_on:
-      - redis
-    networks:
-      - trading-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
-      interval: 15s
+      interval: 30s
       timeout: 5s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.2'
-          memory: 256M
-        reservations:
-          cpus: '0.1'
-          memory: 128M
-
-  # AI Trading Backend with PM2 clustering
-  trading-backend:
-    build: .
-    container_name: ai-trading-backend
     restart: unless-stopped
+
+  # Rate Gate Service (API quota management)
+  rate-gate:
+    build:
+      context: ./services/rate-gate
+      dockerfile: Dockerfile
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - RATE_LIMIT_ALPHA_VANTAGE=${RATE_LIMIT_ALPHA_VANTAGE:-5}
+      - RATE_LIMIT_BYBIT=${RATE_LIMIT_BYBIT:-100}
+    ports:
+      - "3001:3001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # Main Trading API & WebSocket Server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://trading_app:${DB_PASSWORD:-secure_password_change_me}@db:5432/trading
+      - REDIS_URL=redis://redis:6379
+      - RATE_GATE_URL=http://rate-gate:3001
+      - ALPHAVANTAGE_API_KEY=${ALPHAVANTAGE_API_KEY}
+      - BYBIT_API_KEY=${BYBIT_API_KEY}
+      - BYBIT_SECRET_KEY=${BYBIT_SECRET_KEY}
+      - JWT_SECRET=${JWT_SECRET:-change_me_in_production}
+      - NODE_ENV=production
+      - TRADING_MODE=paper
+      - PORT=8000
     ports:
       - "8000:8000"
-      - "5555:5555"  # MT5 Command Port
-      - "5556:5556"  # MT5 Data Port
-    environment:
-      - NODE_ENV=production
-      - PORT=8000
-      - TRADING_MODE=paper
-      - ENABLE_LIVE_TRADING=false
-      - MT5_INTEGRATION=true
-      - ZMQ_COMMAND_PORT=5555
-      - ZMQ_DATA_PORT=5556
-      - DATABASE_URL=postgres://trading_app:secure_trading_pass_2024!@db:5432/trading
-      - REDIS_URL=redis://redis:6379
-      - RATE_GATE_URL=http://rate-gate:3002
-      - MLFLOW_TRACKING_URI=http://mlflow:5000
-      - POSITION_SIZE_LIMIT=0.01
-      - MAX_DAILY_LOSS=0.005
-      - WINSTON_LEVEL=info
-    volumes:
-      - ./logs:/app/logs
-      - ./models:/app/models
-      - ./config:/app/config
     depends_on:
-      - db
-      - redis
-      - rate-gate
-    networks:
-      - trading-network
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rate-gate:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 3G
-        reservations:
-          cpus: '1.0'
-          memory: 2G
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
 
-  # Frontend Dashboard
-  trading-frontend:
+  # Frontend (Pre-built React app)
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    container_name: ai-trading-frontend
-    restart: unless-stopped
     ports:
-      - "3000:3000"
-    environment:
-      - VITE_API_URL=http://localhost:8000
-      - VITE_WS_URL=ws://localhost:8000
+      - "3000:80"
     depends_on:
-      - trading-backend
-    networks:
-      - trading-network
-    deploy:
-      resources:
-        limits:
-          cpus: '0.3'
-          memory: 512M
-        reservations:
-          cpus: '0.1'
-          memory: 256M
-
-  # MLflow Tracking Server
-  mlflow:
-    image: python:3.9-slim
-    container_name: trading-mlflow
-    restart: unless-stopped
-    ports:
-      - "5000:5000"
-    environment:
-      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow/mlflow.db
-      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
-    volumes:
-      - mlflow-data:/mlflow
-    networks:
-      - trading-network
-    command: >
-      bash -c "
-        pip install mlflow psycopg2-binary &&
-        mlflow server 
-          --backend-store-uri sqlite:///mlflow/mlflow.db 
-          --default-artifact-root /mlflow/artifacts 
-          --host 0.0.0.0 
-          --port 5000
-      "
+      - api
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
-        reservations:
-          cpus: '0.2'
-          memory: 512M
-
-  # Loki for log aggregation
-  loki:
-    image: grafana/loki:2.9.0
-    container_name: trading-loki
     restart: unless-stopped
-    ports:
-      - "3100:3100"
-    volumes:
-      - loki-data:/loki
-      - ./monitoring/loki.yml:/etc/loki/local-config.yaml
-    networks:
-      - trading-network
-    command: -config.file=/etc/loki/local-config.yaml
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/ready"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.3'
-          memory: 512M
-        reservations:
-          cpus: '0.1'
-          memory: 256M
 
-  # Promtail for log shipping
-  promtail:
-    image: grafana/promtail:2.9.0
-    container_name: trading-promtail
-    restart: unless-stopped
-    volumes:
-      - ./logs:/var/log/trading
-      - ./monitoring/promtail.yml:/etc/promtail/config.yml
-    networks:
-      - trading-network
-    depends_on:
-      - loki
-    command: -config.file=/etc/promtail/config.yml
-    deploy:
-      resources:
-        limits:
-          cpus: '0.1'
-          memory: 128M
-        reservations:
-          cpus: '0.05'
-          memory: 64M
-
-  # Prometheus for metrics
+  # Prometheus (Metrics Collection)
   prometheus:
     image: prom/prometheus:latest
-    container_name: trading-prometheus
-    restart: unless-stopped
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
-    networks:
-      - trading-network
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=14d'
+      - '--storage.tsdb.retention.time=200h'
       - '--web.enable-lifecycle'
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.3'
-          memory: 512M
-        reservations:
-          cpus: '0.1'
-          memory: 256M
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    restart: unless-stopped
 
-  # Grafana for dashboards and visualization
+  # Grafana (Monitoring Dashboards)
   grafana:
     image: grafana/grafana:latest
-    container_name: trading-grafana
-    restart: unless-stopped
-    ports:
-      - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
-      - GF_FEATURE_TOGGLES_ENABLE=flameGraph
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin123_change_me}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://trade.${DOMAIN:-localhost.local}/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    ports:
+      - "3000:3000"
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana:/etc/grafana/provisioning
-    networks:
-      - trading-network
+      - grafana_data:/var/lib/grafana
+      - ./dashboards:/etc/grafana/provisioning/dashboards
     depends_on:
       - prometheus
+    restart: unless-stopped
+
+  # Loki (Log Aggregation)
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki.yml:/etc/loki/local-config.yaml
+      - loki_data:/tmp/loki
+    restart: unless-stopped
+
+  # Promtail (Log Shipper)
+  promtail:
+    image: grafana/promtail:latest
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./monitoring/promtail.yml:/etc/promtail/config.yml
+      - ./logs:/var/log/trading:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/var/log:ro
+    depends_on:
       - loki
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.3'
-          memory: 512M
-        reservations:
-          cpus: '0.1'
-          memory: 256M
-
-  # Prefect Server for workflow orchestration
-  prefect-server:
-    image: prefecthq/prefect:2.10-python3.11
-    container_name: trading-prefect-server
     restart: unless-stopped
-    ports:
-      - "4200:4200"
-    environment:
-      - PREFECT_API_URL=http://localhost:4200/api
-      - PREFECT_SERVER_API_HOST=0.0.0.0
-    volumes:
-      - prefect-data:/root/.prefect
-    networks:
-      - trading-network
-    command: prefect server start --host 0.0.0.0
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
-        reservations:
-          cpus: '0.2'
-          memory: 512M
-
-  # Prefect Agent for running flows
-  prefect-agent:
-    image: prefecthq/prefect:2.10-python3.11
-    container_name: trading-prefect-agent
-    restart: unless-stopped
-    environment:
-      - PREFECT_API_URL=http://prefect-server:4200/api
-    volumes:
-      - ./flows:/flows
-      - ./config:/config
-    networks:
-      - trading-network
-    depends_on:
-      - prefect-server
-      - db
-    command: prefect agent start --work-queue default
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
-        reservations:
-          cpus: '0.2'
-          memory: 512M
-
-  # Nginx reverse proxy and load balancer
-  nginx:
-    image: nginx:alpine
-    container_name: trading-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-    networks:
-      - trading-network
-    depends_on:
-      - trading-backend
-      - trading-frontend
-      - grafana
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          cpus: '0.2'
-          memory: 256M
-        reservations:
-          cpus: '0.1'
-          memory: 128M
 
 volumes:
-  postgres-data:
-  redis-data:
-  prometheus-data:
-  grafana-data:
-  loki-data:
-  mlflow-data:
-  prefect-data:
+  pgdata:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local
 
 networks:
-  trading-network:
+  default:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16

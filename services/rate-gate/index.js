@@ -1,244 +1,273 @@
-import express from 'express';
-import Redis from 'ioredis';
-import { Logger } from '../../server/utils/logger.js';
+const express = require('express');
+const redis = require('redis');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
 
-class RateGate {
-  constructor() {
-    this.app = express();
-    this.logger = new Logger();
-    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-    
-    // Rate limit configurations
-    this.limits = {
-      ALPHA_VANTAGE: {
-        requests: parseInt(process.env.ALPHA_VANTAGE_LIMIT) || 5,
-        window: 60, // 1 minute window
-        warningThreshold: parseFloat(process.env.WARNING_THRESHOLD) || 0.8
-      },
-      BYBIT: {
-        requests: parseInt(process.env.BYBIT_LIMIT) || 120,
-        window: 60, // 1 minute window
-        warningThreshold: parseFloat(process.env.WARNING_THRESHOLD) || 0.8
-      }
-    };
-    
-    this.setupMiddleware();
-    this.setupRoutes();
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Security middleware
+app.use(helmet());
+app.use(cors());
+app.use(morgan('combined'));
+app.use(express.json());
+
+// Redis client setup
+const redisClient = redis.createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
+
+redisClient.on('error', (err) => {
+  console.error('Redis Client Error:', err);
+});
+
+redisClient.on('connect', () => {
+  console.log('✅ Rate Gate connected to Redis');
+});
+
+// Connect to Redis
+(async () => {
+  try {
+    await redisClient.connect();
+  } catch (error) {
+    console.error('Failed to connect to Redis:', error);
+    process.exit(1);
+  }
+})();
+
+// Rate limiting configuration
+const RATE_LIMITS = {
+  alphavantage: {
+    limit: parseInt(process.env.RATE_LIMIT_ALPHA_VANTAGE) || 5,
+    window: 60000, // 1 minute
+    key: 'rate_limit:alphavantage'
+  },
+  bybit: {
+    limit: parseInt(process.env.RATE_LIMIT_BYBIT) || 100,
+    window: 60000, // 1 minute  
+    key: 'rate_limit:bybit'
+  }
+};
+
+// Rate limiting function
+async function checkRateLimit(provider) {
+  const config = RATE_LIMITS[provider];
+  if (!config) {
+    throw new Error(`Unknown provider: ${provider}`);
   }
 
-  setupMiddleware() {
-    this.app.use(express.json());
-    this.app.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-      next();
-    });
-  }
-
-  setupRoutes() {
-    // Health check
-    this.app.get('/health', (req, res) => {
-      res.json({ 
-        status: 'healthy', 
-        timestamp: new Date().toISOString(),
-        redis: this.redis.status 
-      });
-    });
-
-    // Rate limit check and consumption
-    this.app.post('/consume/:provider', async (req, res) => {
-      try {
-        const { provider } = req.params;
-        const { tokens = 1 } = req.body;
-        
-        const result = await this.consumeTokens(provider.toUpperCase(), tokens);
-        
-        if (result.allowed) {
-          res.json({
-            allowed: true,
-            remaining: result.remaining,
-            resetTime: result.resetTime,
-            usage: result.usage
-          });
-        } else {
-          res.status(429).json({
-            allowed: false,
-            retryAfter: result.retryAfter,
-            usage: result.usage,
-            message: 'Rate limit exceeded'
-          });
-        }
-      } catch (error) {
-        this.logger.error('Error in rate limit consumption:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
-
-    // Get current usage stats
-    this.app.get('/stats/:provider', async (req, res) => {
-      try {
-        const { provider } = req.params;
-        const stats = await this.getUsageStats(provider.toUpperCase());
-        res.json(stats);
-      } catch (error) {
-        this.logger.error('Error getting usage stats:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
-
-    // Get all providers stats
-    this.app.get('/stats', async (req, res) => {
-      try {
-        const allStats = {};
-        for (const provider of Object.keys(this.limits)) {
-          allStats[provider] = await this.getUsageStats(provider);
-        }
-        res.json(allStats);
-      } catch (error) {
-        this.logger.error('Error getting all stats:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
-
-    // Reset rate limit for a provider (admin endpoint)
-    this.app.post('/reset/:provider', async (req, res) => {
-      try {
-        const { provider } = req.params;
-        await this.resetRateLimit(provider.toUpperCase());
-        res.json({ message: 'Rate limit reset successfully' });
-      } catch (error) {
-        this.logger.error('Error resetting rate limit:', error);
-        res.status(500).json({ error: 'Internal server error' });
-      }
-    });
-  }
-
-  async consumeTokens(provider, tokens = 1) {
-    const config = this.limits[provider];
-    if (!config) {
-      throw new Error(`Unknown provider: ${provider}`);
-    }
-
-    const key = `rate_limit:${provider}`;
-    const now = Date.now();
-    const windowStart = Math.floor(now / (config.window * 1000)) * config.window;
-    const windowKey = `${key}:${windowStart}`;
-
-    // Use Redis pipeline for atomic operations
-    const pipeline = this.redis.pipeline();
-    pipeline.incr(windowKey);
-    pipeline.expire(windowKey, config.window);
-    
-    const results = await pipeline.exec();
-    const currentCount = results[0][1];
-
-    const remaining = Math.max(0, config.requests - currentCount);
-    const usage = currentCount / config.requests;
-    const resetTime = (windowStart + config.window) * 1000;
-
-    // Check if we've exceeded the limit
-    if (currentCount > config.requests) {
-      // Remove the token we just added since we're over the limit
-      await this.redis.decr(windowKey);
-      
-      return {
-        allowed: false,
-        retryAfter: Math.ceil((resetTime - now) / 1000),
-        usage: (currentCount - 1) / config.requests,
-        remaining: 0
-      };
-    }
-
-    // Check for warning threshold
-    if (usage >= config.warningThreshold) {
-      this.emitWarning(provider, usage, remaining);
-    }
-
+  const now = Date.now();
+  const windowStart = now - config.window;
+  
+  // Get current count
+  const key = config.key;
+  const count = await redisClient.zCount(key, windowStart, now);
+  
+  // Check if limit exceeded
+  if (count >= config.limit) {
     return {
-      allowed: true,
-      remaining,
-      resetTime,
-      usage
+      allowed: false,
+      count,
+      limit: config.limit,
+      resetTime: windowStart + config.window,
+      backoffSeconds: Math.ceil((windowStart + config.window - now) / 1000)
     };
   }
 
-  async getUsageStats(provider) {
-    const config = this.limits[provider];
-    if (!config) {
-      throw new Error(`Unknown provider: ${provider}`);
-    }
+  // Add current request
+  await redisClient.zAdd(key, { score: now, value: now.toString() });
+  
+  // Clean old entries
+  await redisClient.zRemRangeByScore(key, 0, windowStart);
+  
+  // Set expiry
+  await redisClient.expire(key, Math.ceil(config.window / 1000));
 
-    const key = `rate_limit:${provider}`;
-    const now = Date.now();
-    const windowStart = Math.floor(now / (config.window * 1000)) * config.window;
-    const windowKey = `${key}:${windowStart}`;
-
-    const currentCount = await this.redis.get(windowKey) || 0;
-    const remaining = Math.max(0, config.requests - currentCount);
-    const usage = currentCount / config.requests;
-    const resetTime = (windowStart + config.window) * 1000;
-
-    return {
-      provider,
-      limit: config.requests,
-      used: parseInt(currentCount),
-      remaining,
-      usage,
-      resetTime: new Date(resetTime).toISOString(),
-      windowSeconds: config.window
-    };
-  }
-
-  async resetRateLimit(provider) {
-    const key = `rate_limit:${provider}`;
-    const now = Date.now();
-    const windowStart = Math.floor(now / (this.limits[provider].window * 1000)) * this.limits[provider].window;
-    const windowKey = `${key}:${windowStart}`;
-    
-    await this.redis.del(windowKey);
-    this.logger.info(`Rate limit reset for provider: ${provider}`);
-  }
-
-  emitWarning(provider, usage, remaining) {
-    const warningData = {
-      type: 'rate_limit_warning',
-      provider,
-      usage: Math.round(usage * 100),
-      remaining,
-      timestamp: new Date().toISOString(),
-      message: `${provider} API usage at ${Math.round(usage * 100)}% - ${remaining} requests remaining`
-    };
-
-    this.logger.warn('Rate limit warning:', warningData);
-
-    // Publish warning to Redis for other services to consume
-    this.redis.publish('rate_limit_warnings', JSON.stringify(warningData));
-  }
-
-  async start() {
-    const port = process.env.PORT || 3002;
-    
-    // Wait for Redis connection
-    await this.redis.ping();
-    this.logger.info('Connected to Redis');
-
-    this.app.listen(port, () => {
-      this.logger.info(`🚦 Rate Gate service started on port ${port}`);
-      this.logger.info('📊 Rate limits configured:', this.limits);
-    });
-
-    // Graceful shutdown
-    process.on('SIGTERM', async () => {
-      this.logger.info('SIGTERM received, shutting down gracefully');
-      await this.redis.quit();
-      process.exit(0);
-    });
-  }
+  return {
+    allowed: true,
+    count: count + 1,
+    limit: config.limit,
+    remaining: config.limit - count - 1,
+    resetTime: windowStart + config.window
+  };
 }
 
-// Start the service
-const rateGate = new RateGate();
-rateGate.start().catch(error => {
-  console.error('Failed to start Rate Gate service:', error);
-  process.exit(1);
+// Routes
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    redis: redisClient.isReady ? 'connected' : 'disconnected'
+  });
+});
+
+// Check rate limit
+app.post('/check/:provider', async (req, res) => {
+  try {
+    const { provider } = req.params;
+    const result = await checkRateLimit(provider);
+    
+    if (!result.allowed) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        ...result
+      });
+    }
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Rate limit check error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+});
+
+// Get current status
+app.get('/status/:provider?', async (req, res) => {
+  try {
+    const { provider } = req.params;
+    
+    if (provider) {
+      const config = RATE_LIMITS[provider];
+      if (!config) {
+        return res.status(400).json({ error: `Unknown provider: ${provider}` });
+      }
+      
+      const now = Date.now();
+      const windowStart = now - config.window;
+      const count = await redisClient.zCount(config.key, windowStart, now);
+      
+      res.json({
+        provider,
+        count,
+        limit: config.limit,
+        remaining: config.limit - count,
+        utilizationPercent: ((count / config.limit) * 100).toFixed(1),
+        resetTime: windowStart + config.window
+      });
+    } else {
+      // Return status for all providers
+      const statuses = {};
+      
+      for (const [providerName, config] of Object.entries(RATE_LIMITS)) {
+        const now = Date.now();
+        const windowStart = now - config.window;
+        const count = await redisClient.zCount(config.key, windowStart, now);
+        
+        statuses[providerName] = {
+          count,
+          limit: config.limit,
+          remaining: config.limit - count,
+          utilizationPercent: ((count / config.limit) * 100).toFixed(1),
+          resetTime: windowStart + config.window
+        };
+      }
+      
+      res.json(statuses);
+    }
+  } catch (error) {
+    console.error('Status check error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+});
+
+// Reset rate limits (emergency use only)
+app.post('/reset/:provider?', async (req, res) => {
+  try {
+    const { provider } = req.params;
+    
+    if (provider) {
+      const config = RATE_LIMITS[provider];
+      if (!config) {
+        return res.status(400).json({ error: `Unknown provider: ${provider}` });
+      }
+      
+      await redisClient.del(config.key);
+      console.log(`⚠️ Rate limit reset for provider: ${provider}`);
+      
+      res.json({ 
+        message: `Rate limit reset for ${provider}`,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      // Reset all providers
+      for (const config of Object.values(RATE_LIMITS)) {
+        await redisClient.del(config.key);
+      }
+      
+      console.log('⚠️ Rate limits reset for all providers');
+      
+      res.json({ 
+        message: 'Rate limits reset for all providers',
+        timestamp: new Date().toISOString()
+      });
+    }
+  } catch (error) {
+    console.error('Reset error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+});
+
+// Metrics endpoint (for Prometheus)
+app.get('/metrics', async (req, res) => {
+  try {
+    let metrics = '';
+    
+    for (const [providerName, config] of Object.entries(RATE_LIMITS)) {
+      const now = Date.now();
+      const windowStart = now - config.window;
+      const count = await redisClient.zCount(config.key, windowStart, now);
+      const utilization = count / config.limit;
+      
+      metrics += `# HELP rate_gate_requests_total Total requests for provider\n`;
+      metrics += `# TYPE rate_gate_requests_total counter\n`;
+      metrics += `rate_gate_requests_total{provider="${providerName}"} ${count}\n`;
+      
+      metrics += `# HELP rate_gate_utilization_ratio Current utilization ratio\n`;
+      metrics += `# TYPE rate_gate_utilization_ratio gauge\n`;
+      metrics += `rate_gate_utilization_ratio{provider="${providerName}"} ${utilization.toFixed(3)}\n`;
+      
+      metrics += `# HELP rate_gate_backoff_count Number of requests in backoff\n`;
+      metrics += `# TYPE rate_gate_backoff_count gauge\n`;
+      metrics += `rate_gate_backoff_count{provider="${providerName}"} ${count >= config.limit ? 1 : 0}\n`;
+    }
+    
+    res.set('Content-Type', 'text/plain');
+    res.send(metrics);
+  } catch (error) {
+    console.error('Metrics error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Rate Gate service running on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down Rate Gate service...');
+  await redisClient.quit();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Shutting down Rate Gate service...');
+  await redisClient.quit();
+  process.exit(0);
 }); 

@@ -13,6 +13,14 @@ A comprehensive algorithmic trading platform with machine learning models, real-
 - **MT5 Integration**: ZeroMQ-based integration with MetaTrader 5 for live trading
 - **Autonomous Orchestrator**: Intelligent system coordination and health monitoring
 
+### Infrastructure Services
+- **PostgreSQL (Port 5432)**: TimescaleDB-enabled database with hypertables for time-series data - `trading/securepassword123`
+- **Rate-Gate (Port 3001)**: Redis-based API quota management with 80% warnings and token bucket limiting
+- **MLflow (Port 5000)**: Model tracking server for experiment management and artifact storage - No auth required
+- **Loki (Port 3100)**: Centralized log aggregation with 14-day retention and JSON structured logs
+- **Grafana (Port 3000)**: Monitoring dashboards for metrics and logs - `admin/admin`
+- **Prometheus (Port 9090)**: Metrics collection and time-series database for system monitoring
+
 ### Frontend Dashboard
 - **Real-time Updates**: Live trading data, system metrics, and performance tracking
 - **Interactive Charts**: TradingView integration with technical analysis

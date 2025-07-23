@@ -1,0 +1,248 @@
+# Production Docker Compose with Secrets Injection
+# Usage: docker compose -f docker-compose.yml -f docker-compose.production.yml up -d
+
+version: '3.8'
+
+services:
+  # Trading API with secrets from files
+  api:
+    environment:
+      # File-based secrets (no plaintext env vars)
+      - DATABASE_URL_FILE=/run/secrets/database_url
+      - REDIS_URL_FILE=/run/secrets/redis_url
+      - ALPHAVANTAGE_API_KEY_FILE=/run/secrets/alphavantage_key
+      - BYBIT_API_KEY_FILE=/run/secrets/bybit_key
+      - BYBIT_SECRET_KEY_FILE=/run/secrets/bybit_secret
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+      - RATE_GATE_URL=http://rate-gate:3001
+      - NODE_ENV=production
+      - TRADING_MODE=paper
+      - PORT=8000
+      - LOG_LEVEL=info
+      - SOPS_AGE_KEY_FILE=/run/secrets/age_key
+    secrets:
+      - database_url
+      - redis_url
+      - alphavantage_key
+      - bybit_key
+      - bybit_secret
+      - jwt_secret
+      - age_key
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # Grafana with secure password
+  grafana:
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD_FILE=/run/secrets/grafana_password
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=https://${DOMAIN:-localhost}/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SECURITY_STRICT_TRANSPORT_SECURITY=true
+      - GF_LOG_LEVEL=warn
+    secrets:
+      - grafana_password
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./dashboards:/etc/grafana/provisioning/dashboards:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Database with secure connection
+  db:
+    environment:
+      - POSTGRES_DB=trading
+      - POSTGRES_USER=trading_app
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d/:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  # Rate gate with Redis authentication
+  rate-gate:
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - RATE_LIMIT_ALPHA_VANTAGE=5
+      - RATE_LIMIT_BYBIT=100
+      - NODE_ENV=production
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 256M
+
+  # Redis with authentication
+  redis:
+    command: redis-server --appendonly yes --requirepass $(cat /run/secrets/redis_password)
+    secrets:
+      - redis_password
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 512M
+
+  # Prometheus with retention
+  prometheus:
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+
+  # Loki with retention
+  loki:
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./monitoring/loki.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/tmp/loki
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 512M
+
+  # Promtail for log collection
+  promtail:
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./monitoring/promtail.yml:/etc/promtail/config.yml:ro
+      - ./logs:/var/log/trading:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 128M
+
+  # Frontend with optimized settings
+  frontend:
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+
+# Docker secrets configuration
+secrets:
+  database_url:
+    external: true
+    external_name: trading_database_url
+  redis_url:
+    external: true  
+    external_name: trading_redis_url
+  alphavantage_key:
+    external: true
+    external_name: trading_alphavantage_key
+  bybit_key:
+    external: true
+    external_name: trading_bybit_key
+  bybit_secret:
+    external: true
+    external_name: trading_bybit_secret
+  jwt_secret:
+    external: true
+    external_name: trading_jwt_secret
+  grafana_password:
+    external: true
+    external_name: trading_grafana_password
+  db_password:
+    external: true
+    external_name: trading_db_password
+  redis_password:
+    external: true
+    external_name: trading_redis_password
+  age_key:
+    external: true
+    external_name: trading_age_key
+
+# Production volumes with backup labels
+volumes:
+  pgdata:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/ats/data/postgres
+    labels:
+      - "backup.enable=true"
+      - "backup.schedule=0 2 * * *"
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind  
+      device: /opt/ats/data/redis
+    labels:
+      - "backup.enable=true"
+      - "backup.schedule=0 3 * * *"
+  prometheus_data:
+    driver: local
+    labels:
+      - "backup.enable=false"
+  grafana_data:
+    driver: local
+    labels:
+      - "backup.enable=true"
+      - "backup.schedule=0 4 * * *"
+  loki_data:
+    driver: local
+    labels:
+      - "backup.enable=false"
+
+# Production network configuration
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: ats-prod 
