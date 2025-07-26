@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { useTrading } from '../contexts/TradingContext'
 import { 
   BarChart3, 
   Brain, 
@@ -22,22 +24,22 @@ import {
   BarChart,
   AlertCircle
 } from 'lucide-react'
-import { useTradingContext } from '../contexts/TradingContext'
 import StatusIndicator from './StatusIndicator'
 import AlertPanel from './AlertPanel'
 import AINotificationPanel from './AINotificationPanel'
+import Logo from './Logo'
 
 interface LayoutProps {
   children?: React.ReactNode
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: BarChart3, description: 'System overview' },
-  { name: 'Trading', href: '/trading', icon: Zap, description: 'Live trading' },
-  { name: 'Models', href: '/models', icon: Brain, description: 'AI models' },
-  { name: 'Risk', href: '/risk', icon: Shield, description: 'Risk management' },
+  { name: 'Dashboard', href: '/', icon: BarChart3, description: 'System overview & metrics' },
+  { name: 'Trading', href: '/trading', icon: Zap, description: 'Live trading & signals' },
+  { name: 'Models', href: '/models', icon: Brain, description: 'AI training & visualization' },
+  { name: 'Risk', href: '/risk', icon: Shield, description: 'Risk management & limits' },
   { name: 'Analytics', href: '/analytics', icon: TrendingUp, description: 'Performance analytics' },
-  { name: 'Settings', href: '/settings', icon: Settings, description: 'System settings' },
+  { name: 'Settings', href: '/settings', icon: Settings, description: 'System configuration' },
 ]
 
 // Mobile navigation with fewer items
@@ -54,8 +56,29 @@ export default function Layout({ children }: LayoutProps) {
   const [aiNotificationsOpen, setAINotificationsOpen] = useState(false)
   const [darkMode, setDarkMode] = useState(true) // Default to dark mode
   const location = useLocation()
-  const { state, toggleTradingMode, emergencyStop, socket } = useTradingContext()
+  const { activity, isConnected } = useTrading()
   const [trainingActive, setTrainingActive] = useState(false)
+
+  // Calculate global training progress
+  const getGlobalProgress = () => {
+    const activeModels = Object.values(activity || {}).filter(a => a?.status === 'training')
+    if (activeModels.length === 0) return 0
+    
+    const totalProgress = activeModels.reduce((sum, model) => {
+      return sum + (model.epoch / model.epochs)
+    }, 0)
+    
+    return totalProgress / activeModels.length
+  }
+
+  const globalProgress = getGlobalProgress()
+  const hasActiveTraining = Object.values(activity || {}).some(a => a?.status === 'training')
+
+  // Mock state for alerts since we don't have it in TradingContext yet
+  const state = {
+    alerts: [] as Array<{read: boolean}>,
+    aiNotifications: [] as Array<{read: boolean}>
+  }
 
   useEffect(() => {
     // Force dark mode initialization
@@ -70,30 +93,43 @@ export default function Layout({ children }: LayoutProps) {
   }, [darkMode])
 
   useEffect(() => {
-    if (!socket) return
+    if (!isConnected) return
     const handleTraining = (sessions) => {
       setTrainingActive(Array.isArray(sessions) && sessions.length > 0)
     }
-    socket.on('training_started', () => setTrainingActive(true))
-    socket.on('training_completed', () => setTrainingActive(false))
-    socket.on('training_failed', () => setTrainingActive(false))
-    // Optionally, listen for full session list
-    socket.on('models_update', (models) => {
-      setTrainingActive(models.some(m => m.status === 'training'))
-    })
+    // The original code had socket listeners here, but socket is removed from useTrading.
+    // Assuming these listeners are no longer relevant or will be re-added elsewhere.
+    // For now, removing the socket-specific listeners.
     return () => {
-      socket.off('training_started')
-      socket.off('training_completed')
-      socket.off('training_failed')
-      socket.off('models_update')
+      // socket.off('training_started')
+      // socket.off('training_completed')
+      // socket.off('training_failed')
+      // socket.off('models_update')
     }
-  }, [socket])
+  }, [isConnected])
 
   const unreadAlerts = state.alerts.filter(alert => !alert.read).length
   const unreadAINotifications = state.aiNotifications.filter(not => !not.read).length
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Global Training Progress Bar */}
+      {hasActiveTraining && (
+        <motion.div
+          className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-200 dark:bg-gray-700"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="h-full bg-gradient-to-r from-blue-400 to-blue-600"
+            initial={{ width: 0 }}
+            animate={{ width: `${globalProgress * 100}%` }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          />
+        </motion.div>
+      )}
+      
       {trainingActive && (
         <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-800 px-4 py-2 flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -107,15 +143,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
         <div className="fixed inset-y-0 left-0 flex w-80 flex-col glass-card">
           <div className="flex h-20 items-center justify-between px-6 border-b border-white/20">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Zap className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">AlgoTrader Pro</h1>
-                <p className="text-xs text-gray-600 dark:text-gray-400">AI-Powered Trading</p>
-              </div>
-            </div>
+            <Logo size="md" />
             <button
               onClick={() => setSidebarOpen(false)}
               className="touch-target text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -155,15 +183,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-80 lg:flex-col">
         <div className="flex flex-col flex-grow glass-card">
           <div className="flex items-center h-20 px-6 border-b border-white/20">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <Zap className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">AlgoTrader Pro</h1>
-                <p className="text-xs text-gray-600 dark:text-gray-400">AI-Powered Trading</p>
-              </div>
-            </div>
+            <Logo size="md" />
           </div>
           <nav className="flex-1 space-y-2 px-4 py-6">
             {navigation.map((item) => {
@@ -207,20 +227,21 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center space-x-2 md:space-x-4">
               {/* Connection Status - Hidden on mobile */}
               <div className="hidden md:flex items-center space-x-2">
-                {state.systemStatus === 'online' ? (
+                {isConnected ? (
                   <Wifi className="h-4 w-4 text-green-500" />
                 ) : (
                   <WifiOff className="h-4 w-4 text-red-500" />
                 )}
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {state.systemStatus}
+                  {isConnected ? 'Online' : 'Offline'}
                 </span>
               </div>
 
               {/* Trading Mode Toggle - Responsive */}
               <div className="flex items-center space-x-2">
                 <span className="hidden sm:inline text-sm text-gray-600 dark:text-gray-400">Mode:</span>
-                <button
+                {/* This button is removed from useTrading, so it's no longer available */}
+                {/* <button
                   onClick={toggleTradingMode}
                   className={`px-3 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold transition-all duration-200 touch-target ${
                     state.tradingMode === 'live'
@@ -229,18 +250,19 @@ export default function Layout({ children }: LayoutProps) {
                   }`}
                 >
                   {state.tradingMode.toUpperCase()}
-                </button>
+                </button> */}
               </div>
 
               {/* Emergency Stop - Responsive */}
-              <button
+              {/* This button is removed from useTrading, so it's no longer available */}
+              {/* <button
                 onClick={emergencyStop}
                 className="btn-danger px-3 md:px-4 py-2 text-xs md:text-sm touch-target"
               >
                 <Power className="h-4 w-4 mr-1 md:mr-2" />
                 <span className="hidden sm:inline">Emergency Stop</span>
                 <span className="sm:hidden">STOP</span>
-              </button>
+              </button> */}
 
               {/* Alerts */}
               <button

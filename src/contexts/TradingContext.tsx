@@ -1,458 +1,182 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react'
-import { io, Socket } from 'socket.io-client'
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import io, { Socket } from 'socket.io-client';
 
-interface TradingState {
-  isConnected: boolean
-  tradingMode: 'paper' | 'live'
-  systemStatus: 'online' | 'offline' | 'maintenance'
-  positions: Position[]
-  orders: Order[]
-  trades: Position[] // Add trades array
-  balance: AccountBalance
-  models: ModelStatus[]
-  metrics: TradingMetrics
-  alerts: Alert[]
-  aiNotifications: AINotification[]
-  // Add missing properties that Dashboard uses
-  totalPnL: number
-  pnlChange: number
-  winRate: number
-  systemLoad: number
-  modelAccuracy: number
-  riskLevel: string
-  // Add real-time data properties
-  realTimePrices: Record<string, any>
-  realTimeSignals: any[]
-  aiStatus: {
-    dataFetcher: { connected: boolean, isRunning: boolean }
-    notificationAgent: any
-    models: any[]
-  }
+interface MarketData {
+  symbol: string;
+  price: number;
+  timestamp: string;
+  volume?: number;
+  change?: number;
 }
 
-interface Position {
-  id: string
-  symbol: string
-  side: 'long' | 'short'
-  size: number
-  entryPrice: number
-  currentPrice: number
-  pnl: number
-  pnlPercent: number
-  timestamp: string
+interface TradingSignal {
+  id: number;
+  symbol: string;
+  action: 'BUY' | 'SELL';
+  confidence: number;
+  timestamp: string;
 }
 
-interface Order {
-  id: string
-  symbol: string
-  type: 'market' | 'limit' | 'stop'
-  side: 'buy' | 'sell'
-  size: number
-  price?: number
-  status: 'pending' | 'filled' | 'cancelled'
-  timestamp: string
+interface Portfolio {
+  balance: number;
+  equity: number;
+  margin: number;
+  freeMargin: number;
+  profit: number;
+  positions: Array<{
+    id: number;
+    symbol: string;
+    type: 'BUY' | 'SELL';
+    lots: number;
+    openPrice: number;
+    currentPrice: number;
+    profit: number;
+  }>;
 }
 
-interface AccountBalance {
-  equity: number
-  balance: number
-  margin: number
-  freeMargin: number
-  marginLevel: number
-}
-
-interface ModelStatus {
-  name: string
-  type: 'rf' | 'lstm' | 'ddqn'
-  status: 'active' | 'training' | 'offline'
-  accuracy: number
-  lastUpdate: string
-  version: string
-}
-
-interface TradingMetrics {
-  totalTrades: number
-  winRate: number
-  profitFactor: number
-  sharpeRatio: number
-  maxDrawdown: number
-  dailyPnl: number
-  weeklyPnl: number
-  monthlyPnl: number
-}
-
-interface Alert {
-  id: string
-  type: 'info' | 'warning' | 'error' | 'success'
-  message: string
-  timestamp: string
-  read: boolean
-}
-
-interface AINotification {
-  id: string
-  level: 'info' | 'warning' | 'error' | 'critical'
-  title: string
-  message: string
-  category: string
-  timestamp: string
-  read: boolean
-  data?: any
-}
-
-type TradingAction = 
-  | { type: 'SET_CONNECTION'; payload: boolean }
-  | { type: 'SET_TRADING_MODE'; payload: 'paper' | 'live' }
-  | { type: 'SET_SYSTEM_STATUS'; payload: 'online' | 'offline' | 'maintenance' }
-  | { type: 'UPDATE_POSITIONS'; payload: Position[] }
-  | { type: 'UPDATE_ORDERS'; payload: Order[] }
-  | { type: 'UPDATE_TRADES'; payload: Position[] }
-  | { type: 'UPDATE_BALANCE'; payload: AccountBalance }
-  | { type: 'UPDATE_MODELS'; payload: ModelStatus[] }
-  | { type: 'UPDATE_METRICS'; payload: TradingMetrics }
-  | { type: 'UPDATE_TOTAL_PNL'; payload: number }
-  | { type: 'UPDATE_PNL_CHANGE'; payload: number }
-  | { type: 'UPDATE_WIN_RATE'; payload: number }
-  | { type: 'UPDATE_SYSTEM_LOAD'; payload: number }
-  | { type: 'UPDATE_MODEL_ACCURACY'; payload: number }
-  | { type: 'UPDATE_RISK_LEVEL'; payload: string }
-  | { type: 'ADD_ALERT'; payload: Alert }
-  | { type: 'MARK_ALERT_READ'; payload: string }
-  | { type: 'UPDATE_AI_NOTIFICATIONS'; payload: AINotification[] }
-  | { type: 'ADD_AI_NOTIFICATION'; payload: AINotification }
-  | { type: 'MARK_AI_NOTIFICATION_READ'; payload: string }
-  | { type: 'UPDATE_REAL_TIME_PRICES'; payload: Record<string, any> }
-  | { type: 'UPDATE_REAL_TIME_SIGNALS'; payload: any[] }
-  | { type: 'UPDATE_AI_STATUS'; payload: any }
-
-const initialState: TradingState = {
-  isConnected: false,
-  tradingMode: 'paper',
-  systemStatus: 'offline',
-  positions: [],
-  orders: [],
-  trades: [],
-  balance: {
-    equity: 10000,
-    balance: 10000,
-    margin: 0,
-    freeMargin: 10000,
-    marginLevel: 0
-  },
-  models: [
-    {
-      name: 'Random Forest',
-      type: 'rf',
-      status: 'active',
-      accuracy: 0.68,
-      lastUpdate: new Date().toISOString(),
-      version: '1.2.3'
-    },
-    {
-      name: 'LSTM Forecaster',
-      type: 'lstm',
-      status: 'active',
-      accuracy: 0.72,
-      lastUpdate: new Date().toISOString(),
-      version: '2.1.0'
-    },
-    {
-      name: 'DDQN Agent',
-      type: 'ddqn',
-      status: 'active',
-      accuracy: 0.65,
-      lastUpdate: new Date().toISOString(),
-      version: '1.5.2'
-    }
-  ],
-  metrics: {
-    totalTrades: 0,
-    winRate: 0,
-    profitFactor: 0,
-    sharpeRatio: 0,
-    maxDrawdown: 0,
-    dailyPnl: 0,
-    weeklyPnl: 0,
-    monthlyPnl: 0
-  },
-  alerts: [],
-  aiNotifications: [],
-  totalPnL: 0,
-  pnlChange: 0,
-  winRate: 0,
-  systemLoad: 0,
-  modelAccuracy: 0,
-  riskLevel: 'Low',
-  realTimePrices: {},
-  realTimeSignals: [],
-  aiStatus: {
-    dataFetcher: { connected: false, isRunning: false },
-    notificationAgent: null,
-    models: []
-  }
-}
-
-function tradingReducer(state: TradingState, action: TradingAction): TradingState {
-  switch (action.type) {
-    case 'SET_CONNECTION':
-      return { ...state, isConnected: action.payload }
-    case 'SET_TRADING_MODE':
-      return { ...state, tradingMode: action.payload }
-    case 'SET_SYSTEM_STATUS':
-      return { ...state, systemStatus: action.payload }
-    case 'UPDATE_POSITIONS':
-      return { ...state, positions: action.payload }
-    case 'UPDATE_ORDERS':
-      return { ...state, orders: action.payload }
-    case 'UPDATE_TRADES':
-      return { ...state, trades: action.payload }
-    case 'UPDATE_BALANCE':
-      return { ...state, balance: action.payload }
-    case 'UPDATE_MODELS':
-      return { ...state, models: action.payload }
-    case 'UPDATE_METRICS':
-      return { ...state, metrics: action.payload }
-    case 'UPDATE_TOTAL_PNL':
-      return { ...state, totalPnL: action.payload }
-    case 'UPDATE_PNL_CHANGE':
-      return { ...state, pnlChange: action.payload }
-    case 'UPDATE_WIN_RATE':
-      return { ...state, winRate: action.payload }
-    case 'UPDATE_SYSTEM_LOAD':
-      return { ...state, systemLoad: action.payload }
-    case 'UPDATE_MODEL_ACCURACY':
-      return { ...state, modelAccuracy: action.payload }
-    case 'UPDATE_RISK_LEVEL':
-      return { ...state, riskLevel: action.payload }
-    case 'ADD_ALERT':
-      return { 
-        ...state, 
-        alerts: [action.payload, ...state.alerts].slice(0, 50) // Keep last 50 alerts
-      }
-    case 'MARK_ALERT_READ':
-      return {
-        ...state,
-        alerts: state.alerts.map(alert => 
-          alert.id === action.payload ? { ...alert, read: true } : alert
-        )
-      }
-    case 'UPDATE_AI_NOTIFICATIONS':
-      return { ...state, aiNotifications: action.payload }
-    case 'ADD_AI_NOTIFICATION':
-      return { 
-        ...state, 
-        aiNotifications: [action.payload, ...state.aiNotifications].slice(0, 50)
-      }
-    case 'MARK_AI_NOTIFICATION_READ':
-      return {
-        ...state,
-        aiNotifications: state.aiNotifications.map(notification => 
-          notification.id === action.payload ? { ...notification, read: true } : notification
-        )
-      }
-    case 'UPDATE_REAL_TIME_PRICES':
-      return { ...state, realTimePrices: action.payload }
-    case 'UPDATE_REAL_TIME_SIGNALS':
-      return { ...state, realTimeSignals: action.payload }
-    case 'UPDATE_AI_STATUS':
-      return { ...state, aiStatus: action.payload }
-    default:
-      return state
-  }
+export interface ModelActivity {
+  model: string;
+  epoch: number;
+  epochs: number;
+  batch: number;
+  loss: number;
+  acc: number;
+  extra: {
+    hiddenNorm: number;
+    gradientNorm: number;
+    qValue: number;
+  };
+  timestamp: number;
+  status?: 'idle' | 'training' | 'completed';
 }
 
 interface TradingContextType {
-  state: TradingState
-  dispatch: React.Dispatch<TradingAction>
-  socket: Socket | null
-  executeCommand: (command: string) => Promise<void>
-  toggleTradingMode: () => void
-  emergencyStop: () => void
+  marketData: MarketData | null;
+  signals: TradingSignal[];
+  portfolio: Portfolio | null;
+  activity: { [key: string]: ModelActivity };
+  isConnected: boolean;
+  startTraining: (model: string) => void;
+  loading: boolean;
 }
 
-const TradingContext = createContext<TradingContextType | undefined>(undefined)
+const TradingContext = createContext<TradingContextType | undefined>(undefined);
 
-export function TradingProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(tradingReducer, initialState)
-  const [socket, setSocket] = React.useState<Socket | null>(null)
+export const useTrading = () => {
+  const context = useContext(TradingContext);
+  if (!context) {
+    throw new Error('useTrading must be used within a TradingProvider');
+  }
+  return context;
+};
+
+// Backward compatibility alias
+export const useTradingContext = useTrading;
+
+interface TradingProviderProps {
+  children: React.ReactNode;
+}
+
+export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) => {
+  const [marketData, setMarketData] = useState<MarketData | null>(null);
+  const [signals, setSignals] = useState<TradingSignal[]>([]);
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [activity, setActivity] = useState<{ [key: string]: ModelActivity }>({});
+  const [isConnected, setIsConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const backendUrl = process.env.NODE_ENV === 'production'
-      ? 'http://45.76.136.30:8000'
-      : 'http://localhost:8000'
-    const newSocket = io(backendUrl)
-    setSocket(newSocket)
+    const newSocket = io('https://trade.methtrader.xyz', {
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+    });
 
     newSocket.on('connect', () => {
-      dispatch({ type: 'SET_CONNECTION', payload: true })
-      dispatch({ type: 'SET_SYSTEM_STATUS', payload: 'online' })
-    })
-
-    newSocket.on('connect_error', (err) => {
-      dispatch({ type: 'SET_CONNECTION', payload: false })
-      dispatch({ type: 'SET_SYSTEM_STATUS', payload: 'offline' })
-      dispatch({ type: 'ADD_ALERT', payload: {
-        id: Date.now().toString(),
-        type: 'error',
-        message: 'Failed to connect to backend server.',
-        timestamp: new Date().toISOString(),
-        read: false
-      }})
-    })
+      console.log('Connected to trading server');
+      setIsConnected(true);
+      setLoading(false);
+    });
 
     newSocket.on('disconnect', () => {
-      dispatch({ type: 'SET_CONNECTION', payload: false })
-      dispatch({ type: 'SET_SYSTEM_STATUS', payload: 'offline' })
-    })
+      console.log('Disconnected from trading server');
+      setIsConnected(false);
+    });
 
-    newSocket.on('positions_update', (positions: Position[]) => {
-      dispatch({ type: 'UPDATE_POSITIONS', payload: positions })
-    })
+    newSocket.on('market-data', (data: MarketData) => {
+      setMarketData(data);
+    });
 
-    newSocket.on('orders_update', (orders: Order[]) => {
-      dispatch({ type: 'UPDATE_ORDERS', payload: orders })
-    })
+    newSocket.on('model_activity', (data: ModelActivity) => {
+      setActivity(prev => ({
+        ...prev,
+        [data.model]: data
+      }));
+    });
 
-    newSocket.on('balance_update', (balance: AccountBalance) => {
-      dispatch({ type: 'UPDATE_BALANCE', payload: balance })
-    })
+    setSocket(newSocket);
 
-    newSocket.on('models_update', (models: ModelStatus[]) => {
-      dispatch({ type: 'UPDATE_MODELS', payload: models })
-    })
-
-    newSocket.on('metrics_update', (metrics: TradingMetrics) => {
-      dispatch({ type: 'UPDATE_METRICS', payload: metrics })
-    })
-
-    newSocket.on('alert', (alert: Alert) => {
-      dispatch({ type: 'ADD_ALERT', payload: alert })
-    })
-
-    newSocket.on('notifications_update', (notifications: AINotification[]) => {
-      dispatch({ type: 'UPDATE_AI_NOTIFICATIONS', payload: notifications })
-    })
-
-    newSocket.on('notification', (notification: AINotification) => {
-      dispatch({ type: 'ADD_AI_NOTIFICATION', payload: notification })
-    })
-
-    // Add real-time data event listeners
-    newSocket.on('price_update', (prices: Record<string, any>) => {
-      dispatch({ type: 'UPDATE_REAL_TIME_PRICES', payload: prices })
-    })
-
-    newSocket.on('signals_update', (signals: any[]) => {
-      dispatch({ type: 'UPDATE_REAL_TIME_SIGNALS', payload: signals })
-    })
-
-    // Fetch initial real-time data
-    const fetchInitialData = async () => {
-      try {
-        const [pricesRes, signalsRes, aiStatusRes] = await Promise.all([
-          fetch('/api/data/prices'),
-          fetch('/api/data/signals'),
-          fetch('/api/ai/status')
-        ])
-        
-        if (pricesRes.ok) {
-          const pricesData = await pricesRes.json()
-          dispatch({ type: 'UPDATE_REAL_TIME_PRICES', payload: pricesData.prices })
-        }
-        
-        if (signalsRes.ok) {
-          const signalsData = await signalsRes.json()
-          dispatch({ type: 'UPDATE_REAL_TIME_SIGNALS', payload: signalsData.signals })
-        }
-        
-        if (aiStatusRes.ok) {
-          const aiData = await aiStatusRes.json()
-          dispatch({ type: 'UPDATE_AI_STATUS', payload: aiData })
-        }
-      } catch (error) {
-        console.error('Error fetching initial real-time data:', error)
-      }
-    }
-
-    fetchInitialData()
+    // Fetch initial data
+    fetchInitialData();
 
     return () => {
-      newSocket.close()
-    }
-  }, [])
+      newSocket.close();
+    };
+  }, []);
 
-  const executeCommand = async (command: string) => {
-    if (!socket) return
-    
-    socket.emit('execute_command', { command })
-    
-    dispatch({
-      type: 'ADD_ALERT',
-      payload: {
-        id: Date.now().toString(),
-        type: 'info',
-        message: `Executing command: ${command}`,
-        timestamp: new Date().toISOString(),
-        read: false
-      }
-    })
-  }
+  const fetchInitialData = async () => {
+    try {
+      const [signalsRes, portfolioRes] = await Promise.all([
+        fetch('https://trade.methtrader.xyz/api/signals'),
+        fetch('https://trade.methtrader.xyz/api/portfolio')
+      ]);
 
-  const toggleTradingMode = () => {
-    const newMode = state.tradingMode === 'paper' ? 'live' : 'paper'
-    dispatch({ type: 'SET_TRADING_MODE', payload: newMode })
-    
-    if (socket) {
-      socket.emit('set_trading_mode', { mode: newMode })
-    }
-    
-    dispatch({
-      type: 'ADD_ALERT',
-      payload: {
-        id: Date.now().toString(),
-        type: 'warning',
-        message: `Switched to ${newMode} trading mode`,
-        timestamp: new Date().toISOString(),
-        read: false
+      if (signalsRes.ok) {
+        const signalsData = await signalsRes.json();
+        setSignals(signalsData);
       }
-    })
-  }
 
-  const emergencyStop = () => {
-    if (socket) {
-      socket.emit('emergency_stop')
-    }
-    
-    dispatch({
-      type: 'ADD_ALERT',
-      payload: {
-        id: Date.now().toString(),
-        type: 'error',
-        message: 'Emergency stop activated - All trading halted',
-        timestamp: new Date().toISOString(),
-        read: false
+      if (portfolioRes.ok) {
+        const portfolioData = await portfolioRes.json();
+        setPortfolio(portfolioData);
       }
-    })
-  }
+    } catch (error) {
+      console.error('Error fetching initial data:', error);
+    }
+  };
+
+  const startTraining = async (model: string) => {
+    try {
+      const response = await fetch(`https://trade.methtrader.xyz/api/train/${model}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        console.log(`Started training for ${model}`);
+      } else {
+        console.error(`Failed to start training for ${model}`);
+      }
+    } catch (error) {
+      console.error('Error starting training:', error);
+    }
+  };
+
+  const value: TradingContextType = {
+    marketData,
+    signals,
+    portfolio,
+    activity,
+    isConnected,
+    startTraining,
+    loading,
+  };
 
   return (
-    <TradingContext.Provider value={{
-      state,
-      dispatch,
-      socket,
-      executeCommand,
-      toggleTradingMode,
-      emergencyStop
-    }}>
+    <TradingContext.Provider value={value}>
       {children}
     </TradingContext.Provider>
-  )
-}
-
-export function useTradingContext() {
-  const context = useContext(TradingContext)
-  if (context === undefined) {
-    throw new Error('useTradingContext must be used within a TradingProvider')
-  }
-  return context
-}
+  );
+};

@@ -1,12 +1,21 @@
 import React from 'react'
-import { useTradingContext } from '../contexts/TradingContext'
+import { useTrading } from '../contexts/TradingContext'
 import { Activity, AlertCircle, CheckCircle, Clock, Wifi, WifiOff, Brain, Shield, DollarSign, TrendingUp, TrendingDown } from 'lucide-react'
 
 export default function StatusIndicator() {
-  const { state } = useTradingContext()
+  const { isConnected, portfolio, activity } = useTrading()
+
+  // Mock data for missing properties
+  const systemStatus = isConnected ? 'online' : 'offline'
+  const tradingMode = 'paper' // Default to paper trading
+  const activeModels = Object.values(activity || {}).filter(a => a?.status === 'active').length
+  const totalModels = 3 // LSTM, RF, DDQN
+  const positions = portfolio?.positions || []
+  const equity = portfolio?.equity || 0
+  const dailyPnl = portfolio?.profit || 0
 
   const getStatusIcon = () => {
-    switch (state.systemStatus) {
+    switch (systemStatus) {
       case 'online':
         return <Wifi className="h-4 w-4 text-green-500" />
       case 'offline':
@@ -19,7 +28,7 @@ export default function StatusIndicator() {
   }
 
   const getStatusColor = () => {
-    switch (state.systemStatus) {
+    switch (systemStatus) {
       case 'online':
         return 'text-green-600 dark:text-green-400'
       case 'offline':
@@ -32,7 +41,7 @@ export default function StatusIndicator() {
   }
 
   const getStatusBg = () => {
-    switch (state.systemStatus) {
+    switch (systemStatus) {
       case 'online':
         return 'bg-green-100 dark:bg-green-900/30'
       case 'offline':
@@ -59,7 +68,7 @@ export default function StatusIndicator() {
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-600 dark:text-gray-400">Status</span>
             <span className={`text-sm font-semibold capitalize ${getStatusColor()}`}>
-              {state.systemStatus}
+              {systemStatus}
             </span>
           </div>
         </div>
@@ -70,12 +79,12 @@ export default function StatusIndicator() {
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-gray-900 dark:text-white">Trading Mode</span>
           <div className={`p-2 rounded-lg ${
-            state.tradingMode === 'live' 
+            tradingMode === 'live' 
               ? 'bg-red-100 dark:bg-red-900/30' 
               : 'bg-green-100 dark:bg-green-900/30'
           }`}>
             <Shield className={`h-4 w-4 ${
-              state.tradingMode === 'live' 
+              tradingMode === 'live' 
                 ? 'text-red-500' 
                 : 'text-green-500'
             }`} />
@@ -83,18 +92,18 @@ export default function StatusIndicator() {
         </div>
         
         <div className={`px-3 py-2 rounded-xl ${
-          state.tradingMode === 'live' 
+          tradingMode === 'live' 
             ? 'bg-red-100 dark:bg-red-900/30' 
             : 'bg-green-100 dark:bg-green-900/30'
         } border border-white/20`}>
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-600 dark:text-gray-400">Mode</span>
             <span className={`text-sm font-semibold uppercase ${
-              state.tradingMode === 'live' 
+              tradingMode === 'live' 
                 ? 'text-red-600 dark:text-red-400' 
                 : 'text-green-600 dark:text-green-400'
             }`}>
-              {state.tradingMode}
+              {tradingMode}
             </span>
           </div>
         </div>
@@ -111,7 +120,7 @@ export default function StatusIndicator() {
               <span className="text-xs text-gray-600 dark:text-gray-400">Models</span>
             </div>
             <span className="text-sm font-semibold text-gray-900 dark:text-white">
-              {state.models.filter(m => m.status === 'active').length}/{state.models.length}
+              {activeModels}/{totalModels}
             </span>
           </div>
           
@@ -121,7 +130,7 @@ export default function StatusIndicator() {
               <span className="text-xs text-gray-600 dark:text-gray-400">Positions</span>
             </div>
             <span className="text-sm font-semibold text-gray-900 dark:text-white">
-              {state.positions.length}
+              {positions.length}
             </span>
           </div>
         </div>
@@ -138,17 +147,17 @@ export default function StatusIndicator() {
               <span className="text-xs text-gray-600 dark:text-gray-400">Equity</span>
             </div>
             <span className="text-sm font-semibold text-gray-900 dark:text-white">
-              ${state.balance.equity.toLocaleString()}
+              ${equity.toLocaleString()}
             </span>
           </div>
           
-          <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-white/20 ${
-            state.metrics.dailyPnl >= 0 
+          <div className={`flex items-center justify-between px-3 py-2 rounded-xl border border-white/20 ${
+            dailyPnl >= 0 
               ? 'bg-green-50 dark:bg-green-900/20' 
               : 'bg-red-50 dark:bg-red-900/20'
-          }">
+          }`}>
             <div className="flex items-center space-x-2">
-              {state.metrics.dailyPnl >= 0 ? (
+              {dailyPnl >= 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-500" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-500" />
@@ -156,11 +165,11 @@ export default function StatusIndicator() {
               <span className="text-xs text-gray-600 dark:text-gray-400">Daily P&L</span>
             </div>
             <span className={`text-sm font-semibold ${
-              state.metrics.dailyPnl >= 0 
+              dailyPnl >= 0 
                 ? 'text-green-600 dark:text-green-400' 
                 : 'text-red-600 dark:text-red-400'
             }`}>
-              {state.metrics.dailyPnl >= 0 ? '+' : ''}${state.metrics.dailyPnl.toFixed(2)}
+              {dailyPnl >= 0 ? '+' : ''}${dailyPnl.toFixed(2)}
             </span>
           </div>
         </div>

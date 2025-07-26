@@ -740,6 +740,9 @@ async function startServer() {
       ]).then(async () => {
         logger.info('Core system initialized successfully')
         
+        // Connect ModelManager to Socket.IO for real-time updates
+        modelManager.setSocketIO(io)
+        
         // Start real data fetcher
         try {
           await dataManager.start()

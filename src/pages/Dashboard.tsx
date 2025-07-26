@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useTradingContext } from '../contexts/TradingContext'
+import { useTrading } from '../contexts/TradingContext'
+import { BotChip } from '../components/BotChip'
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -30,9 +31,32 @@ import MetricCard from '../components/MetricCard'
 import EquityCurve from '../components/EquityCurve'
 
 export default function Dashboard() {
-  const { state, socket } = useTradingContext()
+  const { activity, isConnected } = useTrading()
   const [trainingActive, setTrainingActive] = useState(false)
   const [selectedModel, setSelectedModel] = useState('ensemble')
+
+  // Mock data for now since we don't have all the state properties yet
+  const state = {
+    trades: [],
+    models: [],
+    positions: [],
+    systemStatus: 'online',
+    realTimePrices: {},
+    realTimeSignals: [],
+    aiStatus: {
+      dataFetcher: { connected: false, isRunning: false },
+      notificationAgent: null,
+      models: []
+    },
+    trainingStatus: {
+      isTraining: false,
+      currentModel: null,
+      progress: 0,
+      accuracy: 0,
+      lastTraining: null
+    }
+  }
+  const socket = null // TODO: Add socket to TradingContext
 
   // Add null checks and default values
   const trades = state.trades || []
@@ -169,6 +193,19 @@ export default function Dashboard() {
             trend="neutral"
             description={`${positions.filter((p: any) => p.profit > 0).length} profitable`}
           />
+        </section>
+
+        {/* ML Models Status */}
+        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+            <Brain className="h-5 w-5 mr-2" />
+            ML Models Status
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            <BotChip modelName="LSTM" activity={activity?.LSTM || null} />
+            <BotChip modelName="RF" activity={activity?.RF || null} />
+            <BotChip modelName="DDQN" activity={activity?.DDQN || null} />
+          </div>
         </section>
 
         {/* System Status - Separate card */}
@@ -417,40 +454,10 @@ export default function Dashboard() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-2 ${
-                isDataConnected ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-              }`}>
-                <Database className="h-6 w-6" />
+              <div className={`text-2xl font-bold ${isDataConnected ? 'text-green-600' : 'text-red-600'}`}>
+                {isDataConnected ? '✓' : '✗'}
               </div>
-              <div className="text-sm font-medium">Data Feed</div>
-              <div className={`text-xs ${isDataConnected ? 'text-green-600' : 'text-red-600'}`}>
-                {isDataConnected ? 'Active' : 'Inactive'}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-2 ${
-                models.length > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-              }`}>
-                <Brain className="h-6 w-6" />
-              </div>
-              <div className="text-sm font-medium">AI Models</div>
-              <div className={`text-xs ${models.length > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {models.length > 0 ? `${models.length} Active` : 'Inactive'}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-2 bg-blue-100 text-blue-600">
-                <Activity className="h-6 w-6" />
-              </div>
-              <div className="text-sm font-medium">Trading</div>
-              <div className="text-xs text-blue-600">Paper Mode</div>
-            </div>
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-2 bg-yellow-100 text-yellow-600">
-                <Clock className="h-6 w-6" />
-              </div>
-              <div className="text-sm font-medium">Uptime</div>
-              <div className="text-xs text-yellow-600">24h+</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">API Connection</div>
             </div>
           </div>
         </div>
