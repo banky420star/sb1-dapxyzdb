@@ -8,21 +8,27 @@ import Models from './pages/Models'
 import Risk from './pages/Risk'
 import Analytics from './pages/Analytics'
 import Settings from './pages/Settings'
+import FuturisticLanding from './pages/FuturisticLanding'
 
 function App() {
   return (
     <TradingProvider>
       <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/trading" element={<Trading />} />
-            <Route path="/models" element={<Models />} />
-            <Route path="/risk" element={<Risk />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
-        </Layout>
+        <Routes>
+          <Route path="/futuristic" element={<FuturisticLanding />} />
+          <Route path="/*" element={
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/trading" element={<Trading />} />
+                <Route path="/models" element={<Models />} />
+                <Route path="/risk" element={<Risk />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/settings" element={<Settings />} />
+              </Routes>
+            </Layout>
+          } />
+        </Routes>
       </Router>
     </TradingProvider>
   )
