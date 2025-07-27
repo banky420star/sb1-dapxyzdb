@@ -131,7 +131,7 @@ actual_tests=$(find tests/ -name '*.js' -o -name '*.ts' | wc -l)
 if ! check_exact $expected_tests $actual_tests "test files count"; then ((errors++)); fi
 
 # Scripts count
-expected_scripts=12
+expected_scripts=13
 actual_scripts=$(ls -1 scripts/ | wc -l)
 if ! check_exact $expected_scripts $actual_scripts "scripts count"; then ((errors++)); fi
 

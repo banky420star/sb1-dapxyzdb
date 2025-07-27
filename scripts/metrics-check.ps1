@@ -133,7 +133,7 @@ $actualTests = (Get-ChildItem -Path "tests" -Recurse -Include "*.js", "*.ts").Co
 if (-not (Test-Exact $expectedTests $actualTests "test files count")) { $errors++ }
 
 # Scripts count
-$expectedScripts = 12
+$expectedScripts = 13
 $actualScripts = (Get-ChildItem -Path "scripts").Count
 if (-not (Test-Exact $expectedScripts $actualScripts "scripts count")) { $errors++ }
 
