@@ -11,6 +11,12 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Professional Trading Platform Colors
+        primary: '#0E76FD',
+        accent: '#20C997',
+        critical: '#F04444',
+        'bg-deep': '#0B0C10',
+        surface: '#13151A',
         background: "var(--background)",
         foreground: "var(--foreground)",
         card: {
@@ -21,10 +27,6 @@ export default {
           DEFAULT: "var(--popover)",
           foreground: "var(--popover-foreground)",
         },
-        primary: {
-          DEFAULT: "var(--primary)",
-          foreground: "var(--primary-foreground)",
-        },
         secondary: {
           DEFAULT: "var(--secondary)",
           foreground: "var(--secondary-foreground)",
@@ -32,10 +34,6 @@ export default {
         muted: {
           DEFAULT: "var(--muted)",
           foreground: "var(--muted-foreground)",
-        },
-        accent: {
-          DEFAULT: "var(--accent)",
-          foreground: "var(--accent-foreground)",
         },
         destructive: {
           DEFAULT: "var(--destructive)",
@@ -46,9 +44,9 @@ export default {
         ring: "var(--ring)",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "8px", // Professional 8px radius
+        md: "6px",
+        sm: "4px",
       },
       animation: {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite alternate',
@@ -58,6 +56,9 @@ export default {
         'shimmer': 'shimmer 2s infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
         'bounce-slow': 'bounce 3s infinite',
+        'candlestick-fill': 'candlestick-fill 2s ease-out',
+        'scanline': 'scanline 2s linear infinite',
+        'odometer': 'odometer 0.5s ease-out',
       },
       keyframes: {
         'pulse-glow': {
@@ -67,10 +68,25 @@ export default {
         'glow': {
           '0%': { textShadow: '0 0 10px rgba(59, 130, 246, 0.5)' },
           '100%': { textShadow: '0 0 20px rgba(139, 92, 246, 0.8)' }
+        },
+        'candlestick-fill': {
+          '0%': { height: '0%' },
+          '100%': { height: '100%' }
+        },
+        'scanline': {
+          '0%': { transform: 'translateY(-100%)' },
+          '100%': { transform: 'translateY(100vh)' }
+        },
+        'odometer': {
+          '0%': { transform: 'translateY(-20px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' }
         }
       },
       backdropBlur: {
         xs: '2px',
+      },
+      boxShadow: {
+        card: '0 4px 12px rgba(0,0,0,0.6)'
       },
     },
   },

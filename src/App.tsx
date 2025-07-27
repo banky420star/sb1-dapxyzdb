@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { TradingProvider } from './contexts/TradingContext'
 import Layout from './components/Layout'
+import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Trading from './pages/Trading'
 import Models from './pages/Models'
@@ -15,11 +16,12 @@ function App() {
     <TradingProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/futuristic" element={<FuturisticLanding />} />
           <Route path="/*" element={
             <Layout>
               <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/trading" element={<Trading />} />
                 <Route path="/models" element={<Models />} />
                 <Route path="/risk" element={<Risk />} />

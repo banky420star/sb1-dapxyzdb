@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useTrading } from '../contexts/TradingContext';
 import { BotVisualizer } from '../components/BotVisualizer';
 import ModelTrainingVisualizer from '../components/ModelTrainingVisualizer';
-import { Brain, TrendingUp, Activity, Zap, BarChart3, Settings, CheckCircle } from 'lucide-react';
+import CandlestickLoader from '../components/CandlestickLoader';
+import { Brain, TrendingUp, Activity, Zap, BarChart3, Settings, CheckCircle, Play, Square, Trash2 } from 'lucide-react';
 
 const Models: React.FC = () => {
   const { activity, isConnected } = useTrading();
@@ -158,11 +159,14 @@ const Models: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Avg Accuracy</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {Object.values(activity).length > 0 
-                        ? Math.round(Object.values(activity).reduce((acc, a) => acc + ((a as any)?.accuracy || 0), 0) / Object.values(activity).length * 100)
-                        : 0}%
-                    </p>
+                    <div className="flex items-center justify-center">
+                      <CandlestickLoader 
+                        progress={Object.values(activity).length > 0 
+                          ? Math.round(Object.values(activity).reduce((acc, a) => acc + ((a as any)?.accuracy || 0), 0) / Object.values(activity).length * 100)
+                          : 0}
+                        size="lg"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
