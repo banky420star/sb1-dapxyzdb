@@ -1,29 +1,160 @@
-node_modules
-npm-debug.log
-.git
-.gitignore
-README.md
-.env.example
-.vscode
-.idea
-.DS_Store
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Production builds
+dist/
+build/
+*.tar.gz
+
+# Database files
+data/trading.db
+data/trading.db-shm
+data/trading.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
 *.log
-dist
-coverage
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
 .nyc_output
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
+
+# Next.js build output
 .next
+
+# Nuxt.js build / generate output
 .nuxt
-.vuepress/dist
-.serverless
-.fusebox
-.dynamodb
-.terraform
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
 *.md
-docs
-tests
-.github
-docker-compose.override.yml
-Dockerfile*
-.dockerignore
+docs/
+
+# Tests
+tests/
+test-*.js
+test-*.ts
+__tests__/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Backup files
+backups/
+*.backup
+*.bak
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.venv/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Monitoring
+monitoring/loki.yml
+monitoring/prometheus.yml
+monitoring/promtail.yml
+
+# Scripts
+scripts/
+*.sh
+
+# Prototypes
+prototypes/
+
+# Deploy files
+deploy*.sh
+*.env
+vultr-production.env
+
+# Ecosystem config
+ecosystem.config.cjs
+
+# Package lock (we'll copy package.json and install fresh)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
