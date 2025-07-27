@@ -1,0 +1,74 @@
+name: Repository Metrics Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+
+jobs:
+  metrics-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install CLOC
+      run: npm install -g cloc
+      
+    - name: Run metrics validation
+      run: npm run metrics
+      
+    - name: Generate metrics report
+      if: always()
+      run: |
+        echo "## 📊 Repository Metrics Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Frontend Components" >> $GITHUB_STEP_SUMMARY
+        echo "- App.tsx: $(wc -l < src/App.tsx) lines" >> $GITHUB_STEP_SUMMARY
+        echo "- main.tsx: $(wc -l < src/main.tsx) lines" >> $GITHUB_STEP_SUMMARY
+        echo "- TradingContext.tsx: $(wc -l < src/contexts/TradingContext.tsx) lines" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Backend Components" >> $GITHUB_STEP_SUMMARY
+        echo "- server/index.js: $(wc -l < server/index.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "- server/enhanced-server.js: $(wc -l < server/enhanced-server.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "- server/simple-index-enhanced.js: $(wc -l < server/simple-index-enhanced.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "- server/real-data-api.js: $(wc -l < server/real-data-api.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ML Components" >> $GITHUB_STEP_SUMMARY
+        echo "- randomforest.js: $(wc -l < server/ml/models/randomforest.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "- lstm.js: $(wc -l < server/ml/models/lstm.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "- ddqn.js: $(wc -l < server/ml/models/ddqn.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "- manager.js: $(wc -l < server/ml/manager.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Trading Engine" >> $GITHUB_STEP_SUMMARY
+        echo "- engine.js: $(wc -l < server/trading/engine.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "- risk/manager.js: $(wc -l < server/risk/manager.js) lines" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Quality Metrics" >> $GITHUB_STEP_SUMMARY
+        echo "- Test files: $(find tests/ -name '*.js' -o -name '*.ts' | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- Scripts: $(ls -1 scripts/ | wc -l)" >> $GITHUB_STEP_SUMMARY
+        echo "- Dependencies: $(grep -A50 '"dependencies"' package.json | grep -c '^\s*".*":')" >> $GITHUB_STEP_SUMMARY
+        
+    - name: Upload metrics report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: metrics-report
+        path: |
+          REPO_METRICS_VALIDATION.md
+          REPO_CLEANUP_REPORT.md
+        retention-days: 30 

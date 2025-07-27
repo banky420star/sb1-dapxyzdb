@@ -32,7 +32,9 @@
     "prefect:run": "python flows/run_pipeline.py",
     "docker:build": "docker build -t ai-trading-system .",
     "docker:up": "docker compose up --build",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "metrics": "bash ./scripts/metrics-check.sh",
+    "metrics:windows": "powershell -ExecutionPolicy Bypass -File ./scripts/metrics-check.ps1"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.6",
