@@ -1,0 +1,6229 @@
+{
+  "nodes": [
+    {
+      "id": "scripts",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 11
+      }
+    },
+    {
+      "id": "monitoring",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 3
+      }
+    },
+    {
+      "id": "nginx",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 2
+      }
+    },
+    {
+      "id": "flows",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 1
+      }
+    },
+    {
+      "id": "src",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 6
+      }
+    },
+    {
+      "id": "migrations",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 1
+      }
+    },
+    {
+      "id": "tests",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 6
+      }
+    },
+    {
+      "id": "docs",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 1
+      }
+    },
+    {
+      "id": "logs",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 4
+      }
+    },
+    {
+      "id": "backups",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 3
+      }
+    },
+    {
+      "id": "public",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 1
+      }
+    },
+    {
+      "id": "dashboards",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 3
+      }
+    },
+    {
+      "id": "mt5",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 1
+      }
+    },
+    {
+      "id": "Ops",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 1
+      }
+    },
+    {
+      "id": "data",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 1
+      }
+    },
+    {
+      "id": "services",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 1
+      }
+    },
+    {
+      "id": "config",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 1
+      }
+    },
+    {
+      "id": "server",
+      "type": "directory",
+      "attributes": {
+        "level": 1,
+        "size": 15
+      }
+    },
+    {
+      "id": "src/components",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 13
+      }
+    },
+    {
+      "id": "src/pages",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 6
+      }
+    },
+    {
+      "id": "src/contexts",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 1
+      }
+    },
+    {
+      "id": "tests/pipeline",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 1
+      }
+    },
+    {
+      "id": "tests/unit",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 2
+      }
+    },
+    {
+      "id": "tests/integration",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 1
+      }
+    },
+    {
+      "id": "backups/daily",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 5
+      }
+    },
+    {
+      "id": "services/rate-gate",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 3
+      }
+    },
+    {
+      "id": "server/monitoring",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 1
+      }
+    },
+    {
+      "id": "server/ai",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 1
+      }
+    },
+    {
+      "id": "server/trading",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 1
+      }
+    },
+    {
+      "id": "server/pipeline",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 1
+      }
+    },
+    {
+      "id": "server/logs",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 2
+      }
+    },
+    {
+      "id": "server/ml",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 7
+      }
+    },
+    {
+      "id": "server/risk",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 1
+      }
+    },
+    {
+      "id": "server/autonomous",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 1
+      }
+    },
+    {
+      "id": "server/data",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 7
+      }
+    },
+    {
+      "id": "server/utils",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 2
+      }
+    },
+    {
+      "id": "server/database",
+      "type": "directory",
+      "attributes": {
+        "level": 2,
+        "size": 2
+      }
+    },
+    {
+      "id": "server/ml/models",
+      "type": "directory",
+      "attributes": {
+        "level": 3,
+        "size": 3
+      }
+    },
+    {
+      "id": "DEPLOYMENT.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 5313,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "Procfile",
+      "type": "other",
+      "attributes": {
+        "size": 20,
+        "extension": ""
+      }
+    },
+    {
+      "id": "orchestrator-simple.sh",
+      "type": "script",
+      "attributes": {
+        "size": 3242,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "index.html",
+      "type": "web",
+      "attributes": {
+        "size": 865,
+        "extension": ".html"
+      }
+    },
+    {
+      "id": "PHASE_1_COMPLETE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 7393,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "test_integration.py",
+      "type": "python",
+      "attributes": {
+        "size": 1847,
+        "extension": ".py"
+      }
+    },
+    {
+      "id": "LIVE_TRADING_SETUP.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 7986,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "orchestrator.sh",
+      "type": "script",
+      "attributes": {
+        "size": 10940,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "DEPLOY_NOW.sh",
+      "type": "script",
+      "attributes": {
+        "size": 20751,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "SYSTEM_ARCHITECTURE_DIAGRAM.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 28036,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "VULTR_DEPLOYMENT.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 2657,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "deploy_key.pub",
+      "type": "other",
+      "attributes": {
+        "size": 739,
+        "extension": ".pub"
+      }
+    },
+    {
+      "id": "requirements.txt",
+      "type": "other",
+      "attributes": {
+        "size": 27,
+        "extension": ".txt"
+      }
+    },
+    {
+      "id": "MT5_INTEGRATION_GUIDE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 8662,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "docker-compose.production.yml",
+      "type": "config",
+      "attributes": {
+        "size": 6149,
+        "extension": ".yml"
+      }
+    },
+    {
+      "id": "AI_TRADING_PIPELINE_STATUS.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 12552,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "Dockerfile.minimal",
+      "type": "other",
+      "attributes": {
+        "size": 329,
+        "extension": ".minimal"
+      }
+    },
+    {
+      "id": "VULTR_DEPLOYMENT_GUIDE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 9703,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "COPY_PASTE_DEPLOY.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 19758,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "orchestrator.config",
+      "type": "other",
+      "attributes": {
+        "size": 1365,
+        "extension": ".config"
+      }
+    },
+    {
+      "id": "auto-deploy.ps1",
+      "type": "other",
+      "attributes": {
+        "size": 6965,
+        "extension": ".ps1"
+      }
+    },
+    {
+      "id": "eslint.config.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 0,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "mql5_collector.py",
+      "type": "python",
+      "attributes": {
+        "size": 10848,
+        "extension": ".py"
+      }
+    },
+    {
+      "id": "ORCHESTRATOR_QUICK_REFERENCE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 4131,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "test-training-visualization.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 6111,
+        "extension": ".js",
+        "component": "ml"
+      }
+    },
+    {
+      "id": "QUICK_DEPLOY_COMMANDS.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 2465,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "autonomous-config.json",
+      "type": "config",
+      "attributes": {
+        "size": 1287,
+        "extension": ".json"
+      }
+    },
+    {
+      "id": "deploy.sh",
+      "type": "script",
+      "attributes": {
+        "size": 6671,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "SETUP_COMPLETE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 6982,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "setup_python_integration.sh",
+      "type": "script",
+      "attributes": {
+        "size": 1830,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "SYSTEM_STATUS.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 5646,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "ecosystem.config.cjs",
+      "type": "other",
+      "attributes": {
+        "size": 3463,
+        "extension": ".cjs"
+      }
+    },
+    {
+      "id": "package.json",
+      "type": "config",
+      "attributes": {
+        "size": 5124,
+        "extension": ".json"
+      }
+    },
+    {
+      "id": "SYSTEM_FLOW_DIAGRAM.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 36952,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "vite.config.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 357,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "COMPLETE_SYSTEM_GUIDE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 14481,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "collect-real-data.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 4960,
+        "extension": ".js",
+        "component": "data"
+      }
+    },
+    {
+      "id": "SIMPLE_FLOW_DIAGRAM.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 10766,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "direct-deploy.sh",
+      "type": "script",
+      "attributes": {
+        "size": 11852,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "auto-deploy.sh",
+      "type": "script",
+      "attributes": {
+        "size": 4328,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "test_system.sh",
+      "type": "script",
+      "attributes": {
+        "size": 4862,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "quick-fix.sh",
+      "type": "script",
+      "attributes": {
+        "size": 2246,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "SYSTEM_INTEGRATION_STATUS.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 8406,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "test-working-model.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 5048,
+        "extension": ".js",
+        "component": "ml"
+      }
+    },
+    {
+      "id": "AUTONOMOUS_TRADING_SETUP.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 7005,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "OPERATIONAL_RUNBOOK.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 6131,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "Dockerfile.frontend",
+      "type": "other",
+      "attributes": {
+        "size": 1070,
+        "extension": ".frontend"
+      }
+    },
+    {
+      "id": "start-autonomous.sh",
+      "type": "script",
+      "attributes": {
+        "size": 4650,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "DEPLOY_NOW.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 5485,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "INTEGRATION_SUMMARY.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 3398,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "test-domain-setup.sh",
+      "type": "script",
+      "attributes": {
+        "size": 76,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "SECRETS_ARCHITECTURE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 7491,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "ORCHESTRATOR_README.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 7956,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "complete-system-restart.sh",
+      "type": "script",
+      "attributes": {
+        "size": 11308,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "BUG_FIXES_REPORT.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 7490,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "generate-sample-data.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 6725,
+        "extension": ".js",
+        "component": "data"
+      }
+    },
+    {
+      "id": "alpha_vantage_integration.py",
+      "type": "python",
+      "attributes": {
+        "size": 6566,
+        "extension": ".py"
+      }
+    },
+    {
+      "id": "start-simple.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 15076,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "tailwind.config.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 1809,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": ".eslintrc.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 2078,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "SERVER_STATUS_REPORT.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 3091,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "env.example",
+      "type": "other",
+      "attributes": {
+        "size": 834,
+        "extension": ".example"
+      }
+    },
+    {
+      "id": "LIVE_DEPLOYMENT_INSTRUCTIONS.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 8123,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "RUNBOOK_QA_IMPLEMENTATION.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 6885,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "generate-mock-data.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 5461,
+        "extension": ".js",
+        "component": "data"
+      }
+    },
+    {
+      "id": "start_mt5_trading.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 5936,
+        "extension": ".js",
+        "component": "trading"
+      }
+    },
+    {
+      "id": "PIPELINE_OPTIMIZATION_REPORT.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 9394,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "QUICK_START.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 5116,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "deepgraph_analysis.py",
+      "type": "python",
+      "attributes": {
+        "size": 15771,
+        "extension": ".py"
+      }
+    },
+    {
+      "id": "test-enhanced-system.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 8246,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "deploy-vultr.sh",
+      "type": "script",
+      "attributes": {
+        "size": 1452,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "README.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 30491,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "AUTOMATED_DEPLOYMENT_OPTIONS.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 5183,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "deploy_key",
+      "type": "other",
+      "attributes": {
+        "size": 3381,
+        "extension": ""
+      }
+    },
+    {
+      "id": "SECURITY_BEST_PRACTICES.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 7258,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "ALPHA_VANTAGE_INTEGRATION.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 5806,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "CLOUD_DEPLOYMENT_GUIDE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 9167,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "DEPLOYMENT_SUMMARY.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 5910,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "QUICK_CLOUD_DEPLOY.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 1585,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "DEMONSTRATION.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 10052,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "collect-historical-data.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 4636,
+        "extension": ".js",
+        "component": "data"
+      }
+    },
+    {
+      "id": "fix-connection-issues.sh",
+      "type": "script",
+      "attributes": {
+        "size": 9628,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "setup-orchestrator.sh",
+      "type": "script",
+      "attributes": {
+        "size": 6554,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "project_analyzer.py",
+      "type": "python",
+      "attributes": {
+        "size": 15998,
+        "extension": ".py"
+      }
+    },
+    {
+      "id": "Dockerfile",
+      "type": "other",
+      "attributes": {
+        "size": 907,
+        "extension": ""
+      }
+    },
+    {
+      "id": "test-output.html",
+      "type": "web",
+      "attributes": {
+        "size": 956,
+        "extension": ".html"
+      }
+    },
+    {
+      "id": "test-real-data-fixed.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 2134,
+        "extension": ".js",
+        "component": "data"
+      }
+    },
+    {
+      "id": "alpha_vantage_pipeline.py",
+      "type": "python",
+      "attributes": {
+        "size": 7038,
+        "extension": ".py"
+      }
+    },
+    {
+      "id": "VULTR_DEPLOYMENT_COMPLETE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 6877,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "monitor-cron",
+      "type": "other",
+      "attributes": {
+        "size": 143,
+        "extension": ""
+      }
+    },
+    {
+      "id": "test-real-time-display.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 4203,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "Dockerfile.rate-gate",
+      "type": "other",
+      "attributes": {
+        "size": 617,
+        "extension": ".rate-gate"
+      }
+    },
+    {
+      "id": "docker-compose.yml",
+      "type": "config",
+      "attributes": {
+        "size": 4746,
+        "extension": ".yml"
+      }
+    },
+    {
+      "id": "test-analytics.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 1973,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "RUNBOOK_COMPLIANCE_REPORT.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 5295,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "setup-domain.sh",
+      "type": "script",
+      "attributes": {
+        "size": 5544,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "PROJECT_COMPLETION_GUIDE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 4515,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "postcss.config.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 33,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "test-enhanced-visualization.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 9935,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": ".dockerignore",
+      "type": "other",
+      "attributes": {
+        "size": 289,
+        "extension": ""
+      }
+    },
+    {
+      "id": "COMPREHENSIVE_SYSTEM_STATUS_REPORT.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 6398,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "MT5_INTEGRATION_COMPLETE.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 11237,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "scripts/security-verification.sh",
+      "type": "script",
+      "attributes": {
+        "size": 9195,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/git-secrets-scrub.sh",
+      "type": "script",
+      "attributes": {
+        "size": 5497,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/security-scan.sh",
+      "type": "script",
+      "attributes": {
+        "size": 5388,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/backup-redis.sh",
+      "type": "script",
+      "attributes": {
+        "size": 3596,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/backup-postgres.sh",
+      "type": "script",
+      "attributes": {
+        "size": 2062,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/setup-backups.sh",
+      "type": "script",
+      "attributes": {
+        "size": 4736,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/secrets-sanity-check.sh",
+      "type": "script",
+      "attributes": {
+        "size": 5102,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/health-check.sh",
+      "type": "script",
+      "attributes": {
+        "size": 9197,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/deployment-verification.sh",
+      "type": "script",
+      "attributes": {
+        "size": 8005,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/backup-system.sh",
+      "type": "script",
+      "attributes": {
+        "size": 6167,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "scripts/setup-sops-encryption.sh",
+      "type": "script",
+      "attributes": {
+        "size": 8026,
+        "extension": ".sh"
+      }
+    },
+    {
+      "id": "monitoring/prometheus.yml",
+      "type": "config",
+      "attributes": {
+        "size": 3802,
+        "extension": ".yml"
+      }
+    },
+    {
+      "id": "monitoring/loki.yml",
+      "type": "config",
+      "attributes": {
+        "size": 1980,
+        "extension": ".yml"
+      }
+    },
+    {
+      "id": "monitoring/promtail.yml",
+      "type": "config",
+      "attributes": {
+        "size": 3768,
+        "extension": ".yml"
+      }
+    },
+    {
+      "id": "nginx/frontend.conf",
+      "type": "other",
+      "attributes": {
+        "size": 905,
+        "extension": ".conf"
+      }
+    },
+    {
+      "id": "nginx/nginx.conf",
+      "type": "other",
+      "attributes": {
+        "size": 2704,
+        "extension": ".conf"
+      }
+    },
+    {
+      "id": "flows/data_pipeline.py",
+      "type": "python",
+      "attributes": {
+        "size": 19957,
+        "extension": ".py",
+        "component": "data"
+      }
+    },
+    {
+      "id": "src/index.css",
+      "type": "web",
+      "attributes": {
+        "size": 13358,
+        "extension": ".css"
+      }
+    },
+    {
+      "id": "src/App.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 988,
+        "extension": ".tsx"
+      }
+    },
+    {
+      "id": "src/main.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 235,
+        "extension": ".tsx"
+      }
+    },
+    {
+      "id": "migrations/001_init.sql",
+      "type": "database",
+      "attributes": {
+        "size": 15825,
+        "extension": ".sql"
+      }
+    },
+    {
+      "id": "tests/quota-exhaustion.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 5589,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "tests/run-pipeline-tests.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 14604,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "tests/simple-pipeline-test.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 15893,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "docs/MQL5_INTEGRATION.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 6077,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "logs/combined.log",
+      "type": "other",
+      "attributes": {
+        "size": 3170934,
+        "extension": ".log"
+      }
+    },
+    {
+      "id": "logs/trading.log",
+      "type": "other",
+      "attributes": {
+        "size": 0,
+        "extension": ".log"
+      }
+    },
+    {
+      "id": "logs/error.log",
+      "type": "other",
+      "attributes": {
+        "size": 850454,
+        "extension": ".log"
+      }
+    },
+    {
+      "id": "logs/performance.log",
+      "type": "other",
+      "attributes": {
+        "size": 0,
+        "extension": ".log"
+      }
+    },
+    {
+      "id": "backups/test_recovery.db-shm",
+      "type": "other",
+      "attributes": {
+        "size": 32768,
+        "extension": ".db-shm"
+      }
+    },
+    {
+      "id": "backups/test_recovery.db-wal",
+      "type": "other",
+      "attributes": {
+        "size": 0,
+        "extension": ".db-wal"
+      }
+    },
+    {
+      "id": "public/mql5-config.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 4278,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "dashboards/api_latency.json",
+      "type": "config",
+      "attributes": {
+        "size": 4013,
+        "extension": ".json"
+      }
+    },
+    {
+      "id": "dashboards/system_perf.json",
+      "type": "config",
+      "attributes": {
+        "size": 3858,
+        "extension": ".json"
+      }
+    },
+    {
+      "id": "dashboards/trading_pnl.json",
+      "type": "config",
+      "attributes": {
+        "size": 5778,
+        "extension": ".json"
+      }
+    },
+    {
+      "id": "mt5/ZmqDealerEA.mq5",
+      "type": "other",
+      "attributes": {
+        "size": 4748,
+        "extension": ".mq5"
+      }
+    },
+    {
+      "id": "Ops/Runbook.md",
+      "type": "documentation",
+      "attributes": {
+        "size": 11682,
+        "extension": ".md"
+      }
+    },
+    {
+      "id": "data/trading.db",
+      "type": "other",
+      "attributes": {
+        "size": 20570112,
+        "extension": ".db"
+      }
+    },
+    {
+      "id": "config/default.yaml",
+      "type": "config",
+      "attributes": {
+        "size": 5239,
+        "extension": ".yaml"
+      }
+    },
+    {
+      "id": "server/real-data-api.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 4114,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/enhanced-index.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 23006,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/index.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 25660,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/enhanced-server.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 23512,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/monitoring/metrics.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 7943,
+        "extension": ".js",
+        "component": "monitoring"
+      }
+    },
+    {
+      "id": "server/ai/notification-agent.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 11846,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/trading/engine.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 36203,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/pipeline/optimizer.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 18454,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/logs/trading.log",
+      "type": "other",
+      "attributes": {
+        "size": 0,
+        "extension": ".log"
+      }
+    },
+    {
+      "id": "server/logs/performance.log",
+      "type": "other",
+      "attributes": {
+        "size": 0,
+        "extension": ".log"
+      }
+    },
+    {
+      "id": "server/ml/train.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 9521,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/ml/manager.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 35971,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/ml/enhanced-reward-system.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 15209,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/ml/trainer.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 20136,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/ml/training-visualizer.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 9508,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/ml/reward-system.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 11496,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/risk/manager.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 25931,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/autonomous/orchestrator.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 13906,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/data/manager.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 22990,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/data/bybit-integration.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 19011,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/data/trading.db-shm",
+      "type": "other",
+      "attributes": {
+        "size": 32768,
+        "extension": ".db-shm"
+      }
+    },
+    {
+      "id": "server/data/trading.db",
+      "type": "other",
+      "attributes": {
+        "size": 4096,
+        "extension": ".db"
+      }
+    },
+    {
+      "id": "server/data/enhanced-data-manager.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 9324,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/data/trading.db-wal",
+      "type": "other",
+      "attributes": {
+        "size": 354352,
+        "extension": ".db-wal"
+      }
+    },
+    {
+      "id": "server/data/realDataFetcher.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 11974,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/utils/logger.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 13807,
+        "extension": ".js",
+        "component": "monitoring"
+      }
+    },
+    {
+      "id": "server/utils/enhanced-logger.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 9654,
+        "extension": ".js",
+        "component": "monitoring"
+      }
+    },
+    {
+      "id": "server/database/manager.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 42332,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/database/postgres-manager.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 15263,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/ml/models/lstm.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 17274,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/ml/models/randomforest.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 16108,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "server/ml/models/ddqn.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 17903,
+        "extension": ".js",
+        "component": "api"
+      }
+    },
+    {
+      "id": "services/rate-gate/package.json",
+      "type": "config",
+      "attributes": {
+        "size": 570,
+        "extension": ".json"
+      }
+    },
+    {
+      "id": "services/rate-gate/index.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 7423,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "services/rate-gate/Dockerfile",
+      "type": "other",
+      "attributes": {
+        "size": 612,
+        "extension": ""
+      }
+    },
+    {
+      "id": "backups/daily/logs_20250720_191423.tar.gz",
+      "type": "other",
+      "attributes": {
+        "size": 151454,
+        "extension": ".gz"
+      }
+    },
+    {
+      "id": "backups/daily/trading_db_20250720_191417.db-wal",
+      "type": "other",
+      "attributes": {
+        "size": 0,
+        "extension": ".db-wal"
+      }
+    },
+    {
+      "id": "backups/daily/trading_db_20250720_191417.db-shm",
+      "type": "other",
+      "attributes": {
+        "size": 32768,
+        "extension": ".db-shm"
+      }
+    },
+    {
+      "id": "backups/daily/trading_db_20250720_191417.db",
+      "type": "other",
+      "attributes": {
+        "size": 20570112,
+        "extension": ".db"
+      }
+    },
+    {
+      "id": "backups/daily/config_20250720_191422.tar.gz",
+      "type": "other",
+      "attributes": {
+        "size": 16567,
+        "extension": ".gz"
+      }
+    },
+    {
+      "id": "tests/pipeline/pipeline-test-framework.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 20581,
+        "extension": ".js"
+      }
+    },
+    {
+      "id": "tests/unit/risk-manager.test.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 12788,
+        "extension": ".js",
+        "component": "risk"
+      }
+    },
+    {
+      "id": "tests/unit/model-manager.test.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 15798,
+        "extension": ".js",
+        "component": "ml"
+      }
+    },
+    {
+      "id": "tests/integration/trading-engine.test.js",
+      "type": "javascript",
+      "attributes": {
+        "size": 13657,
+        "extension": ".js",
+        "component": "trading"
+      }
+    },
+    {
+      "id": "src/components/AINotificationPanel.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 11349,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/StatusIndicator.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 6763,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/AlertPanel.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 3099,
+        "extension": ".tsx",
+        "component": "monitoring"
+      }
+    },
+    {
+      "id": "src/components/MQL5Widgets.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 8646,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/Layout.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 13088,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/TradingViewDashboard.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 22988,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/MetricCard.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 3524,
+        "extension": ".tsx",
+        "component": "monitoring"
+      }
+    },
+    {
+      "id": "src/components/RecentTrades.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 4048,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 33268,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/TradingViewChart.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 2003,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/ModelStatus.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 3023,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/EquityCurve.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 1766,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/components/MQL5Dashboard.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 25918,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/pages/Risk.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 15743,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/pages/Trading.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 10947,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/pages/Analytics.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 14774,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/pages/Dashboard.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 18926,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/pages/Models.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 7521,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/pages/Settings.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 604,
+        "extension": ".tsx",
+        "component": "ui"
+      }
+    },
+    {
+      "id": "src/contexts/TradingContext.tsx",
+      "type": "typescript",
+      "attributes": {
+        "size": 12773,
+        "extension": ".tsx",
+        "component": "trading"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "scripts",
+      "target": "scripts/security-verification.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/git-secrets-scrub.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/security-scan.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/backup-redis.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/backup-postgres.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/setup-backups.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/secrets-sanity-check.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/health-check.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/deployment-verification.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/backup-system.sh",
+      "type": "contains"
+    },
+    {
+      "source": "scripts",
+      "target": "scripts/setup-sops-encryption.sh",
+      "type": "contains"
+    },
+    {
+      "source": "monitoring",
+      "target": "monitoring/prometheus.yml",
+      "type": "contains"
+    },
+    {
+      "source": "monitoring",
+      "target": "monitoring/loki.yml",
+      "type": "contains"
+    },
+    {
+      "source": "monitoring",
+      "target": "monitoring/promtail.yml",
+      "type": "contains"
+    },
+    {
+      "source": "nginx",
+      "target": "nginx/frontend.conf",
+      "type": "contains"
+    },
+    {
+      "source": "nginx",
+      "target": "nginx/nginx.conf",
+      "type": "contains"
+    },
+    {
+      "source": "flows",
+      "target": "flows/data_pipeline.py",
+      "type": "contains"
+    },
+    {
+      "source": "src",
+      "target": "src/index.css",
+      "type": "contains"
+    },
+    {
+      "source": "src",
+      "target": "src/App.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src",
+      "target": "src/main.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "migrations",
+      "target": "migrations/001_init.sql",
+      "type": "contains"
+    },
+    {
+      "source": "tests",
+      "target": "tests/quota-exhaustion.js",
+      "type": "contains"
+    },
+    {
+      "source": "tests",
+      "target": "tests/run-pipeline-tests.js",
+      "type": "contains"
+    },
+    {
+      "source": "tests",
+      "target": "tests/simple-pipeline-test.js",
+      "type": "contains"
+    },
+    {
+      "source": "docs",
+      "target": "docs/MQL5_INTEGRATION.md",
+      "type": "contains"
+    },
+    {
+      "source": "logs",
+      "target": "logs/combined.log",
+      "type": "contains"
+    },
+    {
+      "source": "logs",
+      "target": "logs/trading.log",
+      "type": "contains"
+    },
+    {
+      "source": "logs",
+      "target": "logs/error.log",
+      "type": "contains"
+    },
+    {
+      "source": "logs",
+      "target": "logs/performance.log",
+      "type": "contains"
+    },
+    {
+      "source": "backups",
+      "target": "backups/test_recovery.db-shm",
+      "type": "contains"
+    },
+    {
+      "source": "backups",
+      "target": "backups/test_recovery.db-wal",
+      "type": "contains"
+    },
+    {
+      "source": "public",
+      "target": "public/mql5-config.js",
+      "type": "contains"
+    },
+    {
+      "source": "dashboards",
+      "target": "dashboards/api_latency.json",
+      "type": "contains"
+    },
+    {
+      "source": "dashboards",
+      "target": "dashboards/system_perf.json",
+      "type": "contains"
+    },
+    {
+      "source": "dashboards",
+      "target": "dashboards/trading_pnl.json",
+      "type": "contains"
+    },
+    {
+      "source": "mt5",
+      "target": "mt5/ZmqDealerEA.mq5",
+      "type": "contains"
+    },
+    {
+      "source": "Ops",
+      "target": "Ops/Runbook.md",
+      "type": "contains"
+    },
+    {
+      "source": "data",
+      "target": "data/trading.db",
+      "type": "contains"
+    },
+    {
+      "source": "config",
+      "target": "config/default.yaml",
+      "type": "contains"
+    },
+    {
+      "source": "server",
+      "target": "server/real-data-api.js",
+      "type": "contains"
+    },
+    {
+      "source": "server",
+      "target": "server/enhanced-index.js",
+      "type": "contains"
+    },
+    {
+      "source": "server",
+      "target": "server/index.js",
+      "type": "contains"
+    },
+    {
+      "source": "server",
+      "target": "server/enhanced-server.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/monitoring",
+      "target": "server/monitoring/metrics.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/ai",
+      "target": "server/ai/notification-agent.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/trading",
+      "target": "server/trading/engine.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/pipeline",
+      "target": "server/pipeline/optimizer.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/logs",
+      "target": "server/logs/trading.log",
+      "type": "contains"
+    },
+    {
+      "source": "server/logs",
+      "target": "server/logs/performance.log",
+      "type": "contains"
+    },
+    {
+      "source": "server/ml",
+      "target": "server/ml/train.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/ml",
+      "target": "server/ml/manager.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/ml",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/ml",
+      "target": "server/ml/trainer.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/ml",
+      "target": "server/ml/training-visualizer.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/ml",
+      "target": "server/ml/reward-system.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/risk",
+      "target": "server/risk/manager.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/autonomous",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/data",
+      "target": "server/data/manager.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/data",
+      "target": "server/data/bybit-integration.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/data",
+      "target": "server/data/trading.db-shm",
+      "type": "contains"
+    },
+    {
+      "source": "server/data",
+      "target": "server/data/trading.db",
+      "type": "contains"
+    },
+    {
+      "source": "server/data",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/data",
+      "target": "server/data/trading.db-wal",
+      "type": "contains"
+    },
+    {
+      "source": "server/data",
+      "target": "server/data/realDataFetcher.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/utils",
+      "target": "server/utils/logger.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/utils",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/database",
+      "target": "server/database/manager.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/database",
+      "target": "server/database/postgres-manager.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/ml/models",
+      "target": "server/ml/models/lstm.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/ml/models",
+      "target": "server/ml/models/randomforest.js",
+      "type": "contains"
+    },
+    {
+      "source": "server/ml/models",
+      "target": "server/ml/models/ddqn.js",
+      "type": "contains"
+    },
+    {
+      "source": "services/rate-gate",
+      "target": "services/rate-gate/package.json",
+      "type": "contains"
+    },
+    {
+      "source": "services/rate-gate",
+      "target": "services/rate-gate/index.js",
+      "type": "contains"
+    },
+    {
+      "source": "services/rate-gate",
+      "target": "services/rate-gate/Dockerfile",
+      "type": "contains"
+    },
+    {
+      "source": "backups/daily",
+      "target": "backups/daily/logs_20250720_191423.tar.gz",
+      "type": "contains"
+    },
+    {
+      "source": "backups/daily",
+      "target": "backups/daily/trading_db_20250720_191417.db-wal",
+      "type": "contains"
+    },
+    {
+      "source": "backups/daily",
+      "target": "backups/daily/trading_db_20250720_191417.db-shm",
+      "type": "contains"
+    },
+    {
+      "source": "backups/daily",
+      "target": "backups/daily/trading_db_20250720_191417.db",
+      "type": "contains"
+    },
+    {
+      "source": "backups/daily",
+      "target": "backups/daily/config_20250720_191422.tar.gz",
+      "type": "contains"
+    },
+    {
+      "source": "tests/pipeline",
+      "target": "tests/pipeline/pipeline-test-framework.js",
+      "type": "contains"
+    },
+    {
+      "source": "tests/unit",
+      "target": "tests/unit/risk-manager.test.js",
+      "type": "contains"
+    },
+    {
+      "source": "tests/unit",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "contains"
+    },
+    {
+      "source": "tests/integration",
+      "target": "tests/integration/trading-engine.test.js",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/AINotificationPanel.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/StatusIndicator.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/AlertPanel.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/MQL5Widgets.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/Layout.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/TradingViewDashboard.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/MetricCard.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/RecentTrades.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/components",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/pages",
+      "target": "src/pages/Risk.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/pages",
+      "target": "src/pages/Trading.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/pages",
+      "target": "src/pages/Analytics.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/pages",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/pages",
+      "target": "src/pages/Models.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/pages",
+      "target": "src/pages/Settings.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "src/contexts",
+      "target": "src/contexts/TradingContext.tsx",
+      "type": "contains"
+    },
+    {
+      "source": "test_integration.py",
+      "target": "alpha_vantage_integration.py",
+      "type": "imports"
+    },
+    {
+      "source": "alpha_vantage_integration.py",
+      "target": "alpha_vantage_pipeline.py",
+      "type": "imports"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "test-working-model.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "test-training-visualization.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "test-working-model.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/lstm.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/lstm.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/lstm.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/lstm.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/lstm.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/lstm.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/randomforest.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/randomforest.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/randomforest.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/randomforest.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/randomforest.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/ddqn.js",
+      "target": "tests/unit/model-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/ddqn.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/ddqn.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/ddqn.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "tests/unit/model-manager.test.js",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "tests/unit/model-manager.test.js",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "tests/unit/model-manager.test.js",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelStatus.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "generate-sample-data.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "generate-mock-data.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "collect-historical-data.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "test-real-data-fixed.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "flows/data_pipeline.py",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "server/real-data-api.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-real-data.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "generate-mock-data.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "collect-historical-data.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "test-real-data-fixed.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "flows/data_pipeline.py",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "server/real-data-api.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-sample-data.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "collect-historical-data.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "test-real-data-fixed.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "flows/data_pipeline.py",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "server/real-data-api.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "generate-mock-data.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-historical-data.js",
+      "target": "test-real-data-fixed.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-historical-data.js",
+      "target": "flows/data_pipeline.py",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-historical-data.js",
+      "target": "server/real-data-api.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-historical-data.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-historical-data.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-historical-data.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-historical-data.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-historical-data.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "collect-historical-data.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-real-data-fixed.js",
+      "target": "flows/data_pipeline.py",
+      "type": "same_component"
+    },
+    {
+      "source": "test-real-data-fixed.js",
+      "target": "server/real-data-api.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-real-data-fixed.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-real-data-fixed.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-real-data-fixed.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-real-data-fixed.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-real-data-fixed.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "test-real-data-fixed.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "flows/data_pipeline.py",
+      "target": "server/real-data-api.js",
+      "type": "same_component"
+    },
+    {
+      "source": "flows/data_pipeline.py",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "flows/data_pipeline.py",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "flows/data_pipeline.py",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "flows/data_pipeline.py",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "flows/data_pipeline.py",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "flows/data_pipeline.py",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/realDataFetcher.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/realDataFetcher.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/database/manager.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "start_mt5_trading.js",
+      "target": "server/trading/engine.js",
+      "type": "same_component"
+    },
+    {
+      "source": "start_mt5_trading.js",
+      "target": "tests/integration/trading-engine.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "start_mt5_trading.js",
+      "target": "src/components/TradingViewDashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "start_mt5_trading.js",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "start_mt5_trading.js",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "start_mt5_trading.js",
+      "target": "src/contexts/TradingContext.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "tests/integration/trading-engine.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "src/components/TradingViewDashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "src/contexts/TradingContext.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "tests/integration/trading-engine.test.js",
+      "target": "src/components/TradingViewDashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "tests/integration/trading-engine.test.js",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "tests/integration/trading-engine.test.js",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "tests/integration/trading-engine.test.js",
+      "target": "src/contexts/TradingContext.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/contexts/TradingContext.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/contexts/TradingContext.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Trading.tsx",
+      "target": "src/contexts/TradingContext.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/enhanced-index.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/index.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/enhanced-server.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/monitoring/metrics.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ai/notification-agent.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/trading/engine.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/pipeline/optimizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/real-data-api.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/index.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/enhanced-server.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/monitoring/metrics.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ai/notification-agent.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/trading/engine.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/pipeline/optimizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-index.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/enhanced-server.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/monitoring/metrics.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ai/notification-agent.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/trading/engine.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/pipeline/optimizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/index.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/monitoring/metrics.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ai/notification-agent.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/trading/engine.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/pipeline/optimizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/enhanced-server.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ai/notification-agent.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/trading/engine.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/pipeline/optimizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/trading/engine.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/pipeline/optimizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ai/notification-agent.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/pipeline/optimizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/trading/engine.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/ml/train.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/pipeline/optimizer.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/train.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/enhanced-reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/manager.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/trainer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/enhanced-reward-system.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/training-visualizer.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/trainer.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/ml/reward-system.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/training-visualizer.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/risk/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/reward-system.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/autonomous/orchestrator.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/data/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/autonomous/orchestrator.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/data/bybit-integration.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/manager.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/data/enhanced-data-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/bybit-integration.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/data/realDataFetcher.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/enhanced-data-manager.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/realDataFetcher.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/realDataFetcher.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/realDataFetcher.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/realDataFetcher.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/realDataFetcher.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/realDataFetcher.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/data/realDataFetcher.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/logger.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/logger.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/logger.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/logger.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/logger.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/logger.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/enhanced-logger.js",
+      "target": "server/database/manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/enhanced-logger.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/enhanced-logger.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/enhanced-logger.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/enhanced-logger.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/database/manager.js",
+      "target": "server/database/postgres-manager.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/database/manager.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/database/manager.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/database/manager.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/database/postgres-manager.js",
+      "target": "server/ml/models/lstm.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/database/postgres-manager.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/database/postgres-manager.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/lstm.js",
+      "target": "server/ml/models/randomforest.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/lstm.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/ml/models/randomforest.js",
+      "target": "server/ml/models/ddqn.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/utils/logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "src/components/AlertPanel.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/monitoring/metrics.js",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/logger.js",
+      "target": "server/utils/enhanced-logger.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/logger.js",
+      "target": "src/components/AlertPanel.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/logger.js",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/enhanced-logger.js",
+      "target": "src/components/AlertPanel.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/utils/enhanced-logger.js",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "tests/unit/risk-manager.test.js",
+      "type": "same_component"
+    },
+    {
+      "source": "server/risk/manager.js",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "tests/unit/risk-manager.test.js",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/StatusIndicator.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/AlertPanel.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/MQL5Widgets.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/Layout.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/TradingViewDashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/RecentTrades.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AINotificationPanel.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/AlertPanel.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/MQL5Widgets.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/Layout.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/TradingViewDashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/RecentTrades.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/StatusIndicator.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/MQL5Widgets.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/Layout.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/TradingViewDashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/RecentTrades.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/AlertPanel.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/components/Layout.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/components/TradingViewDashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/components/RecentTrades.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Widgets.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/components/TradingViewDashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/components/RecentTrades.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/Layout.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/components/MetricCard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/components/RecentTrades.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewDashboard.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/components/RecentTrades.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MetricCard.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/components/ModelTrainingVisualizer.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/RecentTrades.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/components/TradingViewChart.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelTrainingVisualizer.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/components/ModelStatus.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/TradingViewChart.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelStatus.tsx",
+      "target": "src/components/EquityCurve.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelStatus.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelStatus.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelStatus.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelStatus.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelStatus.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelStatus.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/ModelStatus.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/EquityCurve.tsx",
+      "target": "src/components/MQL5Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/EquityCurve.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/EquityCurve.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/EquityCurve.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/EquityCurve.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/EquityCurve.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/EquityCurve.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Dashboard.tsx",
+      "target": "src/pages/Risk.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Dashboard.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Dashboard.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Dashboard.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Dashboard.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/components/MQL5Dashboard.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Risk.tsx",
+      "target": "src/pages/Trading.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Risk.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Risk.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Risk.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Risk.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Trading.tsx",
+      "target": "src/pages/Analytics.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Trading.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Trading.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Trading.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Analytics.tsx",
+      "target": "src/pages/Dashboard.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Analytics.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Analytics.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "src/pages/Models.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Dashboard.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    },
+    {
+      "source": "src/pages/Models.tsx",
+      "target": "src/pages/Settings.tsx",
+      "type": "same_component"
+    }
+  ]
+}
