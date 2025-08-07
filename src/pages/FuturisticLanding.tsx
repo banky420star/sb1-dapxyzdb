@@ -1,267 +1,168 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  Zap, 
-  Brain, 
-  Shield, 
-  TrendingUp, 
-  Activity, 
-  BarChart3,
-  ArrowRight,
-  Play
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const FuturisticLanding: React.FC = () => {
-  const [scrollY, setScrollY] = useState(0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    // V2: Add loading animation
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
   }, []);
 
-  const features = [
-    {
-      icon: Brain,
-      title: "AI-Powered Analysis",
-      description: "Advanced machine learning models provide real-time market insights and predictive analytics.",
-      color: "from-blue-400 to-blue-600"
-    },
-    {
-      icon: Zap,
-      title: "Lightning Fast",
-      description: "Ultra-low latency execution with real-time data feeds and instant order processing.",
-      color: "from-purple-400 to-purple-600"
-    },
-    {
-      icon: Shield,
-      title: "Secure & Reliable",
-      description: "Bank-grade security with encrypted connections and redundant infrastructure.",
-      color: "from-pink-400 to-pink-600"
-    }
-  ];
-
-  const stats = [
-    { value: "$2.5B+", label: "Trading Volume", color: "text-blue-400" },
-    { value: "99.9%", label: "Uptime", color: "text-purple-400" },
-    { value: "50K+", label: "Active Users", color: "text-pink-400" },
-    { value: "0.001s", label: "Latency", color: "text-blue-400" }
-  ];
+  const handleEnterDashboard = () => {
+    navigate('/dashboard');
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white overflow-x-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 opacity-20">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 animate-pulse"></div>
-        <div className="absolute top-20 left-20 w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
-        <div className="absolute top-40 right-32 w-1 h-1 bg-purple-400 rounded-full animate-bounce"></div>
-        <div className="absolute bottom-32 left-1/4 w-3 h-3 bg-pink-400 rounded-full animate-ping"></div>
-        <div className="absolute top-1/2 right-1/4 w-1 h-1 bg-blue-400 rounded-full animate-bounce"></div>
-      </div>
+    <div className={`min-h-screen bg-futuristic text-slate-100 font-sans antialiased flex flex-col transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      {/* V2: Enhanced Navbar */}
+      <header className="glass-dark fixed top-0 w-full z-20 shadow-2xl border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <h1 className="text-2xl font-extrabold tracking-tight text-gradient">
+            Meth<span className="text-indigo-400 text-glow">Trader</span>
+          </h1>
+          
+          {/* V2: Enhanced Navigation */}
+          <nav className="space-x-8 hidden md:block">
+            <a href="/dashboard" className="hover:text-indigo-300 transition-all duration-300 relative group">
+              Dashboard
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-400 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="/trading" className="hover:text-indigo-300 transition-all duration-300 relative group">
+              Trading
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-400 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="/models" className="hover:text-indigo-300 transition-all duration-300 relative group">
+              AI Models
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-400 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="/risk" className="hover:text-indigo-300 transition-all duration-300 relative group">
+              Risk
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-400 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="/analytics" className="hover:text-indigo-300 transition-all duration-300 relative group">
+              Analytics
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-400 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="/settings" className="hover:text-indigo-300 transition-all duration-300 relative group">
+              Settings
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-400 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+          </nav>
 
-      {/* Header */}
-      <motion.header 
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10 backdrop-blur-xl bg-white/5 border-b border-white/20 sticky top-0"
-      >
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                <TrendingUp className="w-8 h-8 text-white" />
+          {/* V2: Enhanced Mobile Menu */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2 rounded-lg glass hover:bg-white/10 transition-all duration-300"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {isMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+
+        {/* V2: Enhanced Mobile Menu Dropdown */}
+        {isMenuOpen && (
+          <div className="md:hidden glass-dark border-t border-white/10 animate-fade-in-up">
+            <div className="px-6 py-4 space-y-4">
+              <a href="/dashboard" className="block hover:text-indigo-300 transition-colors duration-300">Dashboard</a>
+              <a href="/trading" className="block hover:text-indigo-300 transition-colors duration-300">Trading</a>
+              <a href="/models" className="block hover:text-indigo-300 transition-colors duration-300">AI Models</a>
+              <a href="/risk" className="block hover:text-indigo-300 transition-colors duration-300">Risk</a>
+              <a href="/analytics" className="block hover:text-indigo-300 transition-colors duration-300">Analytics</a>
+              <a href="/settings" className="block hover:text-indigo-300 transition-colors duration-300">Settings</a>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* V2: Enhanced Hero Section */}
+      <main className="flex-1 flex items-center justify-center px-6 pt-20">
+        <div className="text-center max-w-4xl mx-auto">
+          {/* V2: Enhanced Animated Cube Hero */}
+          <div className="mb-12 relative">
+            <div className="w-32 h-32 mx-auto relative animate-pulse-slow">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl transform rotate-45 animate-pulse-slow"></div>
+              <div className="absolute inset-2 bg-gradient-to-r from-indigo-600 to-purple-700 rounded-xl transform -rotate-45 animate-pulse-slow" style={{animationDelay: '0.5s'}}></div>
+              <div className="absolute inset-4 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-lg transform rotate-12 animate-pulse-slow" style={{animationDelay: '1s'}}></div>
+            </div>
+          </div>
+
+          {/* V2: Enhanced Typography */}
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 text-gradient animate-fade-in-up">
+            AI-Powered
+            <br />
+            <span className="text-indigo-400 text-glow">Trading Platform</span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+            Experience the future of algorithmic trading with advanced AI models, 
+            real-time analytics, and intelligent risk management.
+          </p>
+
+          {/* V2: Enhanced CTA Button */}
+          <button
+            onClick={handleEnterDashboard}
+            className="btn-futuristic text-lg px-12 py-4 text-white font-semibold animate-fade-in-up"
+            style={{animationDelay: '0.4s'}}
+          >
+            <span className="flex items-center space-x-2">
+              <span>Enter Dashboard</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </span>
+          </button>
+
+          {/* V2: Enhanced Feature Highlights */}
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+            <div className="card-futuristic text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  MetaTrader Pro
-                </h1>
-                <p className="text-sm text-gray-400">AI-Powered Trading Platform</p>
-              </div>
+              <h3 className="text-xl font-semibold mb-2">AI Intelligence</h3>
+              <p className="text-slate-400">Advanced machine learning models for predictive trading</p>
             </div>
 
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <a href="#dashboard" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">Dashboard</a>
-              <a href="#trading" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">Trading</a>
-              <a href="#models" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">Models</a>
-              <a href="#analytics" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">Analytics</a>
-            </nav>
-
-            {/* Status & CTA */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-green-400">System Online</span>
+            <div className="card-futuristic text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
               </div>
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
-              >
-                Access Platform
-              </motion.button>
+              <h3 className="text-xl font-semibold mb-2">Real-Time Data</h3>
+              <p className="text-slate-400">Live market data and instant trade execution</p>
+            </div>
+
+            <div className="card-futuristic text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Risk Management</h3>
+              <p className="text-slate-400">Intelligent risk controls and portfolio protection</p>
             </div>
           </div>
         </div>
-      </motion.header>
+      </main>
 
-      {/* Hero Section */}
-      <section className="relative z-10 py-20">
-        <div className="container mx-auto px-6 text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-            className="max-w-4xl mx-auto"
-          >
-            <h2 className="text-6xl md:text-8xl font-bold mb-8">
-              <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Future of Trading
-              </span>
-            </h2>
-            <p className="text-xl md:text-2xl text-gray-300 mb-12 leading-relaxed">
-              Experience the next generation of algorithmic trading with our AI-powered platform. 
-              Real-time analysis, predictive modeling, and automated execution.
-            </p>
-            
-            {/* Feature Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-              {features.map((feature, index) => (
-                <motion.div
-                  key={feature.title}
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: index * 0.2 }}
-                  whileHover={{ scale: 1.05, y: -10 }}
-                  className="backdrop-blur-xl bg-white/10 rounded-2xl p-8 border border-white/20 hover:border-blue-400/50 transition-all duration-300"
-                >
-                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg`}>
-                    <feature.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-4 text-blue-400">{feature.title}</h3>
-                  <p className="text-gray-400">{feature.description}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* CTA Buttons */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-6 justify-center"
-            >
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-lg font-semibold hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 flex items-center justify-center space-x-2"
-              >
-                <span>Start Trading Now</span>
-                <ArrowRight className="w-5 h-5" />
-              </motion.button>
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 backdrop-blur-xl bg-white/10 rounded-xl text-lg font-semibold border border-blue-400/30 hover:bg-blue-400/10 transition-all duration-300 flex items-center justify-center space-x-2"
-              >
-                <Play className="w-5 h-5" />
-                <span>View Demo</span>
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="relative z-10 py-16">
-        <div className="container mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
-          >
-            {stats.map((stat, index) => (
-              <motion.div 
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`text-4xl font-bold ${stat.color} mb-2`}>{stat.value}</div>
-                <div className="text-gray-400">{stat.label}</div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Interactive Demo Section */}
-      <section className="relative z-10 py-20">
-        <div className="container mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h3 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Experience the Power
-            </h3>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              See our AI models in action with real-time market analysis and predictive insights.
-            </p>
-          </motion.div>
-
-          {/* Demo Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {['LSTM', 'Random Forest', 'DDQN'].map((model, index) => (
-              <motion.div
-                key={model}
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.05, y: -10 }}
-                className="backdrop-blur-xl bg-white/10 rounded-2xl p-6 border border-white/20 hover:border-blue-400/50 transition-all duration-300"
-              >
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
-                  <Brain className="w-6 h-6 text-white" />
-                </div>
-                <h4 className="text-xl font-semibold mb-2 text-blue-400">{model}</h4>
-                <p className="text-gray-400 mb-4">Advanced AI model for market prediction and analysis.</p>
-                <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full animate-pulse" style={{ width: `${85 + index * 5}%` }}></div>
-                </div>
-                <div className="flex justify-between text-sm text-gray-400">
-                  <span>Accuracy</span>
-                  <span>{85 + index * 5}%</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="relative z-10 backdrop-blur-xl bg-white/5 border-t border-white/20 mt-20">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-gray-400 text-sm">
-              © 2024 MetaTrader Pro. All rights reserved.
-            </div>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">Privacy</a>
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">Terms</a>
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">Support</a>
-            </div>
-          </div>
+      {/* V2: Enhanced Footer */}
+      <footer className="glass-dark border-t border-white/10 py-8 mt-20">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p className="text-slate-400">
+            © 2025 MethTrader. Advanced AI Trading Platform. 
+            <span className="text-indigo-400 ml-2">Powered by cutting-edge technology.</span>
+          </p>
         </div>
       </footer>
     </div>

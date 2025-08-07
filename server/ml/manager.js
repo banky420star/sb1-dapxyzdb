@@ -8,12 +8,12 @@ import { TrainingVisualizer } from './training-visualizer.js'
 import { ModelRewardSystem } from './reward-system.js'
 import fs from 'fs'
 import path from 'path'
-const io = require('socket.io');
-const logger = require('../utils/logger');
+import { Server } from 'socket.io'
 
 class MLManager {
     constructor(server) {
-        this.io = io(server);
+        this.logger = new Logger();
+        this.io = new Server(server);
         this.models = {
             LSTM: { status: 'idle', epoch: 0, epochs: 20, loss: 0, acc: 0 },
             RF: { status: 'idle', epoch: 0, epochs: 15, loss: 0, acc: 0 },
@@ -24,13 +24,13 @@ class MLManager {
 
     setupSocketHandlers() {
         this.io.on('connection', (socket) => {
-            logger.info('Client connected to ML manager');
+            this.logger.info('Client connected to ML manager');
             
             // Send current state to new client
             socket.emit('model_activity', this.models);
             
             socket.on('disconnect', () => {
-                logger.info('Client disconnected from ML manager');
+                this.logger.info('Client disconnected from ML manager');
             });
         });
     }
@@ -53,7 +53,7 @@ class MLManager {
 
         this.models[model] = activity;
         this.io.emit('model_activity', activity);
-        logger.info(`Emitted ${model} activity:`, activity);
+        this.logger.info(`Emitted ${model} activity:`, activity);
     }
 
     // Simulate training for demonstration
@@ -91,17 +91,17 @@ class MLManager {
 
         this.models[model].status = 'completed';
         this.emitModelActivity(model, { status: 'completed', epoch: epochs, epochs });
-        logger.info(`${model} training completed`);
+        this.logger.info(`${model} training completed`);
     }
 
     // Start training for a specific model
     startTraining(model) {
         if (this.models[model].status === 'training') {
-            logger.warn(`${model} is already training`);
+            this.logger.warn(`${model} is already training`);
             return;
         }
         
-        logger.info(`Starting ${model} training`);
+        this.logger.info(`Starting ${model} training`);
         this.simulateTraining(model);
     }
 
@@ -111,7 +111,7 @@ class MLManager {
     }
 }
 
-module.exports = MLManager;
+export { MLManager };
 
 export class ModelManager extends EventEmitter {
   constructor() {

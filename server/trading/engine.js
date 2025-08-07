@@ -1186,6 +1186,86 @@ export class TradingEngine extends EventEmitter {
     }
   }
 
+  // Enable ML signals in the trading engine
+  enableMLSignals() {
+    try {
+      this.logger.info('Enabling ML signals in trading engine')
+      
+      // Set flag to enable ML signal processing
+      this.mlSignalsEnabled = true
+      
+      // Start ML signal processing if not already running
+      if (!this.mlSignalInterval) {
+        this.mlSignalInterval = setInterval(async () => {
+          if (this.isRunning && this.mlSignalsEnabled) {
+            await this.processMLSignals()
+          }
+        }, 5000) // Process ML signals every 5 seconds
+      }
+      
+      this.logger.info('ML signals enabled successfully')
+      
+      // Emit event for UI updates
+      if (this.io) {
+        this.io.emit('ml_signals_enabled', {
+          enabled: true,
+          timestamp: new Date().toISOString()
+        })
+      }
+      
+    } catch (error) {
+      this.logger.error('Error enabling ML signals:', error)
+      throw error
+    }
+  }
+
+  // Process ML signals
+  async processMLSignals() {
+    try {
+      if (!this.modelManager || !this.mlSignalsEnabled) {
+        return
+      }
+      
+      // Get predictions from all trained models
+      const symbols = this.config.symbols
+      const mlSignals = []
+      
+      for (const symbol of symbols) {
+        const marketData = this.dataManager.getCurrentPrices()
+        if (marketData && marketData[symbol]) {
+          const predictions = await this.modelManager.getPredictions(symbol, marketData[symbol])
+          
+          if (predictions && Object.keys(predictions).length > 0) {
+            // Create ML signal
+            const signal = {
+              id: `ml_${symbol}_${Date.now()}`,
+              symbol: symbol,
+              type: 'ML',
+              action: predictions.action || 'HOLD',
+              confidence: predictions.confidence || 0.5,
+              model: predictions.model || 'ensemble',
+              timestamp: new Date().toISOString(),
+              predictions: predictions
+            }
+            
+            mlSignals.push(signal)
+            
+            // Add to signal queue for processing
+            this.signalQueue.push(signal)
+          }
+        }
+      }
+      
+      // Emit ML signals to connected clients
+      if (this.io && mlSignals.length > 0) {
+        this.io.emit('ml_signals_update', mlSignals)
+      }
+      
+    } catch (error) {
+      this.logger.error('Error processing ML signals:', error)
+    }
+  }
+
   // Cleanup
   async cleanup() {
     try {
@@ -1193,6 +1273,12 @@ export class TradingEngine extends EventEmitter {
       
       // Stop trading
       await this.stop()
+      
+      // Clear ML signal interval
+      if (this.mlSignalInterval) {
+        clearInterval(this.mlSignalInterval)
+        this.mlSignalInterval = null
+      }
       
       // Close ZMQ connections
       for (const socket of Object.values(this.zmqSockets)) {

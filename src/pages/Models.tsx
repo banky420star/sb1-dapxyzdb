@@ -1,13 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useTrading } from '../contexts/TradingContext';
 import { BotVisualizer } from '../components/BotVisualizer';
 import ModelTrainingVisualizer from '../components/ModelTrainingVisualizer';
 import CandlestickLoader from '../components/CandlestickLoader';
-import { Brain, TrendingUp, Activity, Zap, BarChart3, Settings, CheckCircle, Play, Square, Trash2 } from 'lucide-react';
+import { 
+  Brain, 
+  TrendingUp, 
+  Activity, 
+  Zap, 
+  BarChart3, 
+  Settings, 
+  CheckCircle, 
+  Play, 
+  Square, 
+  Trash2,
+  Sparkles,
+  Cpu,
+  ArrowUpRight,
+  ArrowDownRight,
+  Bot,
+  Target
+} from 'lucide-react';
 
 const Models: React.FC = () => {
   const { activity, isConnected } = useTrading();
   const [activeTab, setActiveTab] = useState<'overview' | 'training' | 'analytics'>('overview');
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const models = ['LSTM', 'RF', 'DDQN'] as const;
 
@@ -15,41 +39,47 @@ const Models: React.FC = () => {
   const hasActiveTraining = Object.values(activity).some(a => a?.status === 'training');
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className={`min-h-screen bg-futuristic text-slate-100 p-6 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+        {/* V2: Enhanced Header */}
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-4xl font-bold text-gradient mb-3 flex items-center">
+                <Brain className="w-8 h-8 mr-3 text-indigo-400" />
                 AI Models Hub
               </h1>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-slate-400 text-lg">
                 Advanced machine learning models with real-time training visualization
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
+            <div className="flex items-center space-x-4">
+              <div className={`px-4 py-2 rounded-xl text-sm font-semibold glass ${
+                isConnected ? 'text-green-400 border-green-500/30' : 'text-red-400 border-red-500/30'
+              } border`}>
                 {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
               </div>
               {hasActiveTraining && (
-                <div className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 animate-pulse">
+                <div className="px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-400 animate-pulse">
                   🧠 Training Active
                 </div>
               )}
             </div>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="flex space-x-1 bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm">
+          {/* V2: Enhanced Tab Navigation */}
+          <div className="flex space-x-2 glass p-2 rounded-xl">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
                 activeTab === 'overview'
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-white hover:bg-white/10'
               }`}
             >
               <BarChart3 className="w-4 h-4" />
@@ -57,10 +87,10 @@ const Models: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('training')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
                 activeTab === 'training'
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-white hover:bg-white/10'
               }`}
             >
               <Brain className="w-4 h-4" />
@@ -71,24 +101,29 @@ const Models: React.FC = () => {
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
                 activeTab === 'analytics'
-                  ? 'bg-blue-500 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg'
+                  : 'text-slate-400 hover:text-white hover:bg-white/10'
               }`}
             >
               <TrendingUp className="w-4 h-4" />
               <span>Analytics</span>
             </button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Tab Content */}
+        {/* V2: Enhanced Tab Content */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
-            {/* Models Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {models.map((modelName) => {
+          <motion.div 
+            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            {/* V2: Enhanced Models Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {models.map((modelName, index) => {
                 const modelActivity = activity[modelName] || null;
                 
                 // Add idle badge after 10 seconds of no activity
@@ -99,66 +134,92 @@ const Models: React.FC = () => {
                 }
 
                 return (
-                  <BotVisualizer
+                  <motion.div
                     key={modelName}
-                    modelName={modelName}
-                    activity={modelActivity}
-                  />
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + index * 0.1, duration: 0.6 }}
+                  >
+                    <BotVisualizer
+                      modelName={modelName}
+                      activity={modelActivity}
+                    />
+                  </motion.div>
                 );
               })}
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                    <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            {/* V2: Enhanced Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <motion.div 
+                className="card-futuristic p-6 hover:scale-105 transition-transform duration-300"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 rounded-xl flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Active Models</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-sm text-slate-400 font-medium">Active Models</p>
+                    <p className="text-3xl font-bold text-white">
                       {Object.values(activity).filter(a => a?.status === 'training').length}
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
               
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <motion.div 
+                className="card-futuristic p-6 hover:scale-105 transition-transform duration-300"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500/20 to-emerald-600/20 rounded-xl flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-green-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Completed</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-sm text-slate-400 font-medium">Completed</p>
+                    <p className="text-3xl font-bold text-white">
                       {Object.values(activity).filter(a => a?.status === 'completed').length}
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
               
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <motion.div 
+                className="card-futuristic p-6 hover:scale-105 transition-transform duration-300"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.6 }}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500/20 to-violet-600/20 rounded-xl flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-purple-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Sessions</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-sm text-slate-400 font-medium">Total Sessions</p>
+                    <p className="text-3xl font-bold text-white">
                       {Object.keys(activity).length}
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
               
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              <motion.div 
+                className="card-futuristic p-6 hover:scale-105 transition-transform duration-300"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.6 }}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-orange-500/20 to-red-600/20 rounded-xl flex items-center justify-center">
+                    <Target className="w-6 h-6 text-orange-400" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Avg Accuracy</p>
+                    <p className="text-sm text-slate-400 font-medium">Avg Accuracy</p>
                     <div className="flex items-center justify-center">
                       <CandlestickLoader 
                         progress={Object.values(activity).length > 0 
@@ -169,68 +230,104 @@ const Models: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {activeTab === 'training' && (
-          <div className="space-y-6">
+          <motion.div 
+            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
             <ModelTrainingVisualizer />
-          </div>
+          </motion.div>
         )}
 
         {activeTab === 'analytics' && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          <motion.div 
+            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <div className="card-futuristic p-8">
+              <h3 className="text-2xl font-bold text-gradient mb-6">
                 Model Performance Analytics
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-slate-400 text-lg">
                 Detailed performance metrics and comparison charts will be displayed here.
               </p>
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* System Status */}
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+        {/* V2: Enhanced System Status */}
+        <motion.div 
+          className="mt-8 card-futuristic p-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+        >
+          <h2 className="text-2xl font-bold text-gradient mb-6">
             System Status
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center space-x-3">
-              <div className={`w-3 h-3 ${isConnected ? 'bg-green-500' : 'bg-red-500'} rounded-full`}></div>
-              <span className="text-gray-700 dark:text-gray-300">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center space-x-4 p-4 glass rounded-xl">
+              <div className={`w-4 h-4 ${isConnected ? 'bg-green-400' : 'bg-red-400'} rounded-full animate-pulse`}></div>
+              <span className="text-slate-300 font-medium">
                 {isConnected ? 'API Connected' : 'API Disconnected'}
               </span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className={`w-3 h-3 ${isConnected ? 'bg-blue-500' : 'bg-gray-500'} rounded-full animate-pulse`}></div>
-              <span className="text-gray-700 dark:text-gray-300">WebSocket Active</span>
+            <div className="flex items-center space-x-4 p-4 glass rounded-xl">
+              <div className={`w-4 h-4 ${isConnected ? 'bg-blue-400' : 'bg-slate-500'} rounded-full animate-pulse`}></div>
+              <span className="text-slate-300 font-medium">WebSocket Active</span>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className={`w-3 h-3 ${hasActiveTraining ? 'bg-purple-500 animate-pulse' : 'bg-gray-500'} rounded-full`}></div>
-              <span className="text-gray-700 dark:text-gray-300">
+            <div className="flex items-center space-x-4 p-4 glass rounded-xl">
+              <div className={`w-4 h-4 ${hasActiveTraining ? 'bg-purple-400 animate-pulse' : 'bg-slate-500'} rounded-full`}></div>
+              <span className="text-slate-300 font-medium">
                 {hasActiveTraining ? 'Training in Progress' : 'No Active Training'}
               </span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Training Controls */}
-        <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-          <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+        {/* V2: Enhanced Training Controls */}
+        <motion.div 
+          className="mt-8 card-futuristic p-8 border border-indigo-500/30"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9, duration: 0.6 }}
+        >
+          <h3 className="text-xl font-bold text-gradient mb-4 flex items-center">
+            <Sparkles className="w-5 h-5 mr-2 text-indigo-400" />
             Training Information
           </h3>
-          <ul className="text-blue-800 dark:text-blue-200 space-y-1">
-            <li>• Models will automatically train based on available data</li>
-            <li>• Watch the circular progress indicator fill as training progresses</li>
-            <li>• Monitor loss and accuracy trends in real-time charts</li>
-            <li>• View model-specific metrics like Q-Value (DDQN) and Gradient Norm</li>
-            <li>• Training sessions are logged and can be reviewed in history</li>
+          <ul className="text-slate-300 space-y-3">
+            <li className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+              <span>Models will automatically train based on available data</span>
+            </li>
+            <li className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+              <span>Watch the circular progress indicator fill as training progresses</span>
+            </li>
+            <li className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+              <span>Monitor loss and accuracy trends in real-time charts</span>
+            </li>
+            <li className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+              <span>View model-specific metrics like Q-Value (DDQN) and Gradient Norm</span>
+            </li>
+            <li className="flex items-center space-x-3">
+              <div className="w-2 h-2 bg-indigo-400 rounded-full"></div>
+              <span>Training sessions are logged and can be reviewed in history</span>
+            </li>
           </ul>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

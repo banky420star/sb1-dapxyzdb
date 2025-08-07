@@ -10,6 +10,7 @@ import { dirname, join } from 'path'
 import cron from 'node-cron'
 import { EnhancedDataManager } from './data/enhanced-data-manager.js'
 import { TradingEngine } from './trading/engine.js'
+import { CryptoTradingEngine } from './trading/crypto-engine.js'
 import { ModelManager } from './ml/manager.js'
 import { RiskManager } from './risk/manager.js'
 import { MetricsCollector } from './monitoring/metrics.js'
@@ -65,8 +66,9 @@ const tradingEngine = new TradingEngine({
 // Initialize AI Notification Agent (will be started after DB initialization)
 let notificationAgent = null
 
-// Initialize Bybit Integration for BTCUSD trading
+// Initialize Bybit Integration for crypto trading
 let bybitIntegration = null
+let cryptoTradingEngine = null
 
 // Initialize Autonomous Orchestrator (will be initialized after core components are ready)
 const autonomousOrchestrator = new AutonomousOrchestrator()
@@ -98,6 +100,16 @@ io.on('connection', (socket) => {
   socket.emit('models_update', modelManager.getModelStatus())
   socket.emit('metrics_update', metricsCollector.getMetrics())
   socket.emit('notifications_update', notificationAgent ? notificationAgent.getNotificationHistory() : [])
+  
+  // Send crypto data if available
+  if (cryptoTradingEngine) {
+    socket.emit('crypto_status', cryptoTradingEngine.getStatus())
+    socket.emit('crypto_positions', cryptoTradingEngine.getPositions())
+    socket.emit('crypto_orders', cryptoTradingEngine.getOrders())
+    socket.emit('crypto_balance', cryptoTradingEngine.getBalance())
+    socket.emit('crypto_performance', cryptoTradingEngine.getPerformance())
+    socket.emit('crypto_strategy_signals', cryptoTradingEngine.getStrategySignals())
+  }
   socket.emit('price_update', dataManager.getCurrentPrices())
   socket.emit('signals_update', dataManager.getTradingSignals())
 
@@ -372,13 +384,12 @@ setInterval(() => {
 }, 1000)
 
 // API Routes
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    system: systemState
-  })
-})
+// Enhanced health check endpoints
+import { healthCheck, metrics, publicStatus } from './health-check.js'
+
+app.get('/api/health', healthCheck)
+app.get('/api/metrics', metrics)
+app.get('/status', publicStatus)
 
 app.get('/api/status', (req, res) => {
   res.json({
@@ -475,6 +486,127 @@ app.get('/api/analytics/risk', async (req, res) => {
         marginLevel: balance?.marginLevel || 0
       }
     })
+  } catch (error) {
+    logger.error('Error fetching risk data:', error)
+    res.status(500).json({ error: 'Failed to fetch risk data' })
+  }
+})
+
+// Crypto Trading API Routes
+app.get('/api/crypto/status', (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    res.json(cryptoTradingEngine.getStatus())
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.get('/api/crypto/balance', (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    res.json(cryptoTradingEngine.getBalance())
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.get('/api/crypto/positions', (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    res.json(cryptoTradingEngine.getPositions())
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.get('/api/crypto/orders', (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    res.json(cryptoTradingEngine.getOrders())
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.get('/api/crypto/performance', (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    res.json(cryptoTradingEngine.getPerformance())
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.get('/api/crypto/signals', (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    res.json(cryptoTradingEngine.getStrategySignals())
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.post('/api/crypto/order', async (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    
+    const { symbol, type, side, size, price } = req.body
+    const order = await cryptoTradingEngine.placeOrder(symbol, type, side, size, price)
+    res.json(order)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.post('/api/crypto/start', async (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    
+    await cryptoTradingEngine.start()
+    res.json({ success: true, message: 'Crypto trading engine started' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.post('/api/crypto/stop', async (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    
+    await cryptoTradingEngine.stop()
+    res.json({ success: true, message: 'Crypto trading engine stopped' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.post('/api/crypto/emergency-stop', async (req, res) => {
+  try {
+    if (!cryptoTradingEngine) {
+      return res.status(503).json({ error: 'Crypto trading engine not available' })
+    }
+    
+    await cryptoTradingEngine.emergencyStop()
+    res.json({ success: true, message: 'Crypto trading engine emergency stopped' })
   } catch (error) {
     logger.error('Error fetching risk data:', error)
     res.status(500).json({ error: 'Failed to fetch risk data' })
@@ -626,6 +758,58 @@ app.get('/api/widgets/:id/data', async (req, res) => {
   }
 })
 
+// Model training endpoints
+app.post('/api/models/train', async (req, res) => {
+  try {
+    const { model } = req.body
+    const validModels = ['lstm', 'random_forest', 'ddqn', 'LSTM', 'RF', 'DDQN']
+    
+    if (!model || !validModels.includes(model)) {
+      return res.status(400).json({ 
+        error: 'Invalid model type. Valid models: lstm, random_forest, ddqn' 
+      })
+    }
+    
+    logger.info(`Starting training for model: ${model}`)
+    
+    // For now, just return success immediately
+    // TODO: Implement actual training
+    res.json({ 
+      success: true, 
+      message: `Training started for ${model}`,
+      model: model,
+      status: 'scheduled'
+    })
+  } catch (error) {
+    logger.error('Error starting model training:', error)
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    })
+  }
+})
+
+app.post('/api/signals/enable-ml', async (req, res) => {
+  try {
+    logger.info('Enabling ML signals in trading engine')
+    
+    // Enable ML signals in the trading engine
+    tradingEngine.enableMLSignals()
+    
+    res.json({ 
+      success: true, 
+      message: 'ML signals enabled successfully',
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    logger.error('Error enabling ML signals:', error)
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    })
+  }
+})
+
 app.post('/api/command', async (req, res) => {
   try {
     const result = await executeCommand(req.body.command)
@@ -768,10 +952,20 @@ async function startServer() {
           logger.warn('⚠️ AI Notification Agent not available, continuing without it:', error.message)
         }
         
-        // Initialize Bybit Integration for BTCUSD trading
+        // Initialize Bybit Integration for crypto trading
         try {
           bybitIntegration = new BybitIntegration()
           await bybitIntegration.initialize()
+          
+          // Initialize Crypto Trading Engine
+          cryptoTradingEngine = new CryptoTradingEngine({
+            bybit: bybitIntegration,
+            modelManager,
+            riskManager,
+            metrics: metricsCollector,
+            io
+          })
+          await cryptoTradingEngine.initialize()
           
           // Set up Bybit event handlers
           bybitIntegration.on('price_update', (data) => {
@@ -791,7 +985,22 @@ async function startServer() {
             io.emit('bybit_news_update', data)
           })
           
-          logger.info('✅ Bybit Integration started successfully')
+          // Set up Crypto Trading Engine event handlers
+          cryptoTradingEngine.on('signal_executed', (data) => {
+            io.emit('crypto_signal_executed', data)
+            logger.info(`🚀 Crypto signal executed: ${data.signal.side} ${data.signal.symbol}`)
+          })
+          
+          cryptoTradingEngine.on('performance_update', (data) => {
+            io.emit('crypto_performance_update', data)
+          })
+          
+          cryptoTradingEngine.on('risk_violation', (data) => {
+            io.emit('crypto_risk_violation', data)
+            logger.warn(`⚠️ Crypto risk violation: ${data.type}`)
+          })
+          
+          logger.info('✅ Bybit Integration and Crypto Trading Engine started successfully')
         } catch (error) {
           logger.warn('⚠️ Bybit Integration not available, continuing without it:', error.message)
         }

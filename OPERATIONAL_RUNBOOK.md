@@ -7,8 +7,8 @@
 
 ### Production URLs
 - **Main Site**: https://methtrader.xyz
-- **Trading Platform**: https://trade.methtrader.xyz/  
-- **Grafana Monitoring**: https://grafana.methtrader.xyz
+- **Trading Platform**: https://methtrader.xyz/trading  
+- **Grafana Monitoring**: https://methtrader.xyz:3001
 - **API Base**: https://methtrader.xyz/api/
 
 ### Access Credentials

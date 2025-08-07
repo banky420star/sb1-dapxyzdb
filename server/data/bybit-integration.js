@@ -1,418 +1,348 @@
-import ccxt from 'ccxt'
 import { EventEmitter } from 'events'
 import { Logger } from '../utils/logger.js'
 import { DatabaseManager } from '../database/manager.js'
+import { MetricsCollector } from '../monitoring/metrics.js'
+
+// Import bybit-api for official Bybit API integration
+let BybitAPI
+try {
+  BybitAPI = await import('bybit-api')
+} catch (error) {
+  console.warn('bybit-api not available, using fallback implementation')
+}
 
 export class BybitIntegration extends EventEmitter {
   constructor(options = {}) {
     super()
     this.logger = new Logger()
     this.db = new DatabaseManager()
+    this.metrics = new MetricsCollector()
     
-    this.options = {
+    // Configuration with your provided API credentials
+    this.config = {
       apiKey: process.env.BYBIT_API_KEY || '3fg29yhr1a9JJ1etm3',
       secret: process.env.BYBIT_SECRET || 'wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14',
-      sandbox: process.env.BYBIT_SANDBOX === 'true' || true,
-      symbols: ['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'DOT/USDT'],
-      timeframes: ['1m', '5m', '15m', '1h', '4h', '1d'],
+      testnet: process.env.BYBIT_TESTNET === 'true' || false,
+      symbols: ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'DOTUSDT', 'SOLUSDT', 'MATICUSDT'],
+      timeframes: ['1', '3', '5', '15', '30', '60', '240', 'D', 'W', 'M'],
       updateInterval: 1000, // 1 second
+      maxPositions: 10,
+      maxRiskPerTrade: 0.02, // 2%
+      maxDailyLoss: 0.05,    // 5%
       ...options
     }
     
-    this.exchange = null
+    // Bybit API connections
+    this.session = null
+    this.ws = null
     this.isConnected = false
+    this.isInitialized = false
+    
+    // Trading state
+    this.positions = new Map()
+    this.orders = new Map()
+    this.trades = []
+    this.balance = {
+      equity: 0,
+      balance: 0,
+      margin: 0,
+      freeMargin: 0,
+      marginLevel: 0
+    }
+    
+    // Market data
     this.priceData = new Map()
     this.orderBook = new Map()
-    this.trades = new Map()
-    this.newsEvents = []
-    this.strategies = new Map()
+    this.recentTrades = new Map()
+    this.indicators = new Map()
     
-    // Strategy configurations
-    this.strategyConfigs = {
-      trendFollowing: {
-        enabled: true,
-        params: {
-          shortPeriod: 20,
-          longPeriod: 50,
-          rsiPeriod: 14,
-          rsiOverbought: 70,
-          rsiOversold: 30
-        }
-      },
-      meanReversion: {
-        enabled: true,
-        params: {
-          bbPeriod: 20,
-          bbStdDev: 2,
-          rsiPeriod: 14
-        }
-      },
-      breakout: {
-        enabled: true,
-        params: {
-          atrPeriod: 14,
-          breakoutMultiplier: 2
-        }
-      }
+    // Performance tracking
+    this.performance = {
+      totalTrades: 0,
+      winningTrades: 0,
+      losingTrades: 0,
+      totalPnL: 0,
+      maxDrawdown: 0,
+      sharpeRatio: 0,
+      startTime: Date.now()
     }
+    
+    // Strategy signals
+    this.strategies = new Map()
+    this.signalQueue = []
+    this.processingSignals = false
+    
+    // Rate limiting
+    this.requestCount = 0
+    this.lastRequestTime = Date.now()
+    this.rateLimit = 120 // requests per minute
   }
 
   async initialize() {
     try {
-      this.logger.info('Initializing Bybit Integration')
+      this.logger.info('🚀 Initializing Bybit Crypto Trading Platform')
       
-      // Initialize database
+      // Initialize dependencies
       await this.db.initialize()
+      await this.metrics.initialize()
       
-      // Setup exchange connection
-      await this.setupExchange()
+      // Setup Bybit API connection
+      await this.setupBybitConnection()
+      
+      // Load account data
+      await this.loadAccountData()
       
       // Load historical data
       await this.loadHistoricalData()
       
-      // Initialize strategies
+      // Initialize trading strategies
       await this.initializeStrategies()
       
       // Start real-time data feeds
-      this.startRealTimeFeeds()
+      await this.startRealTimeFeeds()
       
-      // Start news monitoring
-      this.startNewsMonitoring()
+      // Start signal processing
+      this.startSignalProcessing()
       
-      // Start autonomous trading
-      this.startAutonomousTrading()
+      this.isInitialized = true
+      this.logger.info('✅ Bybit Crypto Trading Platform initialized successfully')
       
-      this.logger.info('Bybit Integration initialized successfully')
       return true
     } catch (error) {
-      this.logger.error('Failed to initialize Bybit Integration:', error)
+      this.logger.error('❌ Failed to initialize Bybit Integration:', error)
       throw error
     }
   }
 
-  async setupExchange() {
+  async setupBybitConnection() {
     try {
-      this.exchange = new ccxt.bybit({
-        apiKey: this.options.apiKey,
-        secret: this.options.secret,
-        sandbox: this.options.sandbox,
-        enableRateLimit: true,
-        timeout: 30000,
-        options: {
-          defaultType: 'spot'
-        }
+      this.logger.info('🔗 Setting up Bybit API connection...')
+      
+      if (!BybitAPI) {
+        throw new Error('bybit-api library not available')
+      }
+      
+      // Initialize REST API session
+      this.session = new BybitAPI({
+        key: this.config.apiKey,
+        secret: this.config.secret,
+        testnet: this.config.testnet,
+        recv_window: 5000
       })
       
-      await this.exchange.loadMarkets()
-      this.isConnected = true
-      this.logger.info('Connected to Bybit exchange')
-      
       // Test connection
-      const balance = await this.exchange.fetchBalance()
-      this.logger.info('Account balance loaded successfully')
+      const serverTime = await this.session.getServerTime()
+      this.logger.info(`✅ Bybit server time: ${new Date(serverTime.timeNano / 1000000)}`)
+      
+      // Initialize WebSocket connection
+      await this.setupWebSocket()
+      
+      this.isConnected = true
+      this.logger.info('✅ Bybit connection established successfully')
       
     } catch (error) {
-      this.logger.error('Failed to connect to Bybit:', error)
+      this.logger.error('❌ Failed to connect to Bybit:', error)
+      throw error
+    }
+  }
+
+  async setupWebSocket() {
+    try {
+      // Initialize WebSocket connection
+      this.ws = new BybitAPI({
+        key: this.config.apiKey,
+        secret: this.config.secret,
+        testnet: this.config.testnet,
+        recv_window: 5000
+      })
+      
+      // Subscribe to market data streams
+      for (const symbol of this.config.symbols) {
+        // Subscribe to orderbook
+        this.ws.subscribe(['orderbook.50.' + symbol], (data) => {
+          this.handleOrderBookUpdate(symbol, data)
+        })
+        
+        // Subscribe to trades
+        this.ws.subscribe(['publicTrade.' + symbol], (data) => {
+          this.handleTradeUpdate(symbol, data)
+        })
+        
+        // Subscribe to ticker
+        this.ws.subscribe(['tickers.' + symbol], (data) => {
+          this.handleTickerUpdate(symbol, data)
+        })
+      }
+      
+      // Subscribe to account updates (private streams)
+      this.ws.subscribe(['position'], (data) => {
+        this.handlePositionUpdate(data)
+      })
+      
+      this.ws.subscribe(['order'], (data) => {
+        this.handleOrderUpdate(data)
+      })
+      
+      this.ws.subscribe(['wallet'], (data) => {
+        this.handleWalletUpdate(data)
+      })
+      
+      this.logger.info('✅ WebSocket streams connected')
+      
+    } catch (error) {
+      this.logger.error('❌ Failed to setup WebSocket:', error)
+      throw error
+    }
+  }
+
+  async loadAccountData() {
+    try {
+      this.logger.info('💰 Loading account data...')
+      
+      // Get wallet balance
+      const wallet = await this.session.getWalletBalance({
+        accountType: 'UNIFIED'
+      })
+      
+      if (wallet.retCode === 0 && wallet.result && wallet.result.list) {
+        const account = wallet.result.list[0]
+        this.balance = {
+          equity: parseFloat(account.totalEquity),
+          balance: parseFloat(account.totalWalletBalance),
+          margin: parseFloat(account.totalInitialMargin),
+          freeMargin: parseFloat(account.totalAvailableBalance),
+          marginLevel: parseFloat(account.totalMarginRatio) * 100
+        }
+      }
+      
+      // Get open positions
+      const positions = await this.session.getPositions({
+        category: 'linear'
+      })
+      
+      if (positions.retCode === 0 && positions.result && positions.result.list) {
+        for (const pos of positions.result.list) {
+          if (parseFloat(pos.size) > 0) {
+            this.positions.set(pos.symbol, {
+              symbol: pos.symbol,
+              side: pos.side,
+              size: parseFloat(pos.size),
+              entryPrice: parseFloat(pos.avgPrice),
+              currentPrice: parseFloat(pos.markPrice),
+              pnl: parseFloat(pos.unrealisedPnl),
+              pnlPercent: parseFloat(pos.unrealisedPnlPercent),
+              timestamp: Date.now(),
+              status: 'open'
+            })
+          }
+        }
+      }
+      
+      // Get open orders
+      const orders = await this.session.getOpenOrders({
+        category: 'linear'
+      })
+      
+      if (orders.retCode === 0 && orders.result && orders.result.list) {
+        for (const order of orders.result.list) {
+          this.orders.set(order.orderId, {
+            id: order.orderId,
+            symbol: order.symbol,
+            type: order.orderType,
+            side: order.side,
+            size: parseFloat(order.qty),
+            price: parseFloat(order.price),
+            status: order.orderStatus,
+            timestamp: Date.now()
+          })
+        }
+      }
+      
+      this.logger.info(`✅ Loaded ${this.positions.size} positions and ${this.orders.size} orders`)
+      
+    } catch (error) {
+      this.logger.error('❌ Error loading account data:', error)
       throw error
     }
   }
 
   async loadHistoricalData() {
     try {
-      this.logger.info('Loading historical data from Bybit')
+      this.logger.info('📊 Loading historical data...')
       
-      for (const symbol of this.options.symbols) {
-        for (const timeframe of this.options.timeframes) {
+      for (const symbol of this.config.symbols) {
+        for (const interval of this.config.timeframes.slice(0, 5)) { // Load first 5 timeframes
           try {
-            // Fetch historical OHLCV data
-            const ohlcv = await this.exchange.fetchOHLCV(symbol, timeframe, undefined, 1000)
+            const klines = await this.session.getKline({
+              category: 'linear',
+              symbol: symbol,
+              interval: interval,
+              limit: 1000
+            })
             
-            if (ohlcv && ohlcv.length > 0) {
-              // Store in database
-              await this.db.saveOHLCVData(symbol, timeframe, ohlcv)
+            if (klines.retCode === 0 && klines.result && klines.result.list) {
+              const ohlcv = klines.result.list.map(k => [
+                parseInt(k[0]), // timestamp
+                parseFloat(k[1]), // open
+                parseFloat(k[2]), // high
+                parseFloat(k[3]), // low
+                parseFloat(k[4]), // close
+                parseFloat(k[5])  // volume
+              ])
               
-              // Store in memory for quick access
-              this.priceData.set(`${symbol}_${timeframe}`, ohlcv)
+              this.priceData.set(`${symbol}_${interval}`, ohlcv)
               
-              this.logger.info(`Loaded ${ohlcv.length} bars for ${symbol} ${timeframe}`)
+              // Calculate indicators
+              this.calculateIndicators(symbol, interval, ohlcv)
+              
+              this.logger.info(`📈 Loaded ${ohlcv.length} bars for ${symbol} ${interval}`)
             }
           } catch (error) {
-            this.logger.warn(`Failed to load historical data for ${symbol} ${timeframe}:`, error.message)
+            this.logger.warn(`⚠️ Failed to load ${symbol} ${interval}:`, error.message)
           }
         }
       }
-    } catch (error) {
-      this.logger.error('Error loading historical data:', error)
-    }
-  }
-
-  async initializeStrategies() {
-    try {
-      this.logger.info('Initializing trading strategies')
       
-      // Initialize each strategy
-      for (const [strategyName, config] of Object.entries(this.strategyConfigs)) {
-        if (config.enabled) {
-          this.strategies.set(strategyName, {
-            config,
-            signals: new Map(),
-            performance: {
-              totalTrades: 0,
-              winningTrades: 0,
-              totalPnL: 0,
-              winRate: 0
-            }
-          })
-          this.logger.info(`Strategy ${strategyName} initialized`)
-        }
-      }
     } catch (error) {
-      this.logger.error('Error initializing strategies:', error)
+      this.logger.error('❌ Error loading historical data:', error)
     }
   }
 
-  startRealTimeFeeds() {
-    // Start real-time price updates
-    setInterval(async () => {
-      await this.updateRealTimePrices()
-    }, this.options.updateInterval)
-    
-    // Start order book updates
-    setInterval(async () => {
-      await this.updateOrderBooks()
-    }, this.options.updateInterval * 2)
-    
-    // Start recent trades updates
-    setInterval(async () => {
-      await this.updateRecentTrades()
-    }, this.options.updateInterval * 3)
-  }
-
-  async updateRealTimePrices() {
+  calculateIndicators(symbol, interval, ohlcv) {
     try {
-      for (const symbol of this.options.symbols) {
-        const ticker = await this.exchange.fetchTicker(symbol)
-        
-        if (ticker) {
-          this.priceData.set(`${symbol}_realtime`, ticker)
-          
-          // Emit price update event
-          this.emit('price_update', {
-            symbol,
-            price: ticker.last,
-            bid: ticker.bid,
-            ask: ticker.ask,
-            volume: ticker.baseVolume,
-            timestamp: ticker.timestamp
-          })
-          
-          // Update strategies with new price
-          await this.updateStrategies(symbol, ticker)
-        }
-      }
-    } catch (error) {
-      this.logger.error('Error updating real-time prices:', error)
-    }
-  }
-
-  async updateOrderBooks() {
-    try {
-      for (const symbol of this.options.symbols) {
-        const orderBook = await this.exchange.fetchOrderBook(symbol, 20)
-        
-        if (orderBook) {
-          this.orderBook.set(symbol, orderBook)
-          
-          // Emit order book update event
-          this.emit('orderbook_update', {
-            symbol,
-            bids: orderBook.bids.slice(0, 10),
-            asks: orderBook.asks.slice(0, 10),
-            timestamp: orderBook.timestamp
-          })
-        }
-      }
-    } catch (error) {
-      this.logger.error('Error updating order books:', error)
-    }
-  }
-
-  async updateRecentTrades() {
-    try {
-      for (const symbol of this.options.symbols) {
-        const trades = await this.exchange.fetchTrades(symbol, undefined, 50)
-        
-        if (trades && trades.length > 0) {
-          this.trades.set(symbol, trades)
-          
-          // Emit trades update event
-          this.emit('trades_update', {
-            symbol,
-            trades: trades.slice(0, 10),
-            timestamp: Date.now()
-          })
-        }
-      }
-    } catch (error) {
-      this.logger.error('Error updating recent trades:', error)
-    }
-  }
-
-  async updateStrategies(symbol, ticker) {
-    try {
-      for (const [strategyName, strategy] of this.strategies) {
-        const signal = await this.calculateStrategySignal(strategyName, symbol, ticker)
-        
-        if (signal) {
-          strategy.signals.set(symbol, signal)
-          
-          // Emit strategy signal
-          this.emit('strategy_signal', {
-            strategy: strategyName,
-            symbol,
-            signal,
-            timestamp: Date.now()
-          })
-          
-          // Execute autonomous trade if signal is strong
-          if (signal.strength > 0.7) {
-            await this.executeAutonomousTrade(strategyName, symbol, signal)
-          }
-        }
-      }
-    } catch (error) {
-      this.logger.error('Error updating strategies:', error)
-    }
-  }
-
-  async calculateStrategySignal(strategyName, symbol, ticker) {
-    try {
-      const ohlcv = this.priceData.get(`${symbol}_1h`) || []
-      if (ohlcv.length < 50) return null
-      
-      switch (strategyName) {
-        case 'trendFollowing':
-          return this.calculateTrendFollowingSignal(symbol, ohlcv, ticker)
-        case 'meanReversion':
-          return this.calculateMeanReversionSignal(symbol, ohlcv, ticker)
-        case 'breakout':
-          return this.calculateBreakoutSignal(symbol, ohlcv, ticker)
-        default:
-          return null
-      }
-    } catch (error) {
-      this.logger.error(`Error calculating ${strategyName} signal:`, error)
-      return null
-    }
-  }
-
-  calculateTrendFollowingSignal(symbol, ohlcv, ticker) {
-    try {
-      const config = this.strategyConfigs.trendFollowing.params
       const closes = ohlcv.map(candle => candle[4])
-      
-      // Calculate moving averages
-      const shortMA = this.calculateSMA(closes, config.shortPeriod)
-      const longMA = this.calculateSMA(closes, config.longPeriod)
-      
-      // Calculate RSI
-      const rsi = this.calculateRSI(closes, config.rsiPeriod)
-      
-      const currentPrice = ticker.last
-      const signal = {
-        type: 'neutral',
-        strength: 0,
-        price: currentPrice,
-        indicators: { shortMA, longMA, rsi }
-      }
-      
-      // Generate signal based on MA crossover and RSI
-      if (shortMA > longMA && rsi < config.rsiOverbought) {
-        signal.type = 'buy'
-        signal.strength = Math.min((shortMA - longMA) / longMA * 10, 1)
-      } else if (shortMA < longMA && rsi > config.rsiOversold) {
-        signal.type = 'sell'
-        signal.strength = Math.min((longMA - shortMA) / longMA * 10, 1)
-      }
-      
-      return signal
-    } catch (error) {
-      this.logger.error('Error calculating trend following signal:', error)
-      return null
-    }
-  }
-
-  calculateMeanReversionSignal(symbol, ohlcv, ticker) {
-    try {
-      const config = this.strategyConfigs.meanReversion.params
-      const closes = ohlcv.map(candle => candle[4])
-      
-      // Calculate Bollinger Bands
-      const bb = this.calculateBollingerBands(closes, config.bbPeriod, config.bbStdDev)
-      
-      // Calculate RSI
-      const rsi = this.calculateRSI(closes, config.rsiPeriod)
-      
-      const currentPrice = ticker.last
-      const signal = {
-        type: 'neutral',
-        strength: 0,
-        price: currentPrice,
-        indicators: { bb, rsi }
-      }
-      
-      // Generate signal based on price position relative to BB and RSI
-      if (currentPrice < bb.lower && rsi < 30) {
-        signal.type = 'buy'
-        signal.strength = Math.min((bb.middle - currentPrice) / bb.middle, 1)
-      } else if (currentPrice > bb.upper && rsi > 70) {
-        signal.type = 'sell'
-        signal.strength = Math.min((currentPrice - bb.middle) / bb.middle, 1)
-      }
-      
-      return signal
-    } catch (error) {
-      this.logger.error('Error calculating mean reversion signal:', error)
-      return null
-    }
-  }
-
-  calculateBreakoutSignal(symbol, ohlcv, ticker) {
-    try {
-      const config = this.strategyConfigs.breakout.params
       const highs = ohlcv.map(candle => candle[2])
       const lows = ohlcv.map(candle => candle[3])
+      const volumes = ohlcv.map(candle => candle[5])
+      
+      // Calculate SMA
+      const sma20 = this.calculateSMA(closes, 20)
+      const sma50 = this.calculateSMA(closes, 50)
+      
+      // Calculate RSI
+      const rsi = this.calculateRSI(closes, 14)
+      
+      // Calculate Bollinger Bands
+      const bb = this.calculateBollingerBands(closes, 20, 2)
+      
+      // Calculate MACD
+      const macd = this.calculateMACD(closes)
       
       // Calculate ATR
-      const atr = this.calculateATR(ohlcv, config.atrPeriod)
+      const atr = this.calculateATR(ohlcv, 14)
       
-      // Calculate support and resistance levels
-      const recentHigh = Math.max(...highs.slice(-20))
-      const recentLow = Math.min(...lows.slice(-20))
+      this.indicators.set(`${symbol}_${interval}`, {
+        sma20,
+        sma50,
+        rsi,
+        bollingerBands: bb,
+        macd,
+        atr,
+        timestamp: Date.now()
+      })
       
-      const currentPrice = ticker.last
-      const signal = {
-        type: 'neutral',
-        strength: 0,
-        price: currentPrice,
-        indicators: { atr, recentHigh, recentLow }
-      }
-      
-      // Generate signal based on breakout levels
-      const breakoutThreshold = atr * config.breakoutMultiplier
-      
-      if (currentPrice > recentHigh + breakoutThreshold) {
-        signal.type = 'buy'
-        signal.strength = Math.min((currentPrice - recentHigh) / atr, 1)
-      } else if (currentPrice < recentLow - breakoutThreshold) {
-        signal.type = 'sell'
-        signal.strength = Math.min((recentLow - currentPrice) / atr, 1)
-      }
-      
-      return signal
     } catch (error) {
-      this.logger.error('Error calculating breakout signal:', error)
-      return null
+      this.logger.error(`❌ Error calculating indicators for ${symbol} ${interval}:`, error)
     }
   }
 
@@ -460,6 +390,37 @@ export class BybitIntegration extends EventEmitter {
     }
   }
 
+  calculateMACD(data) {
+    if (data.length < 26) return null
+    
+    const ema12 = this.calculateEMA(data, 12)
+    const ema26 = this.calculateEMA(data, 26)
+    
+    if (!ema12 || !ema26) return null
+    
+    const macd = ema12 - ema26
+    const signal = this.calculateEMA([...Array(data.length - 26).fill(0), macd], 9)
+    
+    return {
+      macd,
+      signal: signal || 0,
+      histogram: macd - (signal || 0)
+    }
+  }
+
+  calculateEMA(data, period) {
+    if (data.length < period) return null
+    
+    const multiplier = 2 / (period + 1)
+    let ema = data[0]
+    
+    for (let i = 1; i < data.length; i++) {
+      ema = (data[i] * multiplier) + (ema * (1 - multiplier))
+    }
+    
+    return ema
+  }
+
   calculateATR(ohlcv, period) {
     if (ohlcv.length < period + 1) return null
     
@@ -480,134 +441,410 @@ export class BybitIntegration extends EventEmitter {
     return sum / period
   }
 
-  async executeAutonomousTrade(strategyName, symbol, signal) {
+  async initializeStrategies() {
     try {
-      // Check if we have sufficient balance
-      const balance = await this.exchange.fetchBalance()
-      const usdtBalance = balance.USDT?.free || 0
+      this.logger.info('🤖 Initializing trading strategies...')
       
-      if (usdtBalance < 10) {
-        this.logger.warn('Insufficient USDT balance for autonomous trading')
+      // Trend Following Strategy
+      this.strategies.set('trendFollowing', {
+        name: 'Trend Following',
+        enabled: true,
+        params: {
+          shortPeriod: 20,
+          longPeriod: 50,
+          rsiPeriod: 14,
+          rsiOverbought: 70,
+          rsiOversold: 30
+        },
+        signals: new Map(),
+        performance: {
+          totalTrades: 0,
+          winningTrades: 0,
+          totalPnL: 0,
+          winRate: 0
+        }
+      })
+      
+      // Mean Reversion Strategy
+      this.strategies.set('meanReversion', {
+        name: 'Mean Reversion',
+        enabled: true,
+        params: {
+          bbPeriod: 20,
+          bbStdDev: 2,
+          rsiPeriod: 14
+        },
+        signals: new Map(),
+        performance: {
+          totalTrades: 0,
+          winningTrades: 0,
+          totalPnL: 0,
+          winRate: 0
+        }
+      })
+      
+      // Breakout Strategy
+      this.strategies.set('breakout', {
+        name: 'Breakout',
+        enabled: true,
+        params: {
+          atrPeriod: 14,
+          breakoutMultiplier: 2
+        },
+        signals: new Map(),
+        performance: {
+          totalTrades: 0,
+          winningTrades: 0,
+          totalPnL: 0,
+          winRate: 0
+        }
+      })
+      
+      this.logger.info(`✅ Initialized ${this.strategies.size} trading strategies`)
+      
+    } catch (error) {
+      this.logger.error('❌ Error initializing strategies:', error)
+    }
+  }
+
+  async startRealTimeFeeds() {
+    try {
+      this.logger.info('📡 Starting real-time data feeds...')
+      
+      // Update account data every 30 seconds
+      setInterval(async () => {
+        await this.updateAccountData()
+      }, 30000)
+      
+      // Update performance metrics every minute
+      setInterval(async () => {
+        await this.updatePerformanceMetrics()
+      }, 60000)
+      
+      this.logger.info('✅ Real-time feeds started')
+      
+    } catch (error) {
+      this.logger.error('❌ Error starting real-time feeds:', error)
+    }
+  }
+
+  startSignalProcessing() {
+    setInterval(async () => {
+      if (!this.processingSignals && this.signalQueue.length > 0) {
+        this.processingSignals = true
+        try {
+          await this.processSignalQueue()
+        } catch (error) {
+          this.logger.error('❌ Error processing signal queue:', error)
+        } finally {
+          this.processingSignals = false
+        }
+      }
+    }, 1000)
+  }
+
+  async processSignalQueue() {
+    while (this.signalQueue.length > 0) {
+      const signal = this.signalQueue.shift()
+      try {
+        await this.executeSignal(signal)
+      } catch (error) {
+        this.logger.error('❌ Error executing signal:', error)
+      }
+    }
+  }
+
+  async executeSignal(signal) {
+    try {
+      // Risk check
+      const riskCheck = await this.validateRisk(signal)
+      if (!riskCheck.approved) {
+        this.logger.warn(`⚠️ Signal rejected by risk manager: ${riskCheck.reason}`)
         return
       }
       
-      // Calculate position size (1% of balance per trade)
-      const positionSize = usdtBalance * 0.01
-      const quantity = positionSize / signal.price
-      
       // Execute trade
-      const order = await this.exchange.createOrder(
-        symbol,
-        'market',
-        signal.type,
-        quantity,
-        undefined,
-        {
-          strategy: strategyName,
-          signal_strength: signal.strength
-        }
-      )
+      const order = await this.placeOrder(signal.symbol, signal.type, signal.side, signal.size, signal.price)
       
-      // Save trade to database
-      await this.db.saveTrade({
-        id: order.id,
-        symbol,
-        side: signal.type,
-        quantity,
-        price: signal.price,
-        strategy: strategyName,
-        signal_strength: signal.strength,
-        timestamp: new Date().toISOString(),
-        status: 'filled'
-      })
-      
-      // Update strategy performance
-      const strategy = this.strategies.get(strategyName)
-      if (strategy) {
-        strategy.performance.totalTrades++
-        // Performance will be updated when position is closed
+      if (order) {
+        this.logger.info(`✅ Signal executed: ${signal.side} ${signal.size} ${signal.symbol} at ${signal.price}`)
+        
+        // Emit trade event
+        this.emit('signal_executed', {
+          signal,
+          order,
+          timestamp: Date.now()
+        })
       }
       
-      this.logger.info(`Autonomous trade executed: ${signal.type} ${quantity} ${symbol} at ${signal.price}`)
+    } catch (error) {
+      this.logger.error('❌ Error executing signal:', error)
+    }
+  }
+
+  async validateRisk(signal) {
+    try {
+      // Check daily loss limit
+      if (this.performance.totalPnL < -(this.balance.equity * this.config.maxDailyLoss)) {
+        return { approved: false, reason: 'Daily loss limit exceeded' }
+      }
       
-      // Emit trade event
-      this.emit('autonomous_trade', {
-        strategy: strategyName,
+      // Check position count
+      if (this.positions.size >= this.config.maxPositions) {
+        return { approved: false, reason: 'Maximum positions reached' }
+      }
+      
+      // Check position size
+      const positionValue = signal.size * signal.price
+      const accountValue = this.balance.equity
+      
+      if (positionValue > accountValue * this.config.maxRiskPerTrade) {
+        return { approved: false, reason: 'Position size exceeds risk limit' }
+      }
+      
+      return { approved: true }
+      
+    } catch (error) {
+      this.logger.error('❌ Error validating risk:', error)
+      return { approved: false, reason: 'Risk validation error' }
+    }
+  }
+
+  // WebSocket event handlers
+  handleOrderBookUpdate(symbol, data) {
+    try {
+      this.orderBook.set(symbol, data)
+      
+      this.emit('orderbook_update', {
         symbol,
-        signal,
-        order,
+        data,
         timestamp: Date.now()
       })
       
     } catch (error) {
-      this.logger.error('Error executing autonomous trade:', error)
+      this.logger.error(`❌ Error handling orderbook update for ${symbol}:`, error)
     }
   }
 
-  startNewsMonitoring() {
-    // Monitor news events that could affect crypto prices
-    setInterval(async () => {
-      await this.fetchNewsEvents()
-    }, 300000) // Every 5 minutes
-  }
-
-  async fetchNewsEvents() {
+  handleTradeUpdate(symbol, data) {
     try {
-      // This would integrate with a news API
-      // For now, we'll simulate news events
-      const mockNewsEvents = [
-        {
-          id: `news_${Date.now()}`,
-          title: 'Bitcoin ETF Approval Expected',
-          content: 'Major financial institutions are expecting Bitcoin ETF approval',
-          sentiment: 'positive',
-          impact: 'high',
-          timestamp: new Date().toISOString(),
-          symbols: ['BTC/USDT']
-        }
-      ]
+      this.recentTrades.set(symbol, data)
       
-      this.newsEvents = mockNewsEvents
-      
-      // Emit news events
-      this.emit('news_update', {
-        events: mockNewsEvents,
+      this.emit('trade_update', {
+        symbol,
+        data,
         timestamp: Date.now()
       })
       
     } catch (error) {
-      this.logger.error('Error fetching news events:', error)
+      this.logger.error(`❌ Error handling trade update for ${symbol}:`, error)
     }
   }
 
-  startAutonomousTrading() {
-    this.logger.info('Starting autonomous trading system')
-    
-    // Monitor for strong signals and execute trades
-    setInterval(async () => {
-      await this.monitorAndExecuteTrades()
-    }, 10000) // Every 10 seconds
+  handleTickerUpdate(symbol, data) {
+    try {
+      // Update price data
+      this.priceData.set(`${symbol}_realtime`, data)
+      
+      // Update position P&L
+      this.updatePositionPnL(symbol, data)
+      
+      // Check for trading signals
+      this.checkTradingSignals(symbol, data)
+      
+      this.emit('ticker_update', {
+        symbol,
+        data,
+        timestamp: Date.now()
+      })
+      
+    } catch (error) {
+      this.logger.error(`❌ Error handling ticker update for ${symbol}:`, error)
+    }
   }
 
-  async monitorAndExecuteTrades() {
+  handlePositionUpdate(data) {
     try {
-      for (const [strategyName, strategy] of this.strategies) {
-        for (const symbol of this.options.symbols) {
-          const signal = strategy.signals.get(symbol)
-          
-          if (signal && signal.strength > 0.8) {
-            await this.executeAutonomousTrade(strategyName, symbol, signal)
-          }
+      for (const position of data) {
+        if (parseFloat(position.size) > 0) {
+          this.positions.set(position.symbol, {
+            symbol: position.symbol,
+            side: position.side,
+            size: parseFloat(position.size),
+            entryPrice: parseFloat(position.avgPrice),
+            currentPrice: parseFloat(position.markPrice),
+            pnl: parseFloat(position.unrealisedPnl),
+            pnlPercent: parseFloat(position.unrealisedPnlPercent),
+            timestamp: Date.now(),
+            status: 'open'
+          })
+        } else {
+          this.positions.delete(position.symbol)
         }
       }
+      
+      this.emit('position_update', {
+        positions: Array.from(this.positions.values()),
+        timestamp: Date.now()
+      })
+      
     } catch (error) {
-      this.logger.error('Error in autonomous trading monitor:', error)
+      this.logger.error('❌ Error handling position update:', error)
     }
   }
 
-  // Public methods for external access
-  getPriceData(symbol, timeframe = 'realtime') {
-    return this.priceData.get(`${symbol}_${timeframe}`)
+  handleOrderUpdate(data) {
+    try {
+      for (const order of data) {
+        this.orders.set(order.orderId, {
+          id: order.orderId,
+          symbol: order.symbol,
+          type: order.orderType,
+          side: order.side,
+          size: parseFloat(order.qty),
+          price: parseFloat(order.price),
+          status: order.orderStatus,
+          timestamp: Date.now()
+        })
+      }
+      
+      this.emit('order_update', {
+        orders: Array.from(this.orders.values()),
+        timestamp: Date.now()
+      })
+      
+    } catch (error) {
+      this.logger.error('❌ Error handling order update:', error)
+    }
+  }
+
+  handleWalletUpdate(data) {
+    try {
+      for (const wallet of data) {
+        this.balance = {
+          equity: parseFloat(wallet.totalEquity),
+          balance: parseFloat(wallet.totalWalletBalance),
+          margin: parseFloat(wallet.totalInitialMargin),
+          freeMargin: parseFloat(wallet.totalAvailableBalance),
+          marginLevel: parseFloat(wallet.totalMarginRatio) * 100
+        }
+      }
+      
+      this.emit('wallet_update', {
+        balance: this.balance,
+        timestamp: Date.now()
+      })
+      
+    } catch (error) {
+      this.logger.error('❌ Error handling wallet update:', error)
+    }
+  }
+
+  // Trading methods
+  async placeOrder(symbol, type, side, size, price = null) {
+    try {
+      const orderParams = {
+        category: 'linear',
+        symbol: symbol,
+        side: side,
+        orderType: type,
+        qty: size.toString(),
+        timeInForce: 'GTC'
+      }
+      
+      if (price && type !== 'Market') {
+        orderParams.price = price.toString()
+      }
+      
+      const order = await this.session.placeOrder(orderParams)
+      
+      if (order.retCode === 0) {
+        this.logger.info(`✅ Order placed: ${side} ${size} ${symbol} at ${price || 'market'}`)
+        return order.result
+      } else {
+        this.logger.error(`❌ Order failed: ${order.retMsg}`)
+        return null
+      }
+      
+    } catch (error) {
+      this.logger.error('❌ Error placing order:', error)
+      return null
+    }
+  }
+
+  async cancelOrder(orderId, symbol) {
+    try {
+      const result = await this.session.cancelOrder({
+        category: 'linear',
+        symbol: symbol,
+        orderId: orderId
+      })
+      
+      if (result.retCode === 0) {
+        this.logger.info(`✅ Order cancelled: ${orderId}`)
+        return result.result
+      } else {
+        this.logger.error(`❌ Cancel failed: ${result.retMsg}`)
+        return null
+      }
+      
+    } catch (error) {
+      this.logger.error('❌ Error cancelling order:', error)
+      return null
+    }
+  }
+
+  async closePosition(symbol, side) {
+    try {
+      const position = this.positions.get(symbol)
+      if (!position) {
+        this.logger.warn(`⚠️ No position found for ${symbol}`)
+        return null
+      }
+      
+      const closeSide = side === 'Buy' ? 'Sell' : 'Buy'
+      const order = await this.placeOrder(symbol, 'Market', closeSide, position.size)
+      
+      if (order) {
+        this.logger.info(`✅ Position closed: ${symbol}`)
+        this.positions.delete(symbol)
+      }
+      
+      return order
+      
+    } catch (error) {
+      this.logger.error('❌ Error closing position:', error)
+      return null
+    }
+  }
+
+  // Public API methods
+  getStatus() {
+    return {
+      connected: this.isConnected,
+      initialized: this.isInitialized,
+      positions: this.positions.size,
+      orders: this.orders.size,
+      balance: this.balance,
+      performance: this.performance,
+      timestamp: Date.now()
+    }
+  }
+
+  getBalance() {
+    return this.balance
+  }
+
+  getPositions() {
+    return Array.from(this.positions.values())
+  }
+
+  getOrders() {
+    return Array.from(this.orders.values())
+  }
+
+  getPriceData(symbol, interval = '1') {
+    return this.priceData.get(`${symbol}_${interval}`)
   }
 
   getOrderBook(symbol) {
@@ -615,52 +852,42 @@ export class BybitIntegration extends EventEmitter {
   }
 
   getRecentTrades(symbol) {
-    return this.trades.get(symbol) || []
+    return this.recentTrades.get(symbol)
+  }
+
+  getIndicators(symbol, interval = '1') {
+    return this.indicators.get(`${symbol}_${interval}`)
   }
 
   getStrategySignals() {
     const signals = {}
-    for (const [strategyName, strategy] of this.strategies) {
-      signals[strategyName] = Object.fromEntries(strategy.signals)
+    for (const [name, strategy] of this.strategies) {
+      signals[name] = {
+        name: strategy.name,
+        enabled: strategy.enabled,
+        signals: Object.fromEntries(strategy.signals),
+        performance: strategy.performance
+      }
     }
     return signals
   }
 
-  getNewsEvents() {
-    return this.newsEvents
-  }
-
-  async getBalance() {
-    if (!this.isConnected) return null
-    return await this.exchange.fetchBalance()
-  }
-
-  async placeOrder(symbol, type, side, amount, price = undefined) {
-    if (!this.isConnected) throw new Error('Not connected to exchange')
-    
-    return await this.exchange.createOrder(symbol, type, side, amount, price)
-  }
-
-  async cancelOrder(orderId, symbol) {
-    if (!this.isConnected) throw new Error('Not connected to exchange')
-    
-    return await this.exchange.cancelOrder(orderId, symbol)
-  }
-
-  async getOpenOrders(symbol = undefined) {
-    if (!this.isConnected) return []
-    
-    return await this.exchange.fetchOpenOrders(symbol)
-  }
-
-  async getPositions() {
-    if (!this.isConnected) return []
-    
-    return await this.exchange.fetchPositions()
-  }
-
-  stop() {
-    this.logger.info('Stopping Bybit Integration')
-    this.isConnected = false
+  // Cleanup
+  async cleanup() {
+    try {
+      this.logger.info('🧹 Cleaning up Bybit Integration')
+      
+      if (this.ws) {
+        this.ws.stop()
+      }
+      
+      this.isConnected = false
+      this.isInitialized = false
+      
+      this.logger.info('✅ Bybit Integration cleaned up')
+      
+    } catch (error) {
+      this.logger.error('❌ Error during cleanup:', error)
+    }
   }
 } 

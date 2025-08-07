@@ -13,13 +13,15 @@ import {
   Shield,
   Activity,
   Zap,
-  ChevronDown
+  ChevronDown,
+  Bitcoin
 } from 'lucide-react'
 import Logo from './Logo'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: BarChart3, description: 'Overview and analytics' },
   { name: 'Trading', href: '/trading', icon: TrendingUp, description: 'Live trading interface' },
+  { name: 'Crypto', href: '/crypto', icon: Bitcoin, description: 'Cryptocurrency trading' },
   { name: 'Models', href: '/models', icon: Bot, description: 'AI model management' },
   { name: 'Risk', href: '/risk', icon: Shield, description: 'Risk management tools' },
   { name: 'Analytics', href: '/analytics', icon: Activity, description: 'Performance analysis' },
@@ -31,7 +33,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
-  const { state } = useTradingContext()
+  const alerts: any[] = [] // Simple notifications for now
 
   const currentPath = location.pathname
   const currentNav = navigation.find(nav => nav.href === currentPath)
@@ -134,7 +136,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   className="relative p-2 text-gray-400 hover:text-white transition-colors"
                 >
                   <Bell className="h-5 w-5" />
-                  {state.alerts && state.alerts.filter((alert: {read: boolean}) => !alert.read).length > 0 && (
+                  {alerts.filter((alert: {read: boolean}) => !alert.read).length > 0 && (
                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-critical rounded-full"></span>
                   )}
                 </button>
@@ -144,8 +146,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       <h3 className="text-sm font-medium text-white">Notifications</h3>
                     </div>
                     <div className="max-h-64 overflow-y-auto">
-                      {state.alerts && state.alerts.length > 0 ? (
-                        state.alerts.map((alert: any, index: number) => (
+                      {alerts.length > 0 ? (
+                        alerts.map((alert: any, index: number) => (
                           <div key={index} className="p-4 border-b border-gray-700 last:border-b-0">
                             <div className="flex items-start space-x-3">
                               <div className="w-2 h-2 bg-accent rounded-full mt-2"></div>

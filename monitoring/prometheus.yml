@@ -14,139 +14,27 @@ alerting:
           # - alertmanager:9093
 
 scrape_configs:
-  # Trading Backend Metrics (main application)
-  - job_name: 'trading-backend'
-    static_configs:
-      - targets: ['trading-backend:8000']
-    metrics_path: '/api/metrics'
-    scrape_interval: 10s
-    scrape_timeout: 5s
-    honor_labels: true
-
-  # Rate Gate Service Metrics
-  - job_name: 'rate-gate'
-    static_configs:
-      - targets: ['rate-gate:3002']
-    metrics_path: '/metrics'
-    scrape_interval: 15s
-    scrape_timeout: 5s
-
-  # PostgreSQL Database Metrics
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['db:5432']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-    scrape_timeout: 10s
-
-  # Redis Metrics
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis:6379']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # MLflow Tracking Server
-  - job_name: 'mlflow'
-    static_configs:
-      - targets: ['mlflow:5000']
-    metrics_path: '/metrics'
-    scrape_interval: 60s
-
-  # Loki Metrics
-  - job_name: 'loki'
-    static_configs:
-      - targets: ['loki:3100']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # Grafana Metrics
-  - job_name: 'grafana'
-    static_configs:
-      - targets: ['grafana:3000']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # Prefect Server Metrics
-  - job_name: 'prefect-server'
-    static_configs:
-      - targets: ['prefect-server:4200']
-    metrics_path: '/api/metrics'
-    scrape_interval: 30s
-
-  # Nginx Reverse Proxy Metrics
-  - job_name: 'nginx'
-    static_configs:
-      - targets: ['nginx:80']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # Prometheus Self-Monitoring
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  - job_name: 'trading-api'
+    static_configs:
+      - targets: ['trading-api:8000']
+    metrics_path: '/api/metrics'
     scrape_interval: 30s
 
-  # Node Exporter (if available)
-  - job_name: 'node-exporter'
+  - job_name: 'nginx'
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ['nginx:80']
     scrape_interval: 30s
 
-  # Docker Container Metrics (cAdvisor)
-  - job_name: 'cadvisor'
+  - job_name: 'postgres'
     static_configs:
-      - targets: ['cadvisor:8080']
+      - targets: ['postgres:5432']
     scrape_interval: 30s
 
-  # Trading Specific Metrics with Custom Labels
-  - job_name: 'trading-custom'
+  - job_name: 'redis'
     static_configs:
-      - targets: ['trading-backend:8000']
-    metrics_path: '/api/trading/metrics'
-    scrape_interval: 5s  # High frequency for trading metrics
-    scrape_timeout: 3s
-    honor_labels: true
-    metric_relabel_configs:
-      # Add trading-specific labels
-      - source_labels: [__name__]
-        regex: 'trading_(.+)'
-        target_label: 'metric_type'
-        replacement: 'trading'
-      - source_labels: [symbol]
-        target_label: 'currency_pair'
-      - source_labels: [model_type]
-        target_label: 'ml_model'
-
-  # Rate Limiting Metrics (High Frequency)
-  - job_name: 'rate-limits'
-    static_configs:
-      - targets: ['rate-gate:3002']
-    metrics_path: '/stats'
-    scrape_interval: 5s
-    scrape_timeout: 2s
-    honor_labels: true
-
-  # Database Connection Pool Metrics
-  - job_name: 'db-pools'
-    static_configs:
-      - targets: ['trading-backend:8000']
-    metrics_path: '/api/db/metrics'
-    scrape_interval: 15s
-    honor_labels: true
-
-  # Model Performance Metrics
-  - job_name: 'ml-models'
-    static_configs:
-      - targets: ['trading-backend:8000']
-    metrics_path: '/api/models/metrics'
-    scrape_interval: 60s  # Models update less frequently
-    honor_labels: true
-
-  # Risk Management Metrics
-  - job_name: 'risk-metrics'
-    static_configs:
-      - targets: ['trading-backend:8000']
-    metrics_path: '/api/risk/metrics'
-    scrape_interval: 10s  # Risk monitoring needs to be frequent
-    honor_labels: true
+      - targets: ['redis:6379']
+    scrape_interval: 30s

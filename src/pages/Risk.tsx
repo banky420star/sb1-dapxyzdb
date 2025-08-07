@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Shield, 
@@ -20,7 +20,11 @@ import {
   Bell,
   AlertCircle,
   TrendingUp,
-  Minus
+  Minus,
+  Sparkles,
+  ArrowUpRight,
+  ArrowDownRight,
+  Cpu
 } from 'lucide-react';
 import { useTradingContext } from '../contexts/TradingContext';
 
@@ -29,6 +33,12 @@ export default function Risk() {
   const [activeTab, setActiveTab] = useState<'historical' | 'monte-carlo'>('historical');
   const [isRunningVaR, setIsRunningVaR] = useState(false);
   const [varResult, setVarResult] = useState<number | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const positions = state.positions || [];
   const trades = state.trades || [];
@@ -65,354 +75,292 @@ export default function Risk() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-white">Risk Management</h1>
-          <p className="text-gray-400 text-sm">
-            Monitor exposure, calculate VaR, and manage risk alerts
-          </p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <StatusPill status="online" label="Risk Engine" />
-          <StatusPill status="online" label="Alerts" />
-        </div>
-      </div>
-
-      {/* Risk Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className={`min-h-screen bg-futuristic text-slate-100 p-6 transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <div className="max-w-7xl mx-auto">
+        {/* V2: Enhanced Header */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          className="flex items-center justify-between mb-8"
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-surface rounded-lg p-4 border border-gray-700"
+          transition={{ duration: 0.6 }}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">Current Risk</p>
-              <p className="text-xl font-bold text-white">
-                ${currentRisk.toFixed(2)}
-              </p>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-gradient flex items-center">
+              <Shield className="w-8 h-8 mr-3 text-indigo-400" />
+              Risk Management
+            </h1>
+            <p className="text-slate-400 text-lg">
+              Monitor exposure, calculate VaR, and manage risk alerts
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="px-4 py-2 rounded-xl text-sm font-semibold glass text-green-400 border border-green-500/30">
+              🟢 Risk Engine Online
             </div>
-            <div className="w-10 h-10 rounded-lg bg-critical/20 flex items-center justify-center">
-              <AlertTriangle className="h-5 w-5 text-critical" />
+            <div className="px-4 py-2 rounded-xl text-sm font-semibold glass text-blue-400 border border-blue-500/30">
+              🔵 Alerts Active
             </div>
           </div>
         </motion.div>
 
+        {/* V2: Enhanced Risk Overview Cards */}
         <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-surface rounded-lg p-4 border border-gray-700"
+          transition={{ delay: 0.2, duration: 0.6 }}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">Total Exposure</p>
-              <p className="text-xl font-bold text-white">
-                ${(totalExposure / 1000).toFixed(1)}k
-              </p>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-              <DollarSign className="h-5 w-5 text-primary" />
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-surface rounded-lg p-4 border border-gray-700"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">Max Drawdown</p>
-              <p className="text-xl font-bold text-white">
-                ${Math.abs(maxDrawdown).toFixed(2)}
-              </p>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-critical/20 flex items-center justify-center">
-              <TrendingDown className="h-5 w-5 text-critical" />
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-surface rounded-lg p-4 border border-gray-700"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">Win Rate</p>
-              <p className="text-xl font-bold text-white">
-                {(winRate * 100).toFixed(1)}%
-              </p>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-              <Target className="h-5 w-5 text-accent" />
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Exposure Sunburst */}
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-surface rounded-lg p-6 border border-gray-700"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Exposure Breakdown</h3>
-            <PieChart className="h-5 w-5 text-gray-400" />
-          </div>
-          
-          <div className="relative h-48 flex items-center justify-center">
-            {/* Mock sunburst chart */}
-            <div className="relative w-32 h-32">
-              <svg width="128" height="128" viewBox="0 0 128 128" className="transform -rotate-90">
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="60"
-                  fill="none"
-                  stroke="#374151"
-                  strokeWidth="8"
-                />
-                {exposureData.map((item, index) => {
-                  const startAngle = exposureData
-                    .slice(0, index)
-                    .reduce((sum, d) => sum + (d.value / 100) * 360, 0);
-                  const endAngle = startAngle + (item.value / 100) * 360;
-                  const x1 = 64 + 60 * Math.cos((startAngle * Math.PI) / 180);
-                  const y1 = 64 + 60 * Math.sin((startAngle * Math.PI) / 180);
-                  const x2 = 64 + 60 * Math.cos((endAngle * Math.PI) / 180);
-                  const y2 = 64 + 60 * Math.sin((endAngle * Math.PI) / 180);
-                  const largeArcFlag = item.value > 50 ? 1 : 0;
-                  
-                  return (
-                    <path
-                      key={item.name}
-                      d={`M 64 64 L ${x1} ${y1} A 60 60 0 ${largeArcFlag} 1 ${x2} ${y2} Z`}
-                      fill={item.color}
-                      className="transition-all duration-300 hover:opacity-80"
-                    />
-                  );
-                })}
-              </svg>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            {exposureData.map((item) => (
-              <div key={item.name} className="flex items-center space-x-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-sm text-gray-300">{item.name}</span>
-                <span className="text-sm font-medium text-white ml-auto">{item.value}%</span>
+          <motion.div 
+            className="card-futuristic p-6 hover:scale-105 transition-transform duration-300"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400 font-medium">Current Risk</p>
+                <p className="text-3xl font-bold text-white">
+                  ${currentRisk.toFixed(2)}
+                </p>
               </div>
+              <div className="w-12 h-12 bg-gradient-to-r from-red-500/20 to-pink-600/20 rounded-xl flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-red-400" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            className="card-futuristic p-6 hover:scale-105 transition-transform duration-300"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400 font-medium">Total Exposure</p>
+                <p className="text-3xl font-bold text-white">
+                  ${totalExposure.toLocaleString()}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500/20 to-indigo-600/20 rounded-xl flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-blue-400" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            className="card-futuristic p-6 hover:scale-105 transition-transform duration-300"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400 font-medium">Max Drawdown</p>
+                <p className="text-3xl font-bold text-white">
+                  ${Math.abs(maxDrawdown).toFixed(2)}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-r from-orange-500/20 to-red-600/20 rounded-xl flex items-center justify-center">
+                <TrendingDown className="w-6 h-6 text-orange-400" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            className="card-futuristic p-6 hover:scale-105 transition-transform duration-300"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400 font-medium">Win Rate</p>
+                <p className="text-3xl font-bold text-white">
+                  {(winRate * 100).toFixed(1)}%
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-r from-green-500/20 to-emerald-600/20 rounded-xl flex items-center justify-center">
+                <Target className="w-6 h-6 text-green-400" />
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* V2: Enhanced VaR Calculator */}
+        <motion.div 
+          className="card-futuristic p-6 mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7, duration: 0.6 }}
+        >
+          <h2 className="text-2xl font-bold text-gradient mb-6">Value at Risk (VaR) Calculator</h2>
+          <div className="flex items-center space-x-6">
+            <button
+              onClick={runVaR}
+              disabled={isRunningVaR}
+              className="btn-futuristic px-8 py-4 flex items-center space-x-2 disabled:opacity-50"
+            >
+              <Calculator className="w-5 h-5" />
+              <span>{isRunningVaR ? 'Calculating...' : 'Calculate VaR'}</span>
+            </button>
+            {varResult && (
+              <div className="glass px-6 py-4 rounded-xl border border-white/20">
+                <p className="text-slate-400 text-sm">95% VaR (1-day)</p>
+                <p className="text-2xl font-bold text-white">${varResult.toFixed(2)}</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* V2: Enhanced Tab Navigation */}
+        <motion.div 
+          className="flex space-x-2 glass p-2 rounded-xl mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+        >
+          <button
+            onClick={() => setActiveTab('historical')}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
+              activeTab === 'historical'
+                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg'
+                : 'text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Historical VaR</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('monte-carlo')}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-300 ${
+              activeTab === 'monte-carlo'
+                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg'
+                : 'text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            <PieChart className="w-4 h-4" />
+            <span>Monte Carlo</span>
+          </button>
+        </motion.div>
+
+        {/* V2: Enhanced Exposure Breakdown */}
+        <motion.div 
+          className="card-futuristic p-6 mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9, duration: 0.6 }}
+        >
+          <h2 className="text-2xl font-bold text-gradient mb-6">Exposure Breakdown</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Asset Allocation</h3>
+              <div className="space-y-3">
+                {exposureData.map((asset, index) => (
+                  <motion.div 
+                    key={asset.name}
+                    className="flex items-center justify-between p-3 glass rounded-lg border border-white/10"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 1.0 + index * 0.1, duration: 0.6 }}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: asset.color }}
+                      ></div>
+                      <span className="text-white font-medium">{asset.name}</span>
+                    </div>
+                    <span className="text-slate-400 font-semibold">{asset.value}%</span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white mb-4">Risk Metrics</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 glass rounded-lg border border-white/10">
+                  <span className="text-slate-400">Volatility</span>
+                  <span className="text-white font-semibold">12.5%</span>
+                </div>
+                <div className="flex justify-between items-center p-3 glass rounded-lg border border-white/10">
+                  <span className="text-slate-400">Beta</span>
+                  <span className="text-white font-semibold">1.2</span>
+                </div>
+                <div className="flex justify-between items-center p-3 glass rounded-lg border border-white/10">
+                  <span className="text-slate-400">Correlation</span>
+                  <span className="text-white font-semibold">0.85</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* V2: Enhanced Alert Rules */}
+        <motion.div 
+          className="card-futuristic p-6 mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1, duration: 0.6 }}
+        >
+          <h2 className="text-2xl font-bold text-gradient mb-6">Risk Alert Rules</h2>
+          <div className="space-y-4">
+            {alertRules.map((rule, index) => (
+              <motion.div 
+                key={rule.id}
+                className="flex items-center justify-between p-4 glass rounded-xl border border-white/10"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.2 + index * 0.1, duration: 0.6 }}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className={`w-3 h-3 rounded-full ${
+                    rule.status === 'active' ? 'bg-green-400' : 'bg-slate-500'
+                  }`}></div>
+                  <div>
+                    <p className="text-white font-semibold">{rule.name}</p>
+                    <p className="text-slate-400 text-sm">Trigger: {rule.condition}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className={`text-sm font-medium ${
+                    rule.status === 'active' ? 'text-green-400' : 'text-slate-400'
+                  }`}>
+                    {rule.status}
+                  </span>
+                  <button className="p-2 rounded-lg glass hover:bg-white/10 transition-colors">
+                    <Settings className="w-4 h-4 text-slate-400" />
+                  </button>
+                </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>
 
-        {/* VaR Module */}
+        {/* V2: Enhanced System Status */}
         <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-surface rounded-lg p-6 border border-gray-700"
+          className="card-futuristic p-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.3, duration: 0.6 }}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Value at Risk (VaR)</h3>
-            <Calculator className="h-5 w-5 text-gray-400" />
-          </div>
-          
-          <div className="space-y-4">
-            {/* Tab Navigation */}
-            <div className="flex space-x-1 bg-bg-deep rounded-lg p-1">
-              <button
-                onClick={() => setActiveTab('historical')}
-                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'historical'
-                    ? 'bg-primary text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Historical
-              </button>
-              <button
-                onClick={() => setActiveTab('monte-carlo')}
-                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'monte-carlo'
-                    ? 'bg-primary text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Monte Carlo
-              </button>
+          <h2 className="text-2xl font-bold text-gradient mb-6">Risk System Status</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex items-center space-x-4 p-4 glass rounded-xl">
+              <div className="w-4 h-4 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-slate-300 font-medium">Risk Engine Online</span>
             </div>
-
-            {/* VaR Content */}
-            <div className="space-y-4">
-              {activeTab === 'historical' && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-bg-deep rounded-lg">
-                    <span className="text-sm text-gray-400">Confidence Level</span>
-                    <span className="text-sm font-medium text-white">95%</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-bg-deep rounded-lg">
-                    <span className="text-sm text-gray-400">Time Horizon</span>
-                    <span className="text-sm font-medium text-white">1 Day</span>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'monte-carlo' && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-bg-deep rounded-lg">
-                    <span className="text-sm text-gray-400">Simulations</span>
-                    <span className="text-sm font-medium text-white">10,000</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-bg-deep rounded-lg">
-                    <span className="text-sm text-gray-400">Confidence Level</span>
-                    <span className="text-sm font-medium text-white">99%</span>
-                  </div>
-                </div>
-              )}
-
-              {/* VaR Result */}
-              {varResult && (
-                <div className="p-4 bg-accent/10 border border-accent/20 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">VaR Result</span>
-                    <span className="text-lg font-bold text-accent">
-                      ${varResult.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={runVaR}
-                disabled={isRunningVaR}
-                className="w-full bg-primary hover:bg-primary/80 disabled:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-              >
-                {isRunningVaR ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Calculating...</span>
-                  </>
-                ) : (
-                  <>
-                    <Calculator className="h-4 w-4" />
-                    <span>Run VaR Analysis</span>
-                  </>
-                )}
-              </button>
+            <div className="flex items-center space-x-4 p-4 glass rounded-xl">
+              <div className="w-4 h-4 bg-blue-400 rounded-full animate-pulse"></div>
+              <span className="text-slate-300 font-medium">Alerts Active</span>
+            </div>
+            <div className="flex items-center space-x-4 p-4 glass rounded-xl">
+              <div className="w-4 h-4 bg-purple-400 rounded-full animate-pulse"></div>
+              <span className="text-slate-300 font-medium">VaR Calculator Ready</span>
             </div>
           </div>
         </motion.div>
       </div>
-
-      {/* Alert Rules */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-surface rounded-lg p-6 border border-gray-700"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Alert Rules</h3>
-          <button className="text-primary hover:text-primary/80 text-sm font-medium">
-            + Add Rule
-          </button>
-        </div>
-        
-        <div className="space-y-3">
-          {alertRules.map((rule) => (
-            <div key={rule.id} className="flex items-center justify-between p-4 bg-bg-deep rounded-lg border border-gray-700">
-              <div className="flex items-center space-x-3">
-                <div className={`w-2 h-2 rounded-full ${
-                  rule.status === 'active' ? 'bg-accent' : 'bg-gray-500'
-                }`} />
-                <div>
-                  <p className="text-sm font-medium text-white">{rule.name}</p>
-                  <p className="text-xs text-gray-400">{rule.condition}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className={`text-xs px-2 py-1 rounded-full ${
-                  rule.status === 'active' 
-                    ? 'bg-accent/20 text-accent' 
-                    : 'bg-gray-600 text-gray-400'
-                }`}>
-                  {rule.status}
-                </span>
-                <button className="text-gray-400 hover:text-white">
-                  <Settings className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
     </div>
   );
 }
-
-// StatusPill component (reusing from other pages)
-const StatusPill: React.FC<{
-  status: 'online' | 'offline' | 'warning' | 'error';
-  label: string;
-  latency?: number;
-  className?: string;
-}> = ({ status, label, latency, className = '' }) => {
-  const statusConfig = {
-    online: {
-      color: 'bg-accent',
-      dotColor: 'bg-accent',
-      textColor: 'text-accent'
-    },
-    offline: {
-      color: 'bg-gray-600',
-      dotColor: 'bg-gray-400',
-      textColor: 'text-gray-400'
-    },
-    warning: {
-      color: 'bg-yellow-600',
-      dotColor: 'bg-yellow-400',
-      textColor: 'text-yellow-400'
-    },
-    error: {
-      color: 'bg-critical',
-      dotColor: 'bg-critical',
-      textColor: 'text-critical'
-    }
-  };
-  
-  const config = statusConfig[status];
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className={`inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-surface border border-gray-700 ${className}`}
-    >
-      <div className="flex items-center space-x-2">
-        <div className={`w-2 h-2 rounded-full ${config.dotColor} animate-pulse`}></div>
-        <span className={`text-sm font-medium ${config.textColor}`}>
-          {label}
-        </span>
-      </div>
-      {latency && (
-        <span className="text-xs text-gray-500">
-          {latency}ms
-        </span>
-      )}
-    </motion.div>
-  );
-};

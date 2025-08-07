@@ -2,9 +2,9 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { TradingProvider } from './contexts/TradingContext'
 import Layout from './components/Layout'
-import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Trading from './pages/Trading'
+import Crypto from './pages/Crypto'
 import Models from './pages/Models'
 import Risk from './pages/Risk'
 import Analytics from './pages/Analytics'
@@ -16,13 +16,13 @@ function App() {
     <TradingProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/futuristic" element={<FuturisticLanding />} />
+          <Route path="/" element={<FuturisticLanding />} />
           <Route path="/*" element={
             <Layout>
               <Routes>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/trading" element={<Trading />} />
+                <Route path="/crypto" element={<Crypto />} />
                 <Route path="/models" element={<Models />} />
                 <Route path="/risk" element={<Risk />} />
                 <Route path="/analytics" element={<Analytics />} />

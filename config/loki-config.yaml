@@ -1,0 +1,276 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /tmp/loki
+  storage:
+    filesystem:
+      chunks_directory: /tmp/loki/chunks
+      rules_directory: /tmp/loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 100
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+ruler:
+  alertmanager_url: http://localhost:9093
+
+# Log aggregation configuration
+limits_config:
+  # Limit cardinality to prevent label explosion
+  max_label_names_per_series: 10
+  max_label_value_length: 1024
+  max_label_names_per_query: 30
+  max_cache_freshness_per_query: 1m
+  max_query_parallelism: 32
+  max_streams_per_user: 1000
+  max_global_streams_per_user: 5000
+  max_line_size: 2MB
+  max_query_length: 721h
+  max_query_parallelism: 32
+  cardinality_limit: 100000
+  max_streams_matchers_per_query: 1000
+  max_concurrent_tail_requests: 10
+  max_entries_limit_per_query: 5000
+  max_cache_freshness_per_query: 1m
+  max_querier_bytes_read: 50GB
+  max_query_lookback: 721h
+  max_query_parallelism: 32
+  max_streams_per_user: 1000
+  max_global_streams_per_user: 5000
+  max_line_size: 2MB
+  max_query_length: 721h
+  max_query_parallelism: 32
+  cardinality_limit: 100000
+  max_streams_matchers_per_query: 1000
+  max_concurrent_tail_requests: 10
+  max_entries_limit_per_query: 5000
+  max_cache_freshness_per_query: 1m
+  max_querier_bytes_read: 50GB
+  max_query_lookback: 721h
+
+# Label management and cardinality control
+ingester:
+  lifecycler:
+    address: 127.0.0.1
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+    final_sleep: 0s
+  chunk_idle_period: 5m
+  chunk_retain_period: 30s
+  max_chunk_age: 1h
+  chunk_target_size: 1048576
+  chunk_encoding: snappy
+  wal:
+    dir: /tmp/loki/wal
+
+# Promtail configuration for log collection
+scrape_configs:
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
+
+  - job_name: trading-system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: trading-system
+          __path__: /opt/trading/logs/*.log
+          environment: production
+          service: trading-engine
+
+  - job_name: api-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: api
+          __path__: /opt/trading/server/logs/*.log
+          environment: production
+          service: api-server
+
+# Label transformation rules to control cardinality
+pipeline_stages:
+  - json:
+      expressions:
+        timestamp: timestamp
+        level: level
+        message: message
+        service: service
+        trace_id: trace_id
+        span_id: span_id
+        # Exclude user_id and other high-cardinality fields
+        # user_id: user_id  # COMMENTED OUT - HIGH CARDINALITY
+
+  - labels:
+      timestamp:
+      level:
+      service:
+      trace_id:
+      span_id:
+      # DO NOT include user_id, session_id, or other high-cardinality labels
+
+  - match:
+      selector: '{job="trading-system"}'
+      stages:
+        - regex:
+            expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) (?P<level>\w+) (?P<message>.*)$'
+        - labels:
+            level:
+            # Exclude user-specific fields
+            # user_id: user_id  # COMMENTED OUT
+
+  - match:
+      selector: '{job="api"}'
+      stages:
+        - regex:
+            expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) (?P<level>\w+) (?P<service>\w+) (?P<message>.*)$'
+        - labels:
+            level:
+            service:
+            # Exclude request_id, user_id, session_id
+            # request_id: request_id  # COMMENTED OUT
+
+# Cardinality monitoring and alerting
+alerting_rules:
+  groups:
+    - name: loki-cardinality
+      rules:
+        - alert: HighLabelCardinality
+          expr: |
+            sum by (job) (
+              count by (job, label_name) (
+                {__filename__=~".*"}
+              )
+            ) > 25
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High label cardinality detected"
+            description: "Job {{ $labels.job }} has more than 25 unique label values per stream"
+
+        - alert: ExcessiveLabelCardinality
+          expr: |
+            sum by (job) (
+              count by (job, label_name) (
+                {__filename__=~".*"}
+              )
+            ) > 50
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Excessive label cardinality detected"
+            description: "Job {{ $labels.job }} has more than 50 unique label values per stream - immediate action required"
+
+# Log retention and storage optimization
+compactor:
+  working_directory: /tmp/loki/compactor
+  shared_store: filesystem
+  compaction_interval: 10m
+  retention_enabled: true
+  retention_delete_delay: 2h
+  retention_delete_worker_count: 150
+  max_compaction_parallelism: 1
+  compaction_blocks_retention: 24h
+
+# Query optimization
+query_scheduler:
+  max_outstanding_requests_per_tenant: 2048
+
+frontend:
+  compress_responses: true
+  log_queries_longer_than: 5s
+  downstream_url: http://localhost:3100
+
+# Monitoring and metrics
+analytics:
+  reporting_enabled: false
+
+# Security and access control
+auth_enabled: false
+auth:
+  type: none
+
+# Performance tuning
+chunk_store_config:
+  max_look_back_period: 0s
+
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 744h
+
+# Label cardinality monitoring
+cardinality_limit: 100000
+max_label_names_per_series: 10
+max_label_value_length: 1024
+max_label_names_per_query: 30
+
+# Log format standardization
+log_format: json
+timestamp_format: RFC3339
+
+# High-cardinality label exclusion patterns
+label_exclusion_patterns:
+  - "user_id"
+  - "session_id"
+  - "request_id"
+  - "trace_id"
+  - "span_id"
+  - "correlation_id"
+  - "client_ip"
+  - "user_agent"
+  - "referer"
+  - "query_string"
+
+# Allowed labels (low cardinality)
+allowed_labels:
+  - "job"
+  - "service"
+  - "environment"
+  - "level"
+  - "component"
+  - "module"
+  - "function"
+  - "error_type"
+  - "status_code"
+  - "method"
+  - "endpoint"
+  - "version"
+  - "region"
+  - "datacenter"
+  - "instance"
+  - "host"
+  - "pod"
+  - "namespace"
+  - "container"
+  - "image" 

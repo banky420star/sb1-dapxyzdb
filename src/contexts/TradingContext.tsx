@@ -87,7 +87,7 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const newSocket = io('https://trade.methtrader.xyz', {
+    const newSocket = io('https://methtrader.xyz', {
       transports: ['websocket', 'polling'],
       timeout: 20000,
     });
@@ -127,8 +127,8 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
   const fetchInitialData = async () => {
     try {
       const [signalsRes, portfolioRes] = await Promise.all([
-        fetch('https://trade.methtrader.xyz/api/signals'),
-        fetch('https://trade.methtrader.xyz/api/portfolio')
+        fetch('https://methtrader.xyz/api/signals'),
+        fetch('https://methtrader.xyz/api/portfolio')
       ]);
 
       if (signalsRes.ok) {
@@ -147,7 +147,7 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
 
   const startTraining = async (model: string) => {
     try {
-      const response = await fetch(`https://trade.methtrader.xyz/api/train/${model}`, {
+      const response = await fetch(`https://methtrader.xyz/api/train/${model}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

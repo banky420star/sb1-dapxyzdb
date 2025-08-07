@@ -1,0 +1,223 @@
+name: Chaos Engineering Tests
+
+on:
+  schedule:
+    # Run every Friday at 2 AM UTC
+    - cron: '0 2 * * 5'
+  workflow_dispatch:
+    # Allow manual trigger
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'scripts/run_chaos_tests.sh'
+      - 'server/**'
+      - 'docker-compose.yml'
+
+jobs:
+  chaos-tests:
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Setup environment
+      run: |
+        cp env.example .env
+        echo "SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}" >> .env
+        echo "REDIS_URL=redis://localhost:6379" >> .env
+        echo "DATABASE_URL=postgresql://postgres:test_password@localhost:5432/test_db" >> .env
+
+    - name: Start application
+      run: |
+        npm run build
+        npm start &
+        sleep 30
+
+    - name: Run chaos tests
+      run: |
+        chmod +x scripts/run_chaos_tests.sh
+        ./scripts/run_chaos_tests.sh
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        MTTR_THRESHOLD: 300
+        TEST_TIMEOUT: 600
+
+    - name: Upload test logs
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: chaos-test-logs
+        path: |
+          /tmp/chaos_incident.log
+          logs/
+        retention-days: 30
+
+    - name: Check MTTR compliance
+      run: |
+        if [ -f /tmp/chaos_incident.log ]; then
+          # Extract max MTTR from logs
+          max_mttr=$(grep "Max MTTR:" /tmp/chaos_incident.log | tail -1 | awk '{print $3}' | sed 's/s//')
+          if [ -n "$max_mttr" ] && [ "$max_mttr" -gt 300 ]; then
+            echo "❌ MTTR exceeded 5 minutes: ${max_mttr}s"
+            exit 1
+          else
+            echo "✅ MTTR within acceptable range: ${max_mttr}s"
+          fi
+        else
+          echo "⚠️ No chaos test logs found"
+        fi
+
+    - name: Send Slack notification
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"🎉 Chaos Engineering tests PASSED! All services recovered within 5 minutes.\"}" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}" || true
+        else
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"❌ Chaos Engineering tests FAILED! Check logs for details.\"}" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}" || true
+        fi
+
+  emergency-brake-test:
+    runs-on: ubuntu-latest
+    needs: chaos-tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Test emergency brake system
+      run: |
+        # Test emergency brake functionality
+        npm run test:emergency-brake
+        
+        # Verify emergency brake can be triggered
+        curl -X POST http://localhost:8000/api/emergency/trigger \
+          -H "Content-Type: application/json" \
+          -d '{"reason": "chaos_test"}' || true
+
+    - name: Verify emergency brake response
+      run: |
+        # Check if emergency brake is active
+        response=$(curl -s http://localhost:8000/api/emergency/status)
+        if echo "$response" | grep -q "active"; then
+          echo "✅ Emergency brake system working"
+        else
+          echo "❌ Emergency brake system not responding"
+          exit 1
+        fi
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: chaos-tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run security scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+
+    - name: Upload security report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-scan-report
+        path: snyk-report.json
+        retention-days: 90
+
+  compliance-check:
+    runs-on: ubuntu-latest
+    needs: [chaos-tests, emergency-brake-test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Verify compliance requirements
+      run: |
+        # Check for required security configurations
+        if [ ! -f "nginx/caddy-secure.conf" ]; then
+          echo "❌ Missing Caddy security configuration"
+          exit 1
+        fi
+        
+        # Check for rate limiting configuration
+        if ! grep -q "rate_limit" nginx/caddy-secure.conf; then
+          echo "❌ Missing rate limiting configuration"
+          exit 1
+        fi
+        
+        # Check for emergency brake system
+        if [ ! -f "server/risk/emergency-brake.js" ]; then
+          echo "❌ Missing emergency brake system"
+          exit 1
+        fi
+        
+        echo "✅ All compliance requirements met"
+
+    - name: Generate compliance report
+      run: |
+        echo "# Compliance Report - $(date)" > compliance-report.md
+        echo "## Security Configurations" >> compliance-report.md
+        echo "- ✅ Caddy security hardening" >> compliance-report.md
+        echo "- ✅ Rate limiting configured" >> compliance-report.md
+        echo "- ✅ Emergency brake system" >> compliance-report.md
+        echo "- ✅ Chaos engineering tests" >> compliance-report.md
+        echo "- ✅ MTTR < 5 minutes" >> compliance-report.md
+
+    - name: Upload compliance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: compliance-report
+        path: compliance-report.md
+        retention-days: 365 

@@ -1,5 +1,5 @@
 # AI Trading System - Production Dockerfile
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
@@ -17,8 +17,8 @@ RUN apk add --no-cache \
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (using npm install instead of npm ci for compatibility)
+RUN npm install --omit=dev
 
 # Copy application code
 COPY . .
