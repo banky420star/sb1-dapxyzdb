@@ -28,8 +28,6 @@
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
     "db:reset": "node scripts/reset-db.js",
-    "prefect:deploy": "python flows/deploy.py",
-    "prefect:run": "python flows/run_pipeline.py",
     "docker:build": "docker build -t ai-trading-system .",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
@@ -52,11 +50,8 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.6",
-    "@tensorflow/tfjs-node": "^4.13.0",
-    "apache-arrow": "^14.0.1",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
-    "bull": "^4.16.5",
     "bybit-api": "^4.2.0",
     "ccxt": "^4.2.25",
     "cheerio": "^1.0.0-rc.12",
@@ -119,8 +114,7 @@
     "vite": "^4.5.0",
     "winston": "^3.14.2",
     "winston-daily-rotate-file": "^4.7.1",
-    "ws": "^8.18.0",
-    "zeromq": "^6.0.0-beta.19"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -182,10 +176,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/ai-trading-system.git"
+    "url": "https://github.com/banky420star/sb1-dapxyzdb.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/ai-trading-system/issues"
+    "url": "https://github.com/banky420star/sb1-dapxyzdb/issues"
   },
-  "homepage": "https://github.com/your-username/ai-trading-system#readme"
+  "homepage": "https://github.com/banky420star/sb1-dapxyzdb#readme"
 }
