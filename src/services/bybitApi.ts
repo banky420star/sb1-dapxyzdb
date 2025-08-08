@@ -288,12 +288,11 @@ class BybitApiService {
     }
   }
 
-  // Backend API Methods (Private Operations)
-  private async callBackend(endpoint: string, options: RequestInit = {}) {
+  // Netlify Functions API Methods (Private Operations)
+  private async callNetlifyFunction(functionName: string, options: RequestInit = {}) {
     try {
-      // This should point to your backend API
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
-      const response = await fetch(`${backendUrl}/api/bybit${endpoint}`, {
+      const functionUrl = `/.netlify/functions/${functionName}`;
+      const response = await fetch(functionUrl, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
@@ -302,49 +301,35 @@ class BybitApiService {
       });
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
       
       return await response.json();
     } catch (error) {
-      console.error('Backend API error:', error);
+      console.error('Netlify Function error:', error);
       throw error;
     }
   }
 
-  // Private trading operations (via backend)
+  // Private trading operations (via Netlify Functions)
   public async placeOrder(orderData: any) {
-    return this.callBackend('/order/create', {
+    return this.callNetlifyFunction('orders-create', {
       method: 'POST',
       body: JSON.stringify(orderData),
     });
   }
 
-  public async getPositions() {
-    return this.callBackend('/position/list');
+  public async getPositions(category: string = 'linear', symbol?: string) {
+    const params = new URLSearchParams({ category });
+    if (symbol) params.append('symbol', symbol);
+    return this.callNetlifyFunction(`positions-list?${params.toString()}`);
   }
 
-  public async getOrders() {
-    return this.callBackend('/order/list');
-  }
-
-  public async cancelOrder(orderId: string) {
-    return this.callBackend('/order/cancel', {
-      method: 'POST',
-      body: JSON.stringify({ orderId }),
-    });
-  }
-
-  public async getAccountInfo() {
-    return this.callBackend('/account/wallet-balance');
-  }
-
-  public async getOrderHistory() {
-    return this.callBackend('/order/history');
-  }
-
-  public async getExecutionHistory() {
-    return this.callBackend('/execution/list');
+  public async getAccountBalance(accountType: string = 'UNIFIED', coin?: string) {
+    const params = new URLSearchParams({ accountType });
+    if (coin) params.append('coin', coin);
+    return this.callNetlifyFunction(`account-balance?${params.toString()}`);
   }
 
   // Cleanup
