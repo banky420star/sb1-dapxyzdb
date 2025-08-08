@@ -323,7 +323,7 @@ class BybitApiService {
   public async getPositions(category: string = 'linear', symbol?: string) {
     const params = new URLSearchParams({ category });
     if (symbol) params.append('symbol', symbol);
-    return this.callNetlifyFunction(`positions-list?${params.toString()}`);
+    return this.callNetlifyFunction(`positions?${params.toString()}`);
   }
 
   public async getAccountBalance(accountType: string = 'UNIFIED', coin?: string) {

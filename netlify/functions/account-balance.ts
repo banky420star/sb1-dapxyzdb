@@ -1,97 +1,23 @@
-// netlify/functions/account-balance.ts
-// Bybit V5 Account Wallet Balance with HMAC-SHA256 signing
 import crypto from "node:crypto";
 
-export const handler = async (event: any) => {
-  // CORS headers for frontend access
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Content-Type': 'application/json',
-  };
+export const handler = async (event) => {
+  const KEY = process.env.BYBIT_API_KEY!;
+  const SEC = process.env.BYBIT_API_SECRET!;
+  const RECV = process.env.BYBIT_RECV_WINDOW || "5000";
+  const ts = Date.now().toString();
 
-  // Handle preflight requests
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
-  }
+  const qs = event.rawQuery || "";                   // sign the EXACT querystring
+  const payload = ts + KEY + RECV + qs;
+  const sign = crypto.createHmac("sha256", SEC).update(payload).digest("hex");
 
-  if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method Not Allowed' }),
-    };
-  }
-
-  try {
-    // Get environment variables
-    const apiKey = process.env.BYBIT_API_KEY;
-    const apiSecret = process.env.BYBIT_API_SECRET;
-    const recvWindow = process.env.BYBIT_RECV_WINDOW || '5000';
-
-    if (!apiKey || !apiSecret) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: 'API credentials not configured' }),
-      };
+  const r = await fetch("https://api.bybit.com/v5/account/wallet-balance?" + qs, {
+    headers: {
+      "X-BAPI-API-KEY": KEY,
+      "X-BAPI-SIGN": sign,
+      "X-BAPI-SIGN-TYPE": "2",
+      "X-BAPI-TIMESTAMP": ts,
+      "X-BAPI-RECV-WINDOW": RECV
     }
-
-    // Parse query parameters
-    const queryParams = event.queryStringParameters || {};
-    const accountType = queryParams.accountType || 'UNIFIED';
-    const coin = queryParams.coin || '';
-
-    // Build query string
-    const queryString = new URLSearchParams();
-    queryString.append('accountType', accountType);
-    if (coin) queryString.append('coin', coin);
-
-    const queryStringStr = queryString.toString();
-    const timestamp = Date.now().toString();
-    
-    // Create signature: timestamp + apiKey + recvWindow + queryString
-    const payloadToSign = timestamp + apiKey + recvWindow + queryStringStr;
-    const signature = crypto
-      .createHmac('sha256', apiSecret)
-      .update(payloadToSign)
-      .digest('hex');
-
-    // Make request to Bybit API
-    const url = `https://api.bybit.com/v5/account/wallet-balance?${queryStringStr}`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-BAPI-API-KEY': apiKey,
-        'X-BAPI-SIGN': signature,
-        'X-BAPI-SIGN-TYPE': '2',
-        'X-BAPI-TIMESTAMP': timestamp,
-        'X-BAPI-RECV-WINDOW': recvWindow,
-      },
-    });
-
-    const responseData = await response.text();
-
-    return {
-      statusCode: response.status,
-      headers,
-      body: responseData,
-    };
-
-  } catch (error) {
-    console.error('Account balance error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      }),
-    };
-  }
+  });
+  return { statusCode: r.status, body: await r.text(), headers: { "content-type": "application/json" } };
 }; 
