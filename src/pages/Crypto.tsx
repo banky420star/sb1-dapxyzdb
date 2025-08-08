@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import SplitPane from '../components/SplitPane';
 import CommandPalette from '../components/CommandPalette';
+import bybitApi, { BybitMarketData, BybitOrderBook, BybitTrade } from '../services/bybitApi';
 
 // Crypto-specific data
 const cryptoData = {
@@ -90,11 +91,65 @@ const Crypto: React.FC = () => {
     pnl: 1250,
     risk: 'low'
   });
+  
+  // Real-time data state
+  const [marketData, setMarketData] = useState<BybitMarketData | null>(null);
+  const [orderBook, setOrderBook] = useState<BybitOrderBook | null>(null);
+  const [recentTrades, setRecentTrades] = useState<BybitTrade[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Bybit WebSocket subscriptions
+  useEffect(() => {
+    // Subscribe to real-time data
+    const unsubscribeTicker = bybitApi.subscribeToTicker(selectedCrypto, (data) => {
+      if (data && data.length > 0) {
+        setMarketData(data[0]);
+        setIsConnected(true);
+      }
+    });
+
+    const unsubscribeOrderBook = bybitApi.subscribeToOrderBook(selectedCrypto, (data) => {
+      setOrderBook(data);
+    });
+
+    const unsubscribeTrades = bybitApi.subscribeToTrades(selectedCrypto, (data) => {
+      setRecentTrades(data.slice(0, 10)); // Keep last 10 trades
+    });
+
+    // Load initial data
+    const loadInitialData = async () => {
+      try {
+        const [tickers, orderBookData, tradesData] = await Promise.all([
+          bybitApi.getTickers(),
+          bybitApi.getOrderBook(selectedCrypto),
+          bybitApi.getRecentTrades(selectedCrypto)
+        ]);
+
+        const currentTicker = tickers.find(t => t.symbol === selectedCrypto);
+        if (currentTicker) {
+          setMarketData(currentTicker);
+        }
+        setOrderBook(orderBookData);
+        setRecentTrades(tradesData.slice(0, 10));
+      } catch (error) {
+        console.error('Failed to load initial data:', error);
+      }
+    };
+
+    loadInitialData();
+
+    // Cleanup subscriptions
+    return () => {
+      unsubscribeTicker();
+      unsubscribeOrderBook();
+      unsubscribeTrades();
+    };
+  }, [selectedCrypto]);
 
   // Command palette actions
   const commands = [
@@ -141,24 +196,44 @@ const Crypto: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleOrderSubmit = (side: 'buy' | 'sell') => {
+  const handleOrderSubmit = async (side: 'buy' | 'sell') => {
+    if (!orderForm.quantity || parseFloat(orderForm.quantity) <= 0) {
+      alert('Please enter a valid quantity');
+      return;
+    }
+
     const orderData = {
       symbol: selectedCrypto,
       side,
-      type: orderType,
-      quantity: parseFloat(orderForm.quantity),
-      price: orderType === 'market' ? undefined : parseFloat(orderForm.price),
-      stopPrice: orderType === 'stop' ? parseFloat(orderForm.stopPrice) : undefined
+      orderType,
+      qty: orderForm.quantity,
+      price: orderType === 'market' ? undefined : orderForm.price,
+      stopPrice: orderType === 'stop' ? orderForm.stopPrice : undefined
     };
     
     setConfirmOrderData(orderData);
     setShowConfirmOrder(true);
   };
 
-  const confirmOrder = () => {
-    console.log('Order confirmed:', confirmOrderData);
-    setShowConfirmOrder(false);
-    setOrderForm({ quantity: '', price: '', stopPrice: '' });
+  const confirmOrder = async () => {
+    if (!confirmOrderData) return;
+
+    try {
+      // Place order via Bybit API (through backend)
+      const result = await bybitApi.placeOrder(confirmOrderData);
+      console.log('Order placed successfully:', result);
+      
+      // Reset form
+      setShowConfirmOrder(false);
+      setOrderForm({ quantity: '', price: '', stopPrice: '' });
+      setConfirmOrderData(null);
+      
+      // Show success message
+      alert('Order placed successfully!');
+    } catch (error) {
+      console.error('Failed to place order:', error);
+      alert('Failed to place order. Please try again.');
+    }
   };
 
   const getCryptoIcon = (symbol: string) => {
@@ -208,19 +283,35 @@ const Crypto: React.FC = () => {
           </h1>
           <div className="flex items-center space-x-3 glass px-4 py-2 rounded-xl">
             <span className="text-sm text-slate-400 font-medium">{selectedCrypto}</span>
-            <span className="text-lg font-bold text-green-400">${cryptoData[selectedCrypto as keyof typeof cryptoData].price.toLocaleString()}</span>
-            <div className={`flex items-center ${cryptoData[selectedCrypto as keyof typeof cryptoData].change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {cryptoData[selectedCrypto as keyof typeof cryptoData].change >= 0 ? (
+            <span className="text-lg font-bold text-green-400">
+              ${marketData ? parseFloat(marketData.lastPrice).toLocaleString() : cryptoData[selectedCrypto as keyof typeof cryptoData].price.toLocaleString()}
+            </span>
+            <div className={`flex items-center ${marketData ? (parseFloat(marketData.price24hPcnt) >= 0 ? 'text-green-400' : 'text-red-400') : (cryptoData[selectedCrypto as keyof typeof cryptoData].change >= 0 ? 'text-green-400' : 'text-red-400')}`}>
+              {marketData ? (parseFloat(marketData.price24hPcnt) >= 0 ? (
                 <ArrowUpRight className="w-4 h-4 mr-1" />
               ) : (
                 <ArrowDownRight className="w-4 h-4 mr-1" />
-              )}
-              <span className="text-sm font-semibold">{Math.abs(cryptoData[selectedCrypto as keyof typeof cryptoData].change)}%</span>
+              )) : (cryptoData[selectedCrypto as keyof typeof cryptoData].change >= 0 ? (
+                <ArrowUpRight className="w-4 h-4 mr-1" />
+              ) : (
+                <ArrowDownRight className="w-4 h-4 mr-1" />
+              ))}
+              <span className="text-sm font-semibold">
+                {marketData ? Math.abs(parseFloat(marketData.price24hPcnt)).toFixed(2) : Math.abs(cryptoData[selectedCrypto as keyof typeof cryptoData].change)}%
+              </span>
             </div>
           </div>
         </div>
         
         <div className="flex items-center space-x-4">
+          {/* Connection Status */}
+          <div className="flex items-center space-x-2 px-3 py-1.5 glass rounded-lg">
+            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div>
+            <span className="text-sm text-slate-400">
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
+          
           <button className="p-3 rounded-xl glass hover:bg-white/10 transition-all duration-300 group">
             <Search className="w-5 h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
           </button>

@@ -106,60 +106,60 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="lg:pl-80">
         {/* Top bar */}
         <div className="sticky top-0 z-40 bg-surface border-b border-gray-700">
-          <div className="flex h-20 items-center justify-between px-4 md:px-6">
-            <div className="flex items-center space-x-4">
+          <div className="flex h-16 md:h-20 items-center justify-between px-3 md:px-6">
+            <div className="flex items-center space-x-2 md:space-x-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden text-gray-400 hover:text-white transition-colors"
+                className="lg:hidden text-gray-400 hover:text-white transition-colors p-1"
               >
-                <Menu className="h-6 w-6" />
+                <Menu className="h-5 w-5 md:h-6 md:w-6" />
               </button>
               {currentNav && (
-                <div>
-                  <h1 className="text-xl font-semibold text-white">{currentNav.name}</h1>
-                  <p className="text-sm text-gray-400">{currentNav.description}</p>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg md:text-xl font-semibold text-white truncate">{currentNav.name}</h1>
+                  <p className="text-xs md:text-sm text-gray-400 truncate">{currentNav.description}</p>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 md:space-x-4">
               {/* System Status */}
-              <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 bg-bg-deep rounded-lg border border-gray-700">
+              <div className="hidden sm:flex items-center space-x-2 px-2 md:px-3 py-1 md:py-1.5 bg-bg-deep rounded-lg border border-gray-700">
                 <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-300">System Online</span>
+                <span className="text-xs md:text-sm text-gray-300">System Online</span>
               </div>
 
               {/* Notifications */}
               <div className="relative">
                 <button
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  className="relative p-2 text-gray-400 hover:text-white transition-colors"
+                  className="relative p-1.5 md:p-2 text-gray-400 hover:text-white transition-colors"
                 >
-                  <Bell className="h-5 w-5" />
+                  <Bell className="h-4 w-4 md:h-5 md:w-5" />
                   {alerts.filter((alert: {read: boolean}) => !alert.read).length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-critical rounded-full"></span>
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-critical rounded-full"></span>
                   )}
                 </button>
                 {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-surface border border-gray-700 rounded-lg shadow-lg z-50">
-                    <div className="p-4 border-b border-gray-700">
+                  <div className="absolute right-0 mt-2 w-72 md:w-80 bg-surface border border-gray-700 rounded-lg shadow-lg z-50">
+                    <div className="p-3 md:p-4 border-b border-gray-700">
                       <h3 className="text-sm font-medium text-white">Notifications</h3>
                     </div>
-                    <div className="max-h-64 overflow-y-auto">
+                    <div className="max-h-48 md:max-h-64 overflow-y-auto">
                       {alerts.length > 0 ? (
                         alerts.map((alert: any, index: number) => (
-                          <div key={index} className="p-4 border-b border-gray-700 last:border-b-0">
-                            <div className="flex items-start space-x-3">
+                          <div key={index} className="p-3 md:p-4 border-b border-gray-700 last:border-b-0">
+                            <div className="flex items-start space-x-2 md:space-x-3">
                               <div className="w-2 h-2 bg-accent rounded-full mt-2"></div>
-                              <div className="flex-1">
-                                <p className="text-sm text-white">{alert.message}</p>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-white break-words">{alert.message}</p>
                                 <p className="text-xs text-gray-400 mt-1">{alert.timestamp}</p>
                               </div>
                             </div>
                           </div>
                         ))
                       ) : (
-                        <div className="p-4 text-center text-gray-400">
+                        <div className="p-3 md:p-4 text-center text-gray-400">
                           <p className="text-sm">No notifications</p>
                         </div>
                       )}
@@ -172,25 +172,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center space-x-2 p-2 text-gray-400 hover:text-white transition-colors"
+                  className="flex items-center space-x-1 md:space-x-2 p-1.5 md:p-2 text-gray-400 hover:text-white transition-colors"
                 >
-                  <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                    <User className="h-4 w-4 text-white" />
+                  <div className="w-7 h-7 md:w-8 md:h-8 bg-primary rounded-lg flex items-center justify-center">
+                    <User className="h-3 w-3 md:h-4 md:w-4 text-white" />
                   </div>
-                  <span className="hidden md:block text-sm font-medium">Admin</span>
-                  <ChevronDown className="h-4 w-4" />
+                  <span className="hidden sm:block text-xs md:text-sm font-medium">Admin</span>
+                  <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-surface border border-gray-700 rounded-lg shadow-lg z-50">
+                  <div className="absolute right-0 mt-2 w-40 md:w-48 bg-surface border border-gray-700 rounded-lg shadow-lg z-50">
                     <div className="py-1">
                       <Link
                         to="/settings"
-                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                        className="block px-3 md:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
                         onClick={() => setUserMenuOpen(false)}
                       >
                         Settings
                       </Link>
-                      <button className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                      <button className="block w-full text-left px-3 md:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
                         Sign out
                       </button>
                     </div>
