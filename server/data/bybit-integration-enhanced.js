@@ -139,6 +139,10 @@ export class BybitIntegrationEnhanced extends EventEmitter {
       } else {
         await this.setupLegacyWebSocket()
       }
+
+      if (!this.config.apiKey || !this.config.secret) {
+        this.logger.warn('BYBIT credentials not set; private account streams and authenticated calls will be disabled.')
+      }
       
       this.isConnected = true
       this.logger.info('✅ Enhanced Bybit connection established successfully')

@@ -136,6 +136,10 @@ export class BybitIntegration extends EventEmitter {
       
       // Initialize WebSocket connection
       await this.setupWebSocket()
+
+      if (!this.config.apiKey || !this.config.secret) {
+        this.logger.warn('BYBIT credentials not set; authenticated API calls and private streams are disabled.')
+      }
       
       this.isConnected = true
       this.logger.info('✅ Bybit connection established successfully')

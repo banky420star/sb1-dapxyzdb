@@ -105,8 +105,12 @@ export class BybitWebSocketV3 extends EventEmitter {
       // Connect to spread trading streams
       await this.connectSpreadStreams()
       
-      // Connect to private streams
-      await this.connectPrivateStreams()
+      // Connect to private streams only if credentials are present
+      if (this.config.apiKey && this.config.secret) {
+        await this.connectPrivateStreams()
+      } else {
+        this.logger.warn('Skipping private WebSocket connection: BYBIT credentials not set')
+      }
       
       // Start heartbeat
       this.startHeartbeat()
