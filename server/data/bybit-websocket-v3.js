@@ -10,13 +10,13 @@ export class BybitWebSocketV3 extends EventEmitter {
     
     // Configuration
     this.config = {
-      apiKey: process.env.BYBIT_API_KEY || '3fg29yhr1a9JJ1etm3',
-      secret: process.env.BYBIT_SECRET || 'wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14',
+      apiKey: process.env.BYBIT_API_KEY || '',
+      secret: process.env.BYBIT_SECRET || '',
       testnet: process.env.BYBIT_TESTNET === 'true' || false,
       demo: process.env.BYBIT_DEMO === 'true' || false,
       symbols: ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'DOTUSDT', 'SOLUSDT', 'MATICUSDT'],
-      maxActiveTime: 600, // 10 minutes max connection time
-      heartbeatInterval: 20000, // 20 seconds
+      maxActiveTime: 600,
+      heartbeatInterval: 20000,
       reconnectAttempts: 5,
       reconnectDelay: 5000,
       ...options
