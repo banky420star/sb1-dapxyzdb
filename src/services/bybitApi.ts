@@ -288,48 +288,102 @@ class BybitApiService {
     }
   }
 
-  // Netlify Functions API Methods (Private Operations)
-  private async callNetlifyFunction(functionName: string, options: RequestInit = {}) {
-    try {
-      const functionUrl = `/.netlify/functions/${functionName}`;
-      const response = await fetch(functionUrl, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
-      });
+  // Demo/Mock API Methods (Private Operations)
+  private async mockPrivateOperation(operation: string, params: any = {}) {
+    console.log(`[DEMO MODE] Simulating ${operation}:`, params);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    switch (operation) {
+      case 'placeOrder':
+        return {
+          retCode: 0,
+          retMsg: 'OK',
+          result: {
+            orderId: 'demo-' + Date.now(),
+            orderLinkId: params.orderLinkId || '',
+            symbol: params.symbol || 'BTCUSDT',
+            side: params.side || 'Buy',
+            orderType: params.orderType || 'Market',
+            qty: params.qty || '0.001',
+            price: params.price || '35000',
+            status: 'Filled',
+            timeInForce: 'GTC',
+            createdTime: Date.now().toString()
+          }
+        };
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-      }
+      case 'getPositions':
+        return {
+          retCode: 0,
+          retMsg: 'OK',
+          result: {
+            list: [
+              {
+                symbol: 'BTCUSDT',
+                side: 'Buy',
+                size: '0.001',
+                positionValue: '35.50',
+                unrealisedPnl: '+2.15',
+                markPrice: '35500.00',
+                leverage: '10',
+                entryPrice: '35000.00'
+              },
+              {
+                symbol: 'ETHUSDT',
+                side: 'Sell',
+                size: '0.01',
+                positionValue: '25.20',
+                unrealisedPnl: '-0.85',
+                markPrice: '2520.00',
+                leverage: '5',
+                entryPrice: '2600.00'
+              }
+            ]
+          }
+        };
       
-      return await response.json();
-    } catch (error) {
-      console.error('Netlify Function error:', error);
-      throw error;
+      case 'getBalance':
+        return {
+          retCode: 0,
+          retMsg: 'OK',
+          result: {
+            list: [{
+              coin: [
+                {
+                  coin: 'USDT',
+                  walletBalance: '1247.85',
+                  availableBalance: '850.23',
+                  unrealisedPnl: '12.50'
+                },
+                {
+                  coin: 'BTC',
+                  walletBalance: '0.001',
+                  availableBalance: '0.001',
+                  unrealisedPnl: '0'
+                }
+              ]
+            }]
+          }
+        };
+      
+      default:
+        throw new Error(`Demo operation ${operation} not implemented`);
     }
   }
 
-  // Private trading operations (via Netlify Functions)
+  // Private trading operations (Demo Mode)
   public async placeOrder(orderData: any) {
-    return this.callNetlifyFunction('orders-create', {
-      method: 'POST',
-      body: JSON.stringify(orderData),
-    });
+    return this.mockPrivateOperation('placeOrder', orderData);
   }
 
   public async getPositions(category: string = 'linear', symbol?: string) {
-    const params = new URLSearchParams({ category });
-    if (symbol) params.append('symbol', symbol);
-    return this.callNetlifyFunction(`positions?${params.toString()}`);
+    return this.mockPrivateOperation('getPositions', { category, symbol });
   }
 
   public async getAccountBalance(accountType: string = 'UNIFIED', coin?: string) {
-    const params = new URLSearchParams({ accountType });
-    if (coin) params.append('coin', coin);
-    return this.callNetlifyFunction(`account-balance?${params.toString()}`);
+    return this.mockPrivateOperation('getBalance', { accountType, coin });
   }
 
   // Cleanup
