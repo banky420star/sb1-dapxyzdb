@@ -171,3 +171,19 @@ coverage.xml
 monitoring/loki.yml
 monitoring/prometheus.yml
 monitoring/promtail.yml
+
+# Ensure secrets and keys are ignored
+.env*
+!.env.example
+!env.example
+
+# SSH/Deploy keys should never be tracked
+id_*
+*deploy_key*
+
+# Build outputs
+/dist/
+/build/
+
+# Keep public assets tracked
+!/public/
