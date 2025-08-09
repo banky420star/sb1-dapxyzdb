@@ -17,6 +17,7 @@ import {
   Bitcoin
 } from 'lucide-react'
 import Logo from './Logo'
+import MobileNav from './MobileNav'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: BarChart3, description: 'Overview and analytics' },
@@ -103,7 +104,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-80">
+      <div className="lg:pl-80 pb-16 lg:pb-0">
         {/* Top bar */}
         <div className="sticky top-0 z-40 bg-surface border-b border-gray-700">
           <div className="flex h-16 md:h-20 items-center justify-between px-3 md:px-6">
@@ -206,6 +207,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+
+      {/* Mobile bottom navigation */}
+      <MobileNav />
     </div>
   )
 }
