@@ -164,7 +164,7 @@ app.get('/api/models', (req, res) => {
 // Real-time prices from Alpha Vantage
 app.get('/api/prices', async (req, res) => {
   try {
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY || '2ZQ8QZSN1U9XN5TK'
+    const apiKey = process.env.ALPHA_VANTAGE_API_KEY || ''
     const symbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD']
     const prices = {}
     
@@ -306,7 +306,7 @@ async function fetchAndCachePrices() {
   }
 
   try {
-    const apiKey = process.env.ALPHA_VANTAGE_API_KEY || '2ZQ8QZSN1U9XN5TK'
+    const apiKey = process.env.ALPHA_VANTAGE_API_KEY || ''
     logger.info('Fetching fresh price data from Alpha Vantage...')
     
     // Fetch only one symbol per call to respect rate limits

@@ -3,7 +3,7 @@
 ## ✅ Successfully Integrated
 
 ### 1. Alpha Vantage API Integration
-- **API Key**: `2ZQ8QZSN1U9XN5TK` (configured and working)
+- **API Key**: `<set-in-provider>` (configure in env)
 - **Python Pipeline**: `alpha_vantage_pipeline.py` + `alpha_vantage_integration.py`
 - **Node.js Bridge**: Integrated with `server/data/manager.js`
 - **Rate Limiting**: Respects 25 requests/day free tier

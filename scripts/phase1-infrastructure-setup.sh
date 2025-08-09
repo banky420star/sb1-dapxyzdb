@@ -536,8 +536,8 @@ NODE_ENV=production
 PORT=8000
 
 # Bybit API Configuration
-BYBIT_API_KEY=3fg29yhr1a9JJ1etm3
-BYBIT_API_SECRET=wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14
+BYBIT_API_KEY=
+BYBIT_API_SECRET=
 
 # MLflow Configuration
 MLFLOW_TRACKING_URI=http://mlflow:5000

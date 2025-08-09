@@ -180,8 +180,8 @@ npx netlify-cli deploy --prod --dir=dist
 ### **Required Variables**
 ```bash
 # Bybit API
-BYBIT_API_KEY=3fg29yhr1a9JJ1etm3
-BYBIT_SECRET=wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14
+BYBIT_API_KEY=<set-in-netlify-ui>
+BYBIT_SECRET=<set-in-netlify-ui>
 BYBIT_TESTNET=false
 
 # Database

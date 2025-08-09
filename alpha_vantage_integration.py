@@ -14,7 +14,7 @@ from alpha_vantage_pipeline import AlphaVantageClient, LocalFileSink, Pipeline
 
 class AlphaVantageIntegration:
     def __init__(self, api_key: str = None):
-        self.api_key = api_key or os.getenv("ALPHAVANTAGE_API_KEY") or "2ZQ8QZSN1U9XN5TK"
+        self.api_key = api_key or os.getenv("ALPHAVANTAGE_API_KEY") or ""
         if not self.api_key:
             raise ValueError("ALPHAVANTAGE_API_KEY environment variable not set")
         

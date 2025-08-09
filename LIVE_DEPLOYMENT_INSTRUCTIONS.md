@@ -61,7 +61,7 @@ ls -la
 cat .env.production
 
 # You should see:
-# ALPHA_VANTAGE_API_KEY=2ZQ8QZSN1U9XN5TK ✅ READY!
+# ALPHA_VANTAGE_API_KEY=<set-in-provider> ✅ READY!
 ```
 
 ### **Step 5: Deploy Everything (One Command!)** 🎯

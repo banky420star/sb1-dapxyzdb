@@ -185,7 +185,7 @@ def run(
 ):
     """Fetch daily time‑series for SYMBOLS and save to ./data/."""
 
-    api_key = os.getenv("ALPHAVANTAGE_API_KEY") or "2ZQ8QZSN1U9XN5TK"
+    api_key = os.getenv("ALPHAVANTAGE_API_KEY") or ""
     if not api_key:
         typer.secho("❌  ALPHAVANTAGE_API_KEY env var not set", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)

@@ -28,7 +28,7 @@ This document demonstrates the complete integration of:
 1. Testing real-time quote for AAPL...
 ✅ Success: True
    Symbol: AAPL
-   Data: {"Information": "API key detected: 2ZQ8QZSN1U9XN5TK"}
+   Data: {"Information": "API key detected: <set-in-provider>"}
 
 2. Testing daily data for AAPL...
 ✅ Success: True
