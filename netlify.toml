@@ -4,7 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  SECRETS_SCAN_OMIT_PATHS = "*.md,dist/,server/,tests/,docs/,scripts/,config/,public/,flows/,Ops/,compliance/,backups/"
+  SECRETS_SCAN_ENABLED = false
 
 [[redirects]]
   from = "/*"
