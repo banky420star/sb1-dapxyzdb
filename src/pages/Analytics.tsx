@@ -117,9 +117,9 @@ const Analytics: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6">
       {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
         <div className="flex items-center justify-between">
@@ -156,79 +156,79 @@ const Analytics: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
-      </motion.div>
+          </div>
+        </motion.div>
 
       {/* Performance Overview Cards */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
       >
         {/* Total P&L */}
         <div className="bg-surface rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center justify-between">
+              <div>
               <p className="text-gray-400 text-sm">Total P&L</p>
               <p className="text-2xl font-bold text-white">${performanceData.totalPnL.toLocaleString()}</p>
             </div>
             <DollarSign className="w-8 h-8 text-accent" />
-          </div>
+              </div>
           <div className="mt-2 flex items-center text-sm">
             <TrendingUp className="w-4 h-4 text-green-400 mr-1" />
             <span className="text-green-400">+{performanceData.totalPnLPercentage}%</span>
             <span className="text-gray-400 ml-1">total return</span>
-          </div>
-        </div>
+              </div>
+            </div>
 
         {/* Win Rate */}
         <div className="bg-surface rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center justify-between">
+              <div>
               <p className="text-gray-400 text-sm">Win Rate</p>
               <p className="text-2xl font-bold text-white">{performanceData.winRate}%</p>
             </div>
             <Target className="w-8 h-8 text-green-400" />
-          </div>
+              </div>
           <div className="mt-2 flex items-center text-sm">
             <span className="text-gray-400">{performanceData.winningTrades}/{performanceData.totalTrades} trades</span>
-          </div>
-        </div>
+              </div>
+            </div>
 
         {/* Sharpe Ratio */}
         <div className="bg-surface rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center justify-between">
+              <div>
               <p className="text-gray-400 text-sm">Sharpe Ratio</p>
               <p className="text-2xl font-bold text-white">{performanceData.sharpeRatio}</p>
             </div>
             <BarChart3 className="w-8 h-8 text-blue-400" />
-          </div>
+              </div>
           <div className="mt-2 flex items-center text-sm">
             <span className="text-green-400">Excellent</span>
-          </div>
-        </div>
+              </div>
+            </div>
 
         {/* Max Drawdown */}
         <div className="bg-surface rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center justify-between">
+              <div>
               <p className="text-gray-400 text-sm">Max Drawdown</p>
               <p className="text-2xl font-bold text-white">{performanceData.maxDrawdown}%</p>
             </div>
             <TrendingDown className="w-8 h-8 text-red-400" />
-          </div>
+              </div>
           <div className="mt-2 flex items-center text-sm">
             <span className="text-gray-400">Recovery: {performanceData.recoveryFactor}x</span>
-          </div>
-        </div>
-      </motion.div>
+              </div>
+            </div>
+        </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Equity Curve Chart */}
         <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
           className="lg:col-span-2 bg-surface rounded-lg p-6 border border-gray-700"
         >
           <div className="flex items-center justify-between mb-4">
@@ -278,7 +278,7 @@ const Analytics: React.FC = () => {
                   <span className={`text-sm font-medium ${getPnLColor(asset.pnl)}`}>
                     ${asset.pnl.toLocaleString()}
                   </span>
-                </div>
+                  </div>
                 <div className="flex items-center justify-between text-xs text-gray-400">
                   <span>{asset.percentage}% of total</span>
                   <span>{asset.trades} trades</span>
@@ -291,9 +291,9 @@ const Analytics: React.FC = () => {
       </div>
 
       {/* Performance Metrics Grid */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6"
       >
         {/* Profit Factor */}
@@ -314,17 +314,17 @@ const Analytics: React.FC = () => {
           </div>
           <p className="text-2xl font-bold text-white">{performanceData.expectancy}%</p>
           <p className="text-sm text-gray-400">Per trade</p>
-        </div>
+            </div>
 
         {/* Average Win */}
         <div className="bg-surface rounded-lg p-4 border border-gray-700">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-400 text-sm">Average Win</p>
             <TrendingUp className="w-5 h-5 text-green-400" />
-          </div>
+            </div>
           <p className="text-2xl font-bold text-white">{performanceData.averageWin}%</p>
           <p className="text-sm text-gray-400">Winning trades</p>
-        </div>
+            </div>
 
         {/* Average Loss */}
         <div className="bg-surface rounded-lg p-4 border border-gray-700">
@@ -334,8 +334,8 @@ const Analytics: React.FC = () => {
           </div>
           <p className="text-2xl font-bold text-white">{performanceData.averageLoss}%</p>
           <p className="text-sm text-gray-400">Losing trades</p>
-        </div>
-      </motion.div>
+          </div>
+        </motion.div>
 
       {/* Recent Trades */}
       <motion.div 
@@ -386,7 +386,7 @@ const Analytics: React.FC = () => {
               ))}
             </tbody>
           </table>
-        </div>
+      </div>
       </motion.div>
     </div>
   );

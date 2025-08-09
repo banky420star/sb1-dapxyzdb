@@ -22,8 +22,8 @@ Your AI trading system now has secure server-side functions:
 4. **Add these variables**:
 
 ```
-BYBIT_API_KEY=3fg29yhr1a9JJ1etm3
-BYBIT_API_SECRET=wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14
+BYBIT_API_KEY=your_api_key_here
+BYBIT_API_SECRET=your_api_secret_here
 BYBIT_RECV_WINDOW=5000
 ```
 

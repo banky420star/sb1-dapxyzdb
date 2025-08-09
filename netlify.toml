@@ -4,6 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  SECRETS_SCAN_OMIT_PATHS = "*.md,dist/,server/,tests/,docs/,scripts/,config/,public/,flows/,Ops/,compliance/,backups/"
 
 [[redirects]]
   from = "/*"
@@ -23,4 +24,4 @@
   NODE_ENV = "production"
 
 [context.deploy-preview.environment]
-  NODE_ENV = "preview" 
+  NODE_ENV = "preview"

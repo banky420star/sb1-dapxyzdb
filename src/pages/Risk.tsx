@@ -89,9 +89,9 @@ const Risk: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6">
       {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
         <div className="flex items-center justify-between">
@@ -118,41 +118,41 @@ const Risk: React.FC = () => {
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-      </motion.div>
+              </div>
+            </div>
+          </motion.div>
 
       {/* Risk Overview Cards */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
-      >
+          >
         {/* Total Exposure */}
         <div className="bg-surface rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center justify-between">
+              <div>
               <p className="text-gray-400 text-sm">Total Exposure</p>
               <p className="text-2xl font-bold text-white">${riskData.totalExposure.toLocaleString()}</p>
             </div>
             <DollarSign className="w-8 h-8 text-accent" />
-          </div>
+              </div>
           <div className="mt-2 flex items-center text-sm">
             <TrendingUp className="w-4 h-4 text-green-400 mr-1" />
             <span className="text-green-400">+2.3%</span>
             <span className="text-gray-400 ml-1">vs yesterday</span>
-          </div>
-        </div>
+              </div>
+            </div>
 
         {/* Current Drawdown */}
         <div className="bg-surface rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center justify-between">
+              <div>
               <p className="text-gray-400 text-sm">Current Drawdown</p>
               <p className="text-2xl font-bold text-white">{riskData.currentDrawdown}%</p>
             </div>
             <TrendingDown className="w-8 h-8 text-red-400" />
-          </div>
+              </div>
           <div className="mt-2 flex items-center text-sm">
             <span className="text-gray-400">Max: {riskData.maxDrawdown}%</span>
           </div>
@@ -166,11 +166,11 @@ const Risk: React.FC = () => {
               <p className="text-2xl font-bold text-white">{riskData.sharpeRatio}</p>
             </div>
             <BarChart3 className="w-8 h-8 text-blue-400" />
-          </div>
+                </div>
           <div className="mt-2 flex items-center text-sm">
             <span className="text-green-400">Excellent</span>
-          </div>
-        </div>
+                </div>
+              </div>
 
         {/* Win Rate */}
         <div className="bg-surface rounded-lg p-4 border border-gray-700">
@@ -183,9 +183,9 @@ const Risk: React.FC = () => {
           </div>
           <div className="mt-2 flex items-center text-sm">
             <span className="text-gray-400">{riskData.profitableTrades}/{riskData.totalTrades} trades</span>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Exposure by Asset */}
@@ -227,7 +227,7 @@ const Risk: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-white">Risk Alerts</h2>
             <AlertTriangle className="w-5 h-5 text-yellow-400" />
-          </div>
+            </div>
           
           <div className="space-y-3">
             {recentAlerts.map((alert) => (
@@ -236,8 +236,8 @@ const Risk: React.FC = () => {
                 <div className="flex-1">
                   <p className="text-sm text-white">{alert.message}</p>
                   <p className="text-xs text-gray-400 mt-1">{alert.time}</p>
-                </div>
-              </div>
+            </div>
+            </div>
             ))}
           </div>
         </motion.div>
