@@ -18,24 +18,28 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
-    // V2: Better CSS optimization
-    cssCodeSplit: false, // Bundle all CSS into single file for better caching
+    sourcemap: false, // Disable sourcemaps for production
+    // V3: Enhanced performance optimizations
+    cssCodeSplit: true, // Enable CSS code splitting for better caching
     rollupOptions: {
       output: {
-        // V2: Manual chunk splitting for better performance
+        // V3: Optimized chunk splitting for better performance
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
           ui: ['framer-motion'],
           charts: ['recharts'],
-          utils: ['lodash']
+          utils: ['lodash', 'date-fns']
         },
-        // V2: Optimize asset naming
+        // V3: Optimize asset naming with better caching
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name.split('.')
           const ext = info[info.length - 1]
           if (/\.(css)$/.test(assetInfo.name)) {
             return `assets/css/[name]-[hash].${ext}`
+          }
+          if (/\.(png|jpe?g|svg|gif|tiff|bmp|ico)$/i.test(assetInfo.name)) {
+            return `assets/images/[name]-[hash].${ext}`
           }
           return `assets/[name]-[hash].${ext}`
         },
@@ -43,16 +47,23 @@ export default defineConfig({
         entryFileNames: 'assets/js/[name]-[hash].js'
       }
     },
-    // V2: Better minification
+    // V3: Enhanced minification
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+        passes: 2
+      },
+      mangle: {
+        safari10: true
       }
-    }
+    },
+    // V3: Chunk size warnings
+    chunkSizeWarningLimit: 1000
   },
-  // V2: CSS optimization
+  // V3: Enhanced CSS optimization
   css: {
     postcss: {
       plugins: [
@@ -61,8 +72,13 @@ export default defineConfig({
       ]
     }
   },
-  // V2: Better development experience
+  // V3: Enhanced dependency optimization
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion']
+    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion'],
+    exclude: ['@tensorflow/tfjs-node'] // Exclude heavy dependencies
+  },
+  // V3: Performance optimizations
+  define: {
+    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development')
   }
 })

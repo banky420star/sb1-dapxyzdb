@@ -49,6 +49,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setSidebarOpen(false)}
               className="text-gray-400 hover:text-white transition-colors"
+              aria-label="Close sidebar"
             >
               <X className="h-6 w-6" />
             </button>
@@ -111,6 +112,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="lg:hidden text-gray-400 hover:text-white transition-colors p-1"
+                aria-label="Open sidebar"
               >
                 <Menu className="h-5 w-5 md:h-6 md:w-6" />
               </button>
@@ -134,10 +136,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <button
                   onClick={() => setNotificationsOpen(!notificationsOpen)}
                   className="relative p-1.5 md:p-2 text-gray-400 hover:text-white transition-colors"
+                  aria-label="Toggle notifications"
+                  aria-expanded={notificationsOpen}
                 >
                   <Bell className="h-4 w-4 md:h-5 md:w-5" />
                   {alerts.filter((alert: {read: boolean}) => !alert.read).length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-critical rounded-full"></span>
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-critical rounded-full" aria-label="Unread notifications"></span>
                   )}
                 </button>
                 {notificationsOpen && (
@@ -173,6 +177,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center space-x-1 md:space-x-2 p-1.5 md:p-2 text-gray-400 hover:text-white transition-colors"
+                  aria-label="Toggle user menu"
+                  aria-expanded={userMenuOpen}
                 >
                   <div className="w-7 h-7 md:w-8 md:h-8 bg-primary rounded-lg flex items-center justify-center">
                     <User className="h-3 w-3 md:h-4 md:w-4 text-white" />
@@ -190,7 +196,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       >
                         Settings
                       </Link>
-                      <button className="block w-full text-left px-3 md:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                      <button 
+                        className="block w-full text-left px-3 md:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                        aria-label="Sign out"
+                      >
                         Sign out
                       </button>
                     </div>

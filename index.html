@@ -2,21 +2,49 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Theme Color for PWA -->
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="msapplication-TileColor" content="#6366f1" />
+    
+    <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="mask-icon" href="/favicon.svg" color="#6366f1" />
+    
+    <!-- SEO Meta Tags -->
     <title>MetaTrader Pro - AI-Powered Trading Platform</title>
-    <meta name="description" content="Professional algorithmic trading system with ML ensemble models" />
+    <meta name="description" content="Professional algorithmic trading system with ML ensemble models, real-time market data, and AI-powered trading strategies" />
+    <meta name="keywords" content="trading, algorithmic trading, AI trading, cryptocurrency, forex, machine learning, trading platform" />
+    <meta name="author" content="MetaTrader Pro" />
     
-    <!-- MQL5 Widget Configuration -->
-    <script src="/mql5-config.js"></script>
+    <!-- Open Graph -->
+    <meta property="og:title" content="MetaTrader Pro - AI-Powered Trading Platform" />
+    <meta property="og:description" content="Professional algorithmic trading system with ML ensemble models" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://delightful-crumble-983869.netlify.app" />
+    <meta property="og:image" content="/og-image.png" />
     
-    <!-- Preload MQL5 Widget Script -->
-    <link rel="preload" href="https://c.mql5.com/js/widgets/widget.js" as="script">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MetaTrader Pro - AI-Powered Trading Platform" />
+    <meta name="twitter:description" content="Professional algorithmic trading system with ML ensemble models" />
+    <meta name="twitter:image" content="/og-image.png" />
     
     <!-- Performance optimizations -->
     <link rel="dns-prefetch" href="//c.mql5.com">
     <link rel="preconnect" href="https://c.mql5.com" crossorigin>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" type="module" />
+    
+    <!-- Remove non-critical scripts -->
+    <!-- <script src="/mql5-config.js"></script> -->
+    <!-- <link rel="preload" href="https://c.mql5.com/js/widgets/widget.js" as="script"> -->
   </head>
   <body>
     <div id="root"></div>
