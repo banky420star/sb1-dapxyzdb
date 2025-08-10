@@ -115,95 +115,95 @@ export default function Dashboard() {
       {/* System Metrics */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           {/* Portfolio Value */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Portfolio Value</p>
-                <p className="text-2xl font-bold text-white">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Portfolio Value</p>
+                <p className="text-lg sm:text-2xl font-bold text-white truncate">
                   {formatCurrency(systemMetrics.portfolioValue)}
                 </p>
               </div>
-              <div className="text-3xl">💰</div>
+              <div className="text-2xl sm:text-3xl ml-2">💰</div>
             </div>
           </div>
 
           {/* Daily P&L */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Daily P&L</p>
-                <p className={`text-2xl font-bold ${getPnLColor(systemMetrics.dailyPnL)}`}>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Daily P&L</p>
+                <p className={`text-lg sm:text-2xl font-bold truncate ${getPnLColor(systemMetrics.dailyPnL)}`}>
                   {formatPercentage(systemMetrics.dailyPnL)}
                 </p>
               </div>
-              <div className="text-3xl">📈</div>
+              <div className="text-2xl sm:text-3xl ml-2">📈</div>
             </div>
           </div>
 
           {/* Sharpe Ratio */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Sharpe Ratio</p>
-                <p className={`text-2xl font-bold ${getSharpeColor(systemMetrics.sharpeRatio)}`}>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Sharpe Ratio</p>
+                <p className={`text-lg sm:text-2xl font-bold truncate ${getSharpeColor(systemMetrics.sharpeRatio)}`}>
                   {systemMetrics.sharpeRatio.toFixed(2)}
                 </p>
               </div>
-              <div className="text-3xl">⚡</div>
+              <div className="text-2xl sm:text-3xl ml-2">⚡</div>
             </div>
           </div>
 
           {/* Max Drawdown */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Max Drawdown</p>
-                <p className="text-2xl font-bold text-red-500">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Max Drawdown</p>
+                <p className="text-lg sm:text-2xl font-bold text-red-500 truncate">
                   {formatPercentage(systemMetrics.maxDrawdown)}
                 </p>
               </div>
-              <div className="text-3xl">📉</div>
+              <div className="text-2xl sm:text-3xl ml-2">📉</div>
             </div>
           </div>
         </div>
 
         {/* Activity Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <div className="grid grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Total Trades</p>
-                <p className="text-2xl font-bold text-white">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Total Trades</p>
+                <p className="text-lg sm:text-2xl font-bold text-white truncate">
                   {systemMetrics.totalTrades.toLocaleString()}
                 </p>
               </div>
-              <div className="text-3xl">🔄</div>
+              <div className="text-2xl sm:text-3xl ml-2">🔄</div>
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Active Models</p>
-                <p className="text-2xl font-bold text-white">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Active Models</p>
+                <p className="text-lg sm:text-2xl font-bold text-white truncate">
                   {systemMetrics.activeModels}
                 </p>
               </div>
-              <div className="text-3xl">🤖</div>
+              <div className="text-2xl sm:text-3xl ml-2">🤖</div>
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-400">Data Sources</p>
-                <p className="text-2xl font-bold text-white">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Data Sources</p>
+                <p className="text-lg sm:text-2xl font-bold text-white truncate">
                   {systemMetrics.dataSources}
                 </p>
               </div>
-              <div className="text-3xl">📊</div>
+              <div className="text-2xl sm:text-3xl ml-2">📊</div>
             </div>
           </div>
         </div>

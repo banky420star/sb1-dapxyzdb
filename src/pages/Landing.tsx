@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useTrading } from '../contexts/TradingContext';
 import StatusPill from '../components/StatusPill';
+import Logo from '../components/Logo';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
@@ -118,23 +119,21 @@ const Landing: React.FC = () => {
         transition={{ duration: 0.8 }}
         className="relative z-10 bg-surface/80 backdrop-blur-xl border-b border-gray-700 sticky top-0"
       >
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-                <TrendingUp className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Logo size="lg" animated={true} showText={false} />
+              <div className="hidden sm:block">
+                <h1 className="text-xl sm:text-2xl font-bold text-white">
                   MetaTrader Pro
                 </h1>
-                <p className="text-sm text-gray-400">AI-Powered Trading Platform</p>
+                <p className="text-xs sm:text-sm text-gray-300">AI-Powered Trading Platform</p>
               </div>
             </div>
 
             {/* Infrastructure Status */}
-            <div className="hidden md:flex items-center space-x-3">
+            <div className="hidden lg:flex items-center space-x-2 sm:space-x-3">
               <StatusPill 
                 status={infrastructureStatus.node.status}
                 label="Node"
@@ -162,7 +161,7 @@ const Landing: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowLogin(true)}
-              className="px-6 py-2 bg-primary rounded-lg hover:bg-primary/90 transition-all duration-300 flex items-center space-x-2"
+              className="px-4 sm:px-6 py-2 bg-primary rounded-lg hover:bg-primary/90 transition-all duration-300 flex items-center space-x-2 text-sm sm:text-base"
             >
               <LogIn className="w-4 h-4" />
               <span>Login</span>
@@ -172,21 +171,21 @@ const Landing: React.FC = () => {
       </motion.header>
 
       {/* Hero Section */}
-      <section className="relative z-10 py-20">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="relative z-10 py-12 sm:py-20">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
             {/* Left Content */}
             <motion.div 
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1 }}
             >
-              <h2 className="text-5xl md:text-7xl font-bold mb-8">
+              <h2 className="text-3xl sm:text-5xl lg:text-7xl font-bold mb-6 sm:mb-8">
                 <span className="bg-gradient-to-r from-primary via-accent to-blue-400 bg-clip-text text-transparent">
                   Future of Trading
                 </span>
               </h2>
-              <p className="text-xl text-gray-300 mb-8 leading-relaxed">
+              <p className="text-lg sm:text-xl text-gray-300 mb-6 sm:mb-8 leading-relaxed">
                 Experience the next generation of algorithmic trading with our AI-powered platform. 
                 Real-time analysis, predictive modeling, and automated execution.
               </p>
