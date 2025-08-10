@@ -25,7 +25,6 @@ import {
   Bot,
   Cpu
 } from 'lucide-react';
-import SplitPane from '../components/SplitPane';
 import CommandPalette from '../components/CommandPalette';
 
 // Mock data
@@ -143,89 +142,92 @@ const Trading: React.FC = () => {
     <div className={`h-screen bg-futuristic text-slate-100 flex flex-col transition-opacity duration-1000 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
       {/* V2: Enhanced Header */}
       <motion.div 
-        className="flex items-center justify-between p-6 glass-dark border-b border-white/10"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 glass-dark border-b border-white/10"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="flex items-center space-x-6">
-          <h1 className="text-2xl font-bold text-gradient flex items-center">
-            <Cpu className="w-6 h-6 mr-3 text-indigo-400" />
-            AI Trading Terminal
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-6 w-full sm:w-auto">
+          <h1 className="text-xl sm:text-2xl font-bold text-gradient flex items-center">
+            <Cpu className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-indigo-400" />
+            <span className="hidden sm:inline">AI Trading Terminal</span>
+            <span className="sm:hidden">Trading Terminal</span>
           </h1>
-          <div className="flex items-center space-x-3 glass px-4 py-2 rounded-xl">
-            <span className="text-sm text-slate-400 font-medium">XRP/USD</span>
-            <span className="text-lg font-bold text-green-400">$0.25866172</span>
+          <div className="flex items-center space-x-2 sm:space-x-3 glass px-3 sm:px-4 py-2 rounded-xl">
+            <span className="text-xs sm:text-sm text-slate-400 font-medium">XRP/USD</span>
+            <span className="text-sm sm:text-lg font-bold text-green-400">$0.25866172</span>
             <div className="flex items-center text-green-400">
-              <ArrowUpRight className="w-4 h-4 mr-1" />
-              <span className="text-sm font-semibold">+2.34%</span>
+              <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              <span className="text-xs sm:text-sm font-semibold">+2.34%</span>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <button className="p-3 rounded-xl glass hover:bg-white/10 transition-all duration-300 group">
-            <Search className="w-5 h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+        <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto justify-end">
+          <button className="p-2 sm:p-3 rounded-xl glass hover:bg-white/10 transition-all duration-300 group">
+            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
           </button>
-          <button className="p-3 rounded-xl glass hover:bg-white/10 transition-all duration-300 group">
-            <Settings className="w-5 h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+          <button className="p-2 sm:p-3 rounded-xl glass hover:bg-white/10 transition-all duration-300 group">
+            <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
           </button>
         </div>
       </motion.div>
 
       {/* V2: Enhanced Bot State Banner */}
       <motion.div 
-        className="glass-dark border-b border-white/10 p-4"
+        className="glass-dark border-b border-white/10 p-3 sm:p-4"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.6 }}
       >
-        <div className="flex items-center justify-center space-x-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4 lg:space-x-6">
           <div className="flex items-center space-x-2">
-            <Bot className="w-5 h-5 text-indigo-400" />
-            <span className="text-sm text-slate-400 font-medium">AI Bot State:</span>
+            <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-400" />
+            <span className="text-xs sm:text-sm text-slate-400 font-medium">AI Bot State:</span>
           </div>
-          {(['auto', 'semi', 'manual'] as const).map((state) => (
-            <button
-              key={state}
-              onClick={() => setBotState(state)}
-              className={`px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                botState === state
-                  ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg'
-                  : 'glass text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              {state.charAt(0).toUpperCase() + state.slice(1)}
-            </button>
-          ))}
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-0 sm:space-x-2 lg:space-x-4">
+            {(['auto', 'semi', 'manual'] as const).map((state) => (
+              <button
+                key={state}
+                onClick={() => setBotState(state)}
+                className={`px-3 sm:px-4 lg:px-6 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 ${
+                  botState === state
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg'
+                    : 'glass text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {state.charAt(0).toUpperCase() + state.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </motion.div>
 
       {/* V2: Enhanced Main Content */}
-      <div className="flex-1 overflow-hidden">
-        <SplitPane defaultSizes={[70, 30]}>
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col lg:flex-row h-full">
           {/* V2: Enhanced Left Panel - Chart */}
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full lg:w-2/3">
             {/* V2: Enhanced TradingView Widget Placeholder */}
-            <div className="flex-1 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
+            <div className="flex-1 min-h-64 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10"></div>
-              <div className="text-center relative z-10">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                  <BarChart3 className="w-10 h-10 text-white" />
+              <div className="text-center relative z-10 p-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                  <BarChart3 className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Live Trading Chart</h3>
-                <p className="text-slate-400 mb-4">Real-time price chart with AI indicators</p>
-                <div className="flex items-center justify-center space-x-4 text-sm text-slate-500">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Live Trading Chart</h3>
+                <p className="text-slate-400 mb-4 text-sm sm:text-base">Real-time price chart with AI indicators</p>
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-500">
                   <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-1 sm:mr-2"></div>
                     <span>AI Signals</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 sm:mr-2"></div>
                     <span>Volume</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full mr-2"></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full mr-1 sm:mr-2"></div>
                     <span>Predictions</span>
                   </div>
                 </div>
@@ -233,10 +235,10 @@ const Trading: React.FC = () => {
             </div>
 
             {/* V2: Enhanced Depth & Tape */}
-            <div className="h-48 glass-dark border-t border-white/10">
-              <div className="grid grid-cols-2 h-full">
+            <div className="h-48 sm:h-64 glass-dark border-t border-white/10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 h-full">
                 {/* V2: Enhanced Order Book */}
-                <div className="border-r border-white/10">
+                <div className="border-b sm:border-b-0 sm:border-r border-white/10">
                   <div className="p-4 border-b border-white/10">
                     <h3 className="text-sm font-bold text-gradient">Order Book</h3>
                   </div>
@@ -412,7 +414,7 @@ const Trading: React.FC = () => {
               </div>
             </div>
           </div>
-        </SplitPane>
+        </div>
       </div>
 
       {/* Command Palette */}
