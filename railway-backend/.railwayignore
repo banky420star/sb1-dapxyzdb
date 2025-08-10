@@ -1,0 +1,19 @@
+# Ignore root directory files
+../package.json
+../package-lock.json
+../node_modules/
+../src/
+../public/
+../netlify/
+../scripts/
+../*.md
+../*.sh
+../*.yml
+../*.yaml
+../*.json
+!package.json
+!package-lock.json
+!railway.json
+!server.js
+!README.md
+!.env 
