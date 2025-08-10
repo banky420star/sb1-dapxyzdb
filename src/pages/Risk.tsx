@@ -86,14 +86,15 @@ const Risk: React.FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 md:p-6">
-      {/* Header */}
+    return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
+          className="mb-6"
+        >
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center">
@@ -319,6 +320,7 @@ const Risk: React.FC = () => {
           </div>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 };
