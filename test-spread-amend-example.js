@@ -6,8 +6,8 @@ async function testSpreadAmendExample() {
   try {
     // Initialize spread trading module
     const spreadTrading = new BybitSpreadTrading({
-      apiKey: '3fg29yhr1a9JJ1etm3',
-      secret: 'wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14',
+      apiKey: process.env.BYBIT_API_KEY || '',
+      secret: process.env.BYBIT_SECRET || '',
       testnet: true
     })
     

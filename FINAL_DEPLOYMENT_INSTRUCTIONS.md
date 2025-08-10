@@ -64,8 +64,8 @@ Your AI trading system is **98% complete** and ready to generate revenue. Follow
    - **Root Directory**: `server`
 6. **Add Environment Variables**:
    ```
-   BYBIT_API_KEY=3fg29yhr1a9JJ1etm3
-   BYBIT_SECRET=wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14
+   BYBIT_API_KEY=<set-in-netlify-ui>
+   BYBIT_SECRET=<set-in-netlify-ui>
    BYBIT_TESTNET=false
    JWT_SECRET=your-secret-key-here
    FRONTEND_URL=https://your-frontend-url

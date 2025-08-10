@@ -146,7 +146,7 @@ npm run build
 cat > .env << EOF
 NODE_ENV=production
 PORT=8000
-ALPHAVANTAGE_API_KEY=2ZQ8QZSN1U9XN5TK
+ALPHAVANTAGE_API_KEY=<set-in-provider>
 MT5_INTEGRATION=false
 DATABASE_PATH=/opt/ai-trading-system/data/trading.db
 LOG_LEVEL=info

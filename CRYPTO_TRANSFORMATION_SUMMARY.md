@@ -9,8 +9,8 @@ Your trading project has been successfully transformed into a **comprehensive cr
 ## 🔑 **Your Bybit API Credentials**
 
 ```bash
-API Key: 3fg29yhr1a9JJ1etm3
-API Secret: wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14
+API Key: <set-in-netlify-ui>
+API Secret: <set-in-netlify-ui>
 ```
 
 ## 🏗️ **What Was Built**
@@ -167,8 +167,8 @@ npm install bybit-api
 ### **2. Environment Configuration**
 ```bash
 # .env file
-BYBIT_API_KEY=3fg29yhr1a9JJ1etm3
-BYBIT_SECRET=wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14
+BYBIT_API_KEY=<set-in-netlify-ui>
+BYBIT_SECRET=<set-in-netlify-ui>
 BYBIT_TESTNET=false  # Set to true for testing
 ```
 

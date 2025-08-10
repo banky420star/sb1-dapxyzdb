@@ -10,6 +10,7 @@ import Risk from './pages/Risk'
 import Analytics from './pages/Analytics'
 import Settings from './pages/Settings'
 import FuturisticLanding from './pages/FuturisticLanding'
+import NotFound from './pages/NotFound'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
                 <Route path="/risk" element={<Risk />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Layout>
           } />

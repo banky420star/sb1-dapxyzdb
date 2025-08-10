@@ -21,16 +21,16 @@ export class BybitIntegrationEnhanced extends EventEmitter {
     
     // Configuration with your provided API credentials
     this.config = {
-      apiKey: process.env.BYBIT_API_KEY || '3fg29yhr1a9JJ1etm3',
-      secret: process.env.BYBIT_SECRET || 'wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14',
+      apiKey: process.env.BYBIT_API_KEY || '',
+      secret: process.env.BYBIT_SECRET || '',
       testnet: process.env.BYBIT_TESTNET === 'true' || false,
       symbols: ['BTCUSDT', 'ETHUSDT', 'ADAUSDT', 'DOTUSDT', 'SOLUSDT', 'MATICUSDT'],
       timeframes: ['1', '3', '5', '15', '30', '60', '240', 'D', 'W', 'M'],
-      updateInterval: 1000, // 1 second
+      updateInterval: 1000,
       maxPositions: 10,
-      maxRiskPerTrade: 0.02, // 2%
-      maxDailyLoss: 0.05,    // 5%
-      useWebSocketV3: true,  // Use new WebSocket V3 client
+      maxRiskPerTrade: 0.02,
+      maxDailyLoss: 0.05,
+      useWebSocketV3: true,
       ...options
     }
     
@@ -138,6 +138,10 @@ export class BybitIntegrationEnhanced extends EventEmitter {
         await this.setupWebSocketV3()
       } else {
         await this.setupLegacyWebSocket()
+      }
+
+      if (!this.config.apiKey || !this.config.secret) {
+        this.logger.warn('BYBIT credentials not set; private account streams and authenticated calls will be disabled.')
       }
       
       this.isConnected = true

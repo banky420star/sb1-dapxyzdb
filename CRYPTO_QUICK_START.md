@@ -12,8 +12,8 @@ npm install bybit-api
 ### **2. Configure Environment**
 ```bash
 # Add to your .env file
-BYBIT_API_KEY=3fg29yhr1a9JJ1etm3
-BYBIT_SECRET=wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14
+BYBIT_API_KEY=<set-in-netlify-ui>
+BYBIT_SECRET=<set-in-netlify-ui>
 BYBIT_TESTNET=false  # Set to true for testing
 ```
 

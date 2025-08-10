@@ -100,8 +100,8 @@ Publish directory: dist
 
 ### **Step 2: Environment Variables**
 ```
-BYBIT_API_KEY=3fg29yhr1a9JJ1etm3
-BYBIT_SECRET=wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14
+BYBIT_API_KEY=<set-in-netlify-ui>
+BYBIT_SECRET=<set-in-netlify-ui>
 BYBIT_TESTNET=false
 JWT_SECRET=your-secret-key
 FRONTEND_URL=https://methtrader.xyz

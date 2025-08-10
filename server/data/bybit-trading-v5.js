@@ -9,8 +9,8 @@ export class BybitTradingV5 extends EventEmitter {
     
     // Configuration
     this.config = {
-      apiKey: process.env.BYBIT_API_KEY || '3fg29yhr1a9JJ1etm3',
-      secret: process.env.BYBIT_SECRET || 'wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14',
+      apiKey: process.env.BYBIT_API_KEY || '',
+      secret: process.env.BYBIT_SECRET || '',
       testnet: process.env.BYBIT_TESTNET === 'true' || false,
       demo: process.env.BYBIT_DEMO === 'true' || false,
       recvWindow: 5000,

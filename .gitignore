@@ -171,3 +171,6 @@ coverage.xml
 monitoring/loki.yml
 monitoring/prometheus.yml
 monitoring/promtail.yml
+
+# Local Netlify folder
+.netlify
