@@ -96,6 +96,9 @@ const Crypto: React.FC = () => {
   const [orderBook, setOrderBook] = useState<BybitOrderBook | null>(null);
   const [recentTrades, setRecentTrades] = useState<BybitTrade[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  
+  // Live prices for all cryptos
+  const [livePrices, setLivePrices] = useState<Record<string, BybitMarketData>>({});
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100);
@@ -193,6 +196,41 @@ const Crypto: React.FC = () => {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Fetch live prices for all cryptos
+  useEffect(() => {
+    const fetchAllPrices = async () => {
+      try {
+        const allPrices: Record<string, BybitMarketData> = {};
+        
+        // Fetch prices for all cryptos
+        for (const symbol of Object.keys(cryptoData)) {
+          try {
+            const tickers = await bybitApi.getTickers();
+            const ticker = tickers.find(t => t.symbol === symbol);
+            if (ticker) {
+              allPrices[symbol] = ticker;
+            }
+          } catch (error) {
+            console.error(`Failed to fetch price for ${symbol}:`, error);
+          }
+        }
+        
+        setLivePrices(allPrices);
+        setIsConnected(true);
+      } catch (error) {
+        console.error('Failed to fetch all prices:', error);
+      }
+    };
+
+    // Fetch initial prices
+    fetchAllPrices();
+
+    // Set up interval to refresh prices every 5 seconds
+    const interval = setInterval(fetchAllPrices, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleOrderSubmit = async (side: 'buy' | 'sell') => {
@@ -449,30 +487,36 @@ const Crypto: React.FC = () => {
             <div className="p-4 border-b border-white/10">
               <h2 className="text-lg font-bold text-gradient mb-3">Select Crypto</h2>
               <div className="grid grid-cols-2 gap-2">
-                {Object.entries(cryptoData).map(([symbol, data]) => (
-                  <button
-                    key={symbol}
-                    onClick={() => setSelectedCrypto(symbol)}
-                    className={`p-3 rounded-lg text-left transition-all duration-300 ${
-                      selectedCrypto === symbol 
-                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' 
-                        : 'glass hover:bg-white/10 text-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        {getCryptoIcon(symbol)}
-                        <span className="font-semibold">{symbol.replace('USDT', '')}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold">${data.price.toLocaleString()}</div>
-                        <div className={`text-xs ${data.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {data.change >= 0 ? '+' : ''}{data.change}%
+                {Object.entries(cryptoData).map(([symbol, data]) => {
+                  const livePrice = livePrices[symbol];
+                  const currentPrice = livePrice ? parseFloat(livePrice.lastPrice) : data.price;
+                  const currentChange = livePrice ? parseFloat(livePrice.price24hPcnt) * 100 : data.change;
+                  
+                  return (
+                    <button
+                      key={symbol}
+                      onClick={() => setSelectedCrypto(symbol)}
+                      className={`p-3 rounded-lg text-left transition-all duration-300 ${
+                        selectedCrypto === symbol 
+                          ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white' 
+                          : 'glass hover:bg-white/10 text-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {getCryptoIcon(symbol)}
+                          <span className="font-semibold">{symbol.replace('USDT', '')}</span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-bold">${currentPrice.toLocaleString()}</div>
+                          <div className={`text-xs ${currentChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {currentChange >= 0 ? '+' : ''}{currentChange.toFixed(2)}%
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

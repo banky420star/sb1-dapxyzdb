@@ -26,6 +26,7 @@ import {
   Cpu
 } from 'lucide-react';
 import CommandPalette from '../components/CommandPalette';
+import bybitApi, { BybitMarketData, BybitOrderBook, BybitTrade } from '../services/bybitApi';
 
 // Mock data
 const orderBookData = {
@@ -65,10 +66,64 @@ const Trading: React.FC = () => {
   const [showConfirmOrder, setShowConfirmOrder] = useState(false);
   const [confirmOrderData, setConfirmOrderData] = useState<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  
+  // Live data state
+  const [marketData, setMarketData] = useState<BybitMarketData | null>(null);
+  const [orderBook, setOrderBook] = useState<BybitOrderBook | null>(null);
+  const [recentTrades, setRecentTrades] = useState<BybitTrade[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 100);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch live data
+  useEffect(() => {
+    const loadLiveData = async () => {
+      try {
+        // Load initial data for XRPUSDT (default trading pair)
+        const [tickers, orderBookData, tradesData] = await Promise.all([
+          bybitApi.getTickers(),
+          bybitApi.getOrderBook('XRPUSDT'),
+          bybitApi.getRecentTrades('XRPUSDT')
+        ]);
+
+        const currentTicker = tickers.find(t => t.symbol === 'XRPUSDT');
+        if (currentTicker) {
+          setMarketData(currentTicker);
+        }
+        setOrderBook(orderBookData);
+        setRecentTrades(tradesData.slice(0, 10));
+        setIsConnected(true);
+      } catch (error) {
+        console.error('Failed to load live data:', error);
+      }
+    };
+
+    loadLiveData();
+
+    // Set up real-time subscriptions
+    const unsubscribeTicker = bybitApi.subscribeToTicker('XRPUSDT', (data) => {
+      if (data && data.length > 0) {
+        setMarketData(data[0]);
+        setIsConnected(true);
+      }
+    });
+
+    const unsubscribeOrderBook = bybitApi.subscribeToOrderBook('XRPUSDT', (data) => {
+      setOrderBook(data);
+    });
+
+    const unsubscribeTrades = bybitApi.subscribeToTrades('XRPUSDT', (data) => {
+      setRecentTrades(data.slice(0, 10));
+    });
+
+    return () => {
+      unsubscribeTicker();
+      unsubscribeOrderBook();
+      unsubscribeTrades();
+    };
   }, []);
 
   // Command palette actions
@@ -155,10 +210,20 @@ const Trading: React.FC = () => {
           </h1>
           <div className="flex items-center space-x-2 sm:space-x-3 glass px-3 sm:px-4 py-2 rounded-xl">
             <span className="text-xs sm:text-sm text-slate-400 font-medium">XRP/USD</span>
-            <span className="text-sm sm:text-lg font-bold text-green-400">$0.25866172</span>
-            <div className="flex items-center text-green-400">
-              <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-              <span className="text-xs sm:text-sm font-semibold">+2.34%</span>
+            <span className="text-sm sm:text-lg font-bold text-green-400">
+              ${marketData ? parseFloat(marketData.lastPrice).toLocaleString() : '0.25866172'}
+            </span>
+            <div className={`flex items-center ${marketData ? (parseFloat(marketData.price24hPcnt) >= 0 ? 'text-green-400' : 'text-red-400') : 'text-green-400'}`}>
+              {marketData ? (parseFloat(marketData.price24hPcnt) >= 0 ? (
+                <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              ) : (
+                <ArrowDownRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              )) : (
+                <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              )}
+              <span className="text-xs sm:text-sm font-semibold">
+                {marketData ? Math.abs(parseFloat(marketData.price24hPcnt) * 100).toFixed(2) : '2.34'}%
+              </span>
             </div>
           </div>
         </div>
