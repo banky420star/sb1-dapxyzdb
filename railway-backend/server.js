@@ -4,8 +4,10 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const WebSocket = require('ws');
-const fetch = require('node-fetch');
 require('dotenv').config();
+
+// Use built-in fetch (Node.js 18+)
+const fetch = globalThis.fetch;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
