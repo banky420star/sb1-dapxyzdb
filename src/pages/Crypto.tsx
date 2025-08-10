@@ -32,7 +32,6 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import SplitPane from '../components/SplitPane';
 import CommandPalette from '../components/CommandPalette';
 import bybitApi, { BybitMarketData, BybitOrderBook, BybitTrade } from '../services/bybitApi';
 
@@ -271,83 +270,84 @@ const Crypto: React.FC = () => {
     <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
       {/* Header */}
       <motion.div 
-        className="flex items-center justify-between p-6 glass-dark border-b border-white/10"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 glass-dark border-b border-white/10"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="flex items-center space-x-6">
-          <h1 className="text-2xl font-bold text-gradient flex items-center">
-            <Bitcoin className="w-6 h-6 mr-3 text-orange-400" />
-            Crypto Trading Terminal
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-6 w-full sm:w-auto">
+          <h1 className="text-xl sm:text-2xl font-bold text-gradient flex items-center">
+            <Bitcoin className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-orange-400" />
+            <span className="hidden sm:inline">Crypto Trading Terminal</span>
+            <span className="sm:hidden">Crypto Terminal</span>
           </h1>
-          <div className="flex items-center space-x-3 glass px-4 py-2 rounded-xl">
-            <span className="text-sm text-slate-400 font-medium">{selectedCrypto}</span>
-            <span className="text-lg font-bold text-green-400">
+          <div className="flex items-center space-x-2 sm:space-x-3 glass px-3 sm:px-4 py-2 rounded-xl">
+            <span className="text-xs sm:text-sm text-slate-400 font-medium">{selectedCrypto}</span>
+            <span className="text-sm sm:text-lg font-bold text-green-400">
               ${marketData ? parseFloat(marketData.lastPrice).toLocaleString() : cryptoData[selectedCrypto as keyof typeof cryptoData].price.toLocaleString()}
             </span>
             <div className={`flex items-center ${marketData ? (parseFloat(marketData.price24hPcnt) >= 0 ? 'text-green-400' : 'text-red-400') : (cryptoData[selectedCrypto as keyof typeof cryptoData].change >= 0 ? 'text-green-400' : 'text-red-400')}`}>
               {marketData ? (parseFloat(marketData.price24hPcnt) >= 0 ? (
-                <ArrowUpRight className="w-4 h-4 mr-1" />
+                <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               ) : (
-                <ArrowDownRight className="w-4 h-4 mr-1" />
+                <ArrowDownRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               )) : (cryptoData[selectedCrypto as keyof typeof cryptoData].change >= 0 ? (
-                <ArrowUpRight className="w-4 h-4 mr-1" />
+                <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               ) : (
-                <ArrowDownRight className="w-4 h-4 mr-1" />
+                <ArrowDownRight className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               ))}
-              <span className="text-sm font-semibold">
+              <span className="text-xs sm:text-sm font-semibold">
                 {marketData ? Math.abs(parseFloat(marketData.price24hPcnt)).toFixed(2) : Math.abs(cryptoData[selectedCrypto as keyof typeof cryptoData].change)}%
               </span>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto justify-end">
           {/* Connection Status */}
-          <div className="flex items-center space-x-2 px-3 py-1.5 glass rounded-lg">
+          <div className="flex items-center space-x-2 px-2 sm:px-3 py-1.5 glass rounded-lg">
             <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div>
-            <span className="text-sm text-slate-400">
+            <span className="text-xs sm:text-sm text-slate-400">
               {isConnected ? 'Connected' : 'Disconnected'}
             </span>
           </div>
           
-          <button className="p-3 rounded-xl glass hover:bg-white/10 transition-all duration-300 group">
-            <Search className="w-5 h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+          <button className="p-2 sm:p-3 rounded-xl glass hover:bg-white/10 transition-all duration-300 group">
+            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
           </button>
-          <button className="p-3 rounded-xl glass hover:bg-white/10 transition-all duration-300 group">
-            <Settings className="w-5 h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+          <button className="p-2 sm:p-3 rounded-xl glass hover:bg-white/10 transition-all duration-300 group">
+            <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
           </button>
         </div>
       </motion.div>
 
       {/* Bot State Banner */}
       <motion.div 
-        className="px-6 py-3 glass-dark border-b border-white/10"
+        className="px-4 sm:px-6 py-3 glass-dark border-b border-white/10"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm text-slate-300">Crypto Engine: {cryptoStatus.engine}</span>
+              <span className="text-xs sm:text-sm text-slate-300">Engine: {cryptoStatus.engine}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Wallet className="w-4 h-4 text-slate-400" />
-              <span className="text-sm text-slate-300">Balance: ${cryptoStatus.balance.toLocaleString()}</span>
+              <Wallet className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
+              <span className="text-xs sm:text-sm text-slate-300">${cryptoStatus.balance.toLocaleString()}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <BarChart3 className="w-4 h-4 text-slate-400" />
-              <span className="text-sm text-slate-300">Positions: {cryptoStatus.positions}</span>
+              <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
+              <span className="text-xs sm:text-sm text-slate-300">{cryptoStatus.positions} pos</span>
             </div>
             <div className="flex items-center space-x-2">
-              <TrendingUp className="w-4 h-4 text-green-400" />
-              <span className="text-sm text-green-400">P&L: +${cryptoStatus.pnl.toLocaleString()}</span>
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
+              <span className="text-xs sm:text-sm text-green-400">+${cryptoStatus.pnl.toLocaleString()}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <Shield className="w-4 h-4 text-slate-400" />
+              <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
               <span className={`text-sm ${getRiskColor(cryptoStatus.risk)}`}>Risk: {cryptoStatus.risk}</span>
             </div>
           </div>
@@ -371,30 +371,30 @@ const Crypto: React.FC = () => {
       </motion.div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
-        <SplitPane defaultSizes={[70, 30]}>
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col lg:flex-row h-full">
           {/* Left Panel - Chart and Order Book */}
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full lg:w-2/3">
             {/* Chart Area */}
-            <div className="flex-1 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
+            <div className="flex-1 min-h-64 bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-purple-500/10"></div>
-              <div className="text-center relative z-10">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-orange-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                  <BarChart3 className="w-10 h-10 text-white" />
+              <div className="text-center relative z-10 p-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-gradient-to-r from-orange-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                  <BarChart3 className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Live Crypto Chart</h3>
-                <p className="text-slate-400 mb-4">Real-time {selectedCrypto} price chart with AI indicators</p>
-                <div className="flex items-center justify-center space-x-4 text-sm text-slate-500">
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Live Crypto Chart</h3>
+                <p className="text-slate-400 mb-4 text-sm sm:text-base">Real-time {selectedCrypto} price chart with AI indicators</p>
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-500">
                   <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-1 sm:mr-2"></div>
                     <span>AI Signals</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
+                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-1 sm:mr-2"></div>
                     <span>Volume</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full mr-2"></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full mr-1 sm:mr-2"></div>
                     <span>Predictions</span>
                   </div>
                 </div>
@@ -402,35 +402,35 @@ const Crypto: React.FC = () => {
             </div>
 
             {/* Order Book and Trade History */}
-            <div className="h-64 flex">
+            <div className="h-48 sm:h-64 flex flex-col sm:flex-row">
               {/* Order Book */}
-              <div className="flex-1 p-4 glass-dark border-r border-white/10">
-                <h3 className="text-lg font-bold text-gradient mb-4">Order Book</h3>
+              <div className="flex-1 p-3 sm:p-4 glass-dark border-b sm:border-b-0 sm:border-r border-white/10">
+                <h3 className="text-base sm:text-lg font-bold text-gradient mb-3 sm:mb-4">Order Book</h3>
                 <div className="space-y-1">
                   {orderBookData.asks.slice().reverse().map((ask, index) => (
-                    <div key={`ask-${index}`} className="flex justify-between text-sm">
+                    <div key={`ask-${index}`} className="flex justify-between text-xs sm:text-sm">
                       <span className="text-red-400">{ask.price.toLocaleString()}</span>
                       <span className="text-slate-400">{ask.size.toFixed(3)}</span>
-                      <span className="text-slate-500">{ask.total.toFixed(3)}</span>
+                      <span className="text-slate-500 hidden sm:inline">{ask.total.toFixed(3)}</span>
                     </div>
                   ))}
-                  <div className="border-t border-white/20 my-2"></div>
+                  <div className="border-t border-white/20 my-1 sm:my-2"></div>
                   {orderBookData.bids.map((bid, index) => (
-                    <div key={`bid-${index}`} className="flex justify-between text-sm">
+                    <div key={`bid-${index}`} className="flex justify-between text-xs sm:text-sm">
                       <span className="text-green-400">{bid.price.toLocaleString()}</span>
                       <span className="text-slate-400">{bid.size.toFixed(3)}</span>
-                      <span className="text-slate-500">{bid.total.toFixed(3)}</span>
+                      <span className="text-slate-500 hidden sm:inline">{bid.total.toFixed(3)}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Trade History */}
-              <div className="flex-1 p-4 glass-dark">
-                <h3 className="text-lg font-bold text-gradient mb-4">Recent Trades</h3>
+              <div className="flex-1 p-3 sm:p-4 glass-dark">
+                <h3 className="text-base sm:text-lg font-bold text-gradient mb-3 sm:mb-4">Recent Trades</h3>
                 <div className="space-y-1">
                   {tradeHistory.map((trade, index) => (
-                    <div key={index} className="flex justify-between text-sm">
+                    <div key={index} className="flex justify-between text-xs sm:text-sm">
                       <span className="text-slate-400">{trade.time}</span>
                       <span className={trade.side === 'buy' ? 'text-green-400' : 'text-red-400'}>
                         {trade.price.toLocaleString()}
@@ -444,7 +444,7 @@ const Crypto: React.FC = () => {
           </div>
 
           {/* Right Panel - Order Ticket and Crypto List */}
-          <div className="flex flex-col h-full glass-dark">
+          <div className="flex flex-col h-full glass-dark lg:w-1/3">
             {/* Crypto Selection */}
             <div className="p-4 border-b border-white/10">
               <h2 className="text-lg font-bold text-gradient mb-3">Select Crypto</h2>
@@ -556,7 +556,7 @@ const Crypto: React.FC = () => {
               </div>
             </div>
           </div>
-        </SplitPane>
+        </div>
       </div>
 
       {/* Command Palette */}

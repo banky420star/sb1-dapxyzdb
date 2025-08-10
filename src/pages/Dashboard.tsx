@@ -87,23 +87,23 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700">
+      <div className="bg-gray-800 border-b border-gray-700 flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-white">MetaTrader.xyz</h1>
-              <div className="flex items-center space-x-2 text-sm text-gray-400">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <h1 className="text-lg sm:text-xl font-bold text-white">MetaTrader.xyz</h1>
+              <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-400">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span>Live Trading System</span>
               </div>
             </div>
-            <div className="flex items-center space-x-4 text-sm text-gray-400">
-              <span>Last update: {format(lastUpdate, 'HH:mm:ss')}</span>
+            <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-400">
+              <span className="hidden sm:inline">Last update: {format(lastUpdate, 'HH:mm:ss')}</span>
               <button
                 onClick={fetchSystemMetrics}
-                className="text-gray-400 hover:text-white px-3 py-1 rounded hover:bg-gray-700"
+                className="text-gray-400 hover:text-white px-2 sm:px-3 py-1 rounded hover:bg-gray-700"
               >
                 Refresh
               </button>
@@ -113,7 +113,8 @@ export default function Dashboard() {
       </div>
 
       {/* System Metrics */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Portfolio Value */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
@@ -208,7 +209,7 @@ export default function Dashboard() {
         </div>
 
         {/* Main Monitoring Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
           {/* Trade Feed */}
           <div>
             <TradeFeed maxTrades={25} />
@@ -221,23 +222,24 @@ export default function Dashboard() {
         </div>
 
         {/* Data Pipeline Monitor - Full Width */}
-        <div className="mt-8">
+        <div className="mt-4 sm:mt-8">
           <DataPipelineMonitor refreshInterval={15000} />
+        </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="bg-gray-800 border-t border-gray-700 mt-12">
+      <div className="bg-gray-800 border-t border-gray-700 flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between text-sm text-gray-400">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-400 space-y-2 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-4 text-center sm:text-left">
               <span>MetaTrader.xyz - Autonomous Trading System</span>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <span>Always Learning, Self-Upgrading, Pair-Hoovering</span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <span>Status: Operational</span>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <span>Uptime: 99.9%</span>
             </div>
           </div>
