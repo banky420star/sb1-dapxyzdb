@@ -38,6 +38,17 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Debug endpoint to check environment variables
+app.get('/debug/env', (req, res) => {
+  res.json({
+    hasApiKey: !!process.env.BYBIT_API_KEY,
+    hasApiSecret: !!process.env.BYBIT_API_SECRET,
+    hasRecvWindow: !!process.env.BYBIT_RECV_WINDOW,
+    nodeEnv: process.env.NODE_ENV,
+    allEnvVars: Object.keys(process.env).filter(key => key.includes('BYBIT'))
+  });
+});
+
 // Bybit V5 API Configuration
 const BYBIT_API_KEY = process.env.BYBIT_API_KEY;
 const BYBIT_API_SECRET = process.env.BYBIT_API_SECRET;
