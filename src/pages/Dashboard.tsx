@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TradeFeed from '../components/TradeFeed';
 import ModelTrainingMonitor from '../components/ModelTrainingMonitor';
 import DataPipelineMonitor from '../components/DataPipelineMonitor';
+import AutonomousTradingPanel from '../components/AutonomousTradingPanel';
 import { format } from 'date-fns';
 
 interface SystemMetrics {
@@ -112,9 +113,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* System Metrics */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+              {/* Autonomous Trading Bot Section */}
+        <div className="mb-6 sm:mb-8">
+          <AutonomousTradingPanel />
+        </div>
+
+        {/* System Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           {/* Portfolio Value */}
           <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">

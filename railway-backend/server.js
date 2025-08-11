@@ -504,3 +504,395 @@ async function getPositions() {
     return [];
   }
 } 
+
+// Autonomous Trading Configuration
+const TRADING_CONFIG = {
+  enabled: true,
+  maxPositionSize: 0.001, // BTC
+  stopLoss: 0.02, // 2%
+  takeProfit: 0.05, // 5%
+  maxDailyLoss: 0.01, // 1%
+  tradingPairs: ['BTCUSDT', 'ETHUSDT', 'XRPUSDT'],
+  minConfidence: 0.7, // 70% confidence required
+  autoRebalance: true,
+  riskManagement: true
+};
+
+// Trading state tracking
+let tradingState = {
+  isActive: false,
+  lastTrade: null,
+  dailyPnL: 0,
+  totalTrades: 0,
+  successfulTrades: 0,
+  currentPositions: {},
+  tradingHistory: [],
+  riskMetrics: {
+    maxDrawdown: 0,
+    sharpeRatio: 0,
+    winRate: 0
+  }
+};
+
+// Autonomous trading engine
+class AutonomousTradingBot {
+  constructor() {
+    this.isRunning = false;
+    this.tradingInterval = null;
+    this.lastAnalysis = null;
+  }
+
+  async start() {
+    if (this.isRunning) return;
+    
+    console.log('🤖 Starting Autonomous Trading Bot...');
+    this.isRunning = true;
+    tradingState.isActive = true;
+    
+    // Start trading loop every 30 seconds
+    this.tradingInterval = setInterval(async () => {
+      await this.executeTradingCycle();
+    }, 30000); // 30 seconds
+    
+    console.log('✅ Autonomous Trading Bot started successfully');
+  }
+
+  async stop() {
+    if (!this.isRunning) return;
+    
+    console.log('🛑 Stopping Autonomous Trading Bot...');
+    this.isRunning = false;
+    tradingState.isActive = false;
+    
+    if (this.tradingInterval) {
+      clearInterval(this.tradingInterval);
+      this.tradingInterval = null;
+    }
+    
+    console.log('✅ Autonomous Trading Bot stopped');
+  }
+
+  async executeTradingCycle() {
+    try {
+      console.log('🔄 Executing trading cycle...');
+      
+      // 1. Analyze market conditions
+      const marketAnalysis = await this.analyzeMarket();
+      
+      // 2. Get AI model predictions
+      const predictions = await this.getModelPredictions();
+      
+      // 3. Generate trading signals
+      const signals = this.generateTradingSignals(marketAnalysis, predictions);
+      
+      // 4. Execute trades based on signals
+      await this.executeTrades(signals);
+      
+      // 5. Update risk metrics
+      await this.updateRiskMetrics();
+      
+      this.lastAnalysis = {
+        timestamp: new Date().toISOString(),
+        marketAnalysis,
+        predictions,
+        signals
+      };
+      
+    } catch (error) {
+      console.error('❌ Trading cycle error:', error);
+    }
+  }
+
+  async analyzeMarket() {
+    try {
+      // Get current market data
+      const marketData = {};
+      
+      for (const pair of TRADING_CONFIG.tradingPairs) {
+        // Get ticker data
+        const tickerResponse = await fetch(`https://api-testnet.bybit.com/v5/market/tickers?category=spot&symbol=${pair}`);
+        const tickerData = await tickerResponse.json();
+        
+        // Get order book
+        const orderBookResponse = await fetch(`https://api-testnet.bybit.com/v5/market/orderbook?category=spot&symbol=${pair}&limit=25`);
+        const orderBookData = await orderBookResponse.json();
+        
+        marketData[pair] = {
+          ticker: tickerData.result?.list?.[0] || {},
+          orderBook: orderBookData.result || {},
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      return marketData;
+    } catch (error) {
+      console.error('Market analysis error:', error);
+      return {};
+    }
+  }
+
+  async getModelPredictions() {
+    // Simulate AI model predictions
+    const predictions = {};
+    
+    for (const pair of TRADING_CONFIG.tradingPairs) {
+      predictions[pair] = {
+        LSTM: {
+          direction: Math.random() > 0.5 ? 'BUY' : 'SELL',
+          confidence: Math.random() * 0.3 + 0.7, // 70-100%
+          priceTarget: Math.random() * 0.1 + 0.95, // ±5%
+          timestamp: new Date().toISOString()
+        },
+        RF: {
+          direction: Math.random() > 0.5 ? 'BUY' : 'SELL',
+          confidence: Math.random() * 0.3 + 0.7,
+          priceTarget: Math.random() * 0.1 + 0.95,
+          timestamp: new Date().toISOString()
+        },
+        DDQN: {
+          direction: Math.random() > 0.5 ? 'BUY' : 'SELL',
+          confidence: Math.random() * 0.3 + 0.7,
+          priceTarget: Math.random() * 0.1 + 0.95,
+          timestamp: new Date().toISOString()
+        }
+      };
+    }
+    
+    return predictions;
+  }
+
+  generateTradingSignals(marketAnalysis, predictions) {
+    const signals = [];
+    
+    for (const pair of TRADING_CONFIG.tradingPairs) {
+      const pairPredictions = predictions[pair];
+      const marketData = marketAnalysis[pair];
+      
+      if (!pairPredictions || !marketData) continue;
+      
+      // Aggregate predictions from all models
+      const buySignals = Object.values(pairPredictions).filter(p => p.direction === 'BUY').length;
+      const sellSignals = Object.values(pairPredictions).filter(p => p.direction === 'SELL').length;
+      
+      // Calculate average confidence
+      const avgConfidence = Object.values(pairPredictions).reduce((sum, p) => sum + p.confidence, 0) / 3;
+      
+      // Generate signal if confidence is high enough
+      if (avgConfidence >= TRADING_CONFIG.minConfidence) {
+        const signal = {
+          pair,
+          action: buySignals > sellSignals ? 'BUY' : 'SELL',
+          confidence: avgConfidence,
+          price: parseFloat(marketData.ticker.lastPrice) || 0,
+          quantity: TRADING_CONFIG.maxPositionSize,
+          timestamp: new Date().toISOString(),
+          models: pairPredictions
+        };
+        
+        signals.push(signal);
+      }
+    }
+    
+    return signals;
+  }
+
+  async executeTrades(signals) {
+    for (const signal of signals) {
+      try {
+        // Check risk management
+        if (!this.checkRiskManagement(signal)) {
+          console.log(`⚠️ Risk management blocked trade for ${signal.pair}`);
+          continue;
+        }
+        
+        // Execute the trade
+        const tradeResult = await this.placeOrder(signal);
+        
+        if (tradeResult.success) {
+          tradingState.totalTrades++;
+          tradingState.lastTrade = {
+            ...signal,
+            orderId: tradeResult.orderId,
+            executedPrice: tradeResult.executedPrice,
+            timestamp: new Date().toISOString()
+          };
+          
+          tradingState.tradingHistory.push(tradingState.lastTrade);
+          
+          console.log(`✅ Executed ${signal.action} order for ${signal.pair} at ${tradeResult.executedPrice}`);
+        }
+        
+      } catch (error) {
+        console.error(`❌ Trade execution error for ${signal.pair}:`, error);
+      }
+    }
+  }
+
+  checkRiskManagement(signal) {
+    // Check daily loss limit
+    if (tradingState.dailyPnL <= -TRADING_CONFIG.maxDailyLoss) {
+      console.log('⚠️ Daily loss limit reached');
+      return false;
+    }
+    
+    // Check position size
+    const currentPosition = tradingState.currentPositions[signal.pair] || 0;
+    if (Math.abs(currentPosition) >= TRADING_CONFIG.maxPositionSize * 2) {
+      console.log(`⚠️ Position size limit reached for ${signal.pair}`);
+      return false;
+    }
+    
+    return true;
+  }
+
+  async placeOrder(signal) {
+    try {
+      const orderData = {
+        category: 'spot',
+        symbol: signal.pair,
+        side: signal.action,
+        orderType: 'Market',
+        qty: signal.quantity.toString(),
+        timeInForce: 'GTC'
+      };
+      
+      const queryString = Object.entries(orderData)
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join('&');
+      
+      const timestamp = Date.now().toString();
+      const signature = signBybitRequest(
+        timestamp,
+        process.env.BYBIT_API_KEY,
+        process.env.BYBIT_RECV_WINDOW || '5000',
+        queryString
+      );
+      
+      const response = await fetch('https://api-testnet.bybit.com/v5/order/create', {
+        method: 'POST',
+        headers: {
+          'X-BAPI-API-KEY': process.env.BYBIT_API_KEY,
+          'X-BAPI-TIMESTAMP': timestamp,
+          'X-BAPI-RECV-WINDOW': process.env.BYBIT_RECV_WINDOW || '5000',
+          'X-BAPI-SIGN': signature,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
+      });
+      
+      const result = await response.json();
+      
+      if (result.retCode === 0) {
+        return {
+          success: true,
+          orderId: result.result.orderId,
+          executedPrice: signal.price
+        };
+      } else {
+        console.error('Order placement failed:', result);
+        return { success: false, error: result.retMsg };
+      }
+      
+    } catch (error) {
+      console.error('Order placement error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updateRiskMetrics() {
+    try {
+      // Calculate win rate
+      const completedTrades = tradingState.tradingHistory.filter(t => t.status === 'completed');
+      tradingState.riskMetrics.winRate = completedTrades.length > 0 
+        ? completedTrades.filter(t => t.pnl > 0).length / completedTrades.length 
+        : 0;
+      
+      // Calculate max drawdown
+      let peak = 0;
+      let drawdown = 0;
+      
+      for (const trade of tradingState.tradingHistory) {
+        if (trade.pnl > peak) peak = trade.pnl;
+        const currentDrawdown = (peak - trade.pnl) / peak;
+        if (currentDrawdown > drawdown) drawdown = currentDrawdown;
+      }
+      
+      tradingState.riskMetrics.maxDrawdown = drawdown;
+      
+      console.log(`📊 Risk metrics updated - Win Rate: ${(tradingState.riskMetrics.winRate * 100).toFixed(1)}%, Max Drawdown: ${(tradingState.riskMetrics.maxDrawdown * 100).toFixed(1)}%`);
+      
+    } catch (error) {
+      console.error('Risk metrics update error:', error);
+    }
+  }
+}
+
+// Initialize autonomous trading bot
+const tradingBot = new AutonomousTradingBot();
+
+// Autonomous trading endpoints
+app.post('/api/trading/start', async (req, res) => {
+  try {
+    await tradingBot.start();
+    res.json({
+      success: true,
+      message: 'Autonomous trading bot started',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Start trading error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/trading/stop', async (req, res) => {
+  try {
+    await tradingBot.stop();
+    res.json({
+      success: true,
+      message: 'Autonomous trading bot stopped',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Stop trading error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/trading/status', async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      data: {
+        isActive: tradingState.isActive,
+        isRunning: tradingBot.isRunning,
+        tradingState,
+        config: TRADING_CONFIG,
+        lastAnalysis: tradingBot.lastAnalysis
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Trading status error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/trading/config', async (req, res) => {
+  try {
+    const { config } = req.body;
+    
+    // Update trading configuration
+    Object.assign(TRADING_CONFIG, config);
+    
+    res.json({
+      success: true,
+      message: 'Trading configuration updated',
+      config: TRADING_CONFIG,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Config update error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}); 
