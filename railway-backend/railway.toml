@@ -7,7 +7,11 @@ healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
+replicas = 2
 
 [deploy.envs]
 NODE_ENV = "production"
-PORT = "3000" 
+PORT = "3000"
+
+# Performance optimizations
+NODE_OPTIONS = "--max-old-space-size=512" 

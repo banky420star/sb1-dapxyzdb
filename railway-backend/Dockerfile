@@ -1,4 +1,4 @@
-# Railway Backend Dockerfile
+# Railway Backend Dockerfile - Production Ready
 FROM node:20-alpine
 
 # Set working directory
@@ -7,13 +7,14 @@ WORKDIR /app
 # Install system dependencies
 RUN apk add --no-cache \
     curl \
-    bash
+    bash \
+    dumb-init
 
 # Copy package files first for better caching
 COPY package*.json ./
 
 # Install only production dependencies
-RUN npm ci --only=production
+RUN npm ci --only=production && npm cache clean --force
 
 # Copy application code
 COPY . .
@@ -31,9 +32,12 @@ USER trader
 # Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+# Health check with proper timeout
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
 
-# Start the application
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application with proper signal handling
 CMD ["npm", "start"] 
