@@ -291,7 +291,7 @@ class BybitApiService {
   // Railway Backend API Methods (Production)
   private async callRailwayAPI(endpoint: string, options: RequestInit = {}) {
     // Railway backend URL - update this with your actual Railway domain
-    const RAILWAY_BASE_URL = process.env.VITE_RAILWAY_API_URL || 'https://your-railway-app.railway.app';
+    const RAILWAY_BASE_URL = process.env.VITE_RAILWAY_API_URL || 'https://sb1-dapxyzdb-trade-shit.up.railway.app';
     
     try {
       const response = await fetch(`${RAILWAY_BASE_URL}${endpoint}`, {
