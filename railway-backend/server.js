@@ -797,4 +797,40 @@ app.post('/api/trading/config', async (req, res) => {
     console.error('Config update error:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// Start the server
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 AI Trading Bot Backend running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+  console.log(`✅ Server started successfully!`);
+});
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('✅ Process terminated gracefully');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('✅ Process terminated gracefully');
+    process.exit(0);
+  });
+});
+
+// Error handling
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('❌ Unhandled Rejection:', err);
+  process.exit(1);
 }); // Enhanced ML Decision Pipeline - Updated Mon Aug 11 18:58:44 SAST 2025
