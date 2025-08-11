@@ -147,15 +147,37 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
 
   const startTraining = async (model: string) => {
     try {
-      const response = await fetch(`https://methtrader.xyz/api/train/${model}`, {
+      const response = await fetch(`https://sb1-dapxyzdb-trade-shit.up.railway.app/api/models/start-training`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ model })
       });
 
       if (response.ok) {
-        console.log(`Started training for ${model}`);
+        const data = await response.json();
+        console.log(`Started training for ${model}:`, data);
+        
+        // Update activity state
+        setActivity(prev => ({
+          ...prev,
+          [model]: {
+            model,
+            epoch: 0,
+            epochs: model === 'LSTM' ? 20 : model === 'RF' ? 15 : 25,
+            batch: 0,
+            loss: 0,
+            acc: 0,
+            extra: {
+              hiddenNorm: 0,
+              gradientNorm: 0,
+              qValue: 0
+            },
+            timestamp: Date.now(),
+            status: 'training'
+          }
+        }));
       } else {
         console.error(`Failed to start training for ${model}`);
       }

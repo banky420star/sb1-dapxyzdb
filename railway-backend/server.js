@@ -49,6 +49,104 @@ app.get('/debug/env', (req, res) => {
   });
 });
 
+// Model training endpoints
+app.post('/api/models/train', async (req, res) => {
+  try {
+    const { model, symbol = 'BTCUSDT', epochs = 20 } = req.body;
+    
+    if (!model || !['LSTM', 'RF', 'DDQN'].includes(model)) {
+      return res.status(400).json({ error: 'Invalid model. Must be LSTM, RF, or DDQN' });
+    }
+    
+    // Simulate training process
+    const trainingId = `training_${model}_${Date.now()}`;
+    
+    // Start training simulation
+    console.log(`Starting training for ${model} model on ${symbol}`);
+    
+    res.json({
+      success: true,
+      trainingId,
+      model,
+      symbol,
+      epochs,
+      status: 'training_started',
+      message: `${model} model training initiated for ${symbol}`
+    });
+  } catch (error) {
+    console.error('Training start error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/models/status', async (req, res) => {
+  try {
+    // Return current model status
+    const models = {
+      LSTM: { status: 'idle', epoch: 0, epochs: 20, loss: 0, acc: 0 },
+      RF: { status: 'idle', epoch: 0, epochs: 15, loss: 0, acc: 0 },
+      DDQN: { status: 'idle', epoch: 0, epochs: 25, loss: 0, acc: 0 }
+    };
+    
+    res.json({
+      success: true,
+      models,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Model status error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/models/start-training', async (req, res) => {
+  try {
+    const { model } = req.body;
+    
+    if (!model || !['LSTM', 'RF', 'DDQN'].includes(model)) {
+      return res.status(400).json({ error: 'Invalid model. Must be LSTM, RF, or DDQN' });
+    }
+    
+    // Simulate starting training
+    console.log(`Starting training for ${model} model`);
+    
+    res.json({
+      success: true,
+      model,
+      status: 'training_started',
+      message: `${model} model training started`,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Start training error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/models/stop-training', async (req, res) => {
+  try {
+    const { model } = req.body;
+    
+    if (!model || !['LSTM', 'RF', 'DDQN'].includes(model)) {
+      return res.status(400).json({ error: 'Invalid model. Must be LSTM, RF, or DDQN' });
+    }
+    
+    // Simulate stopping training
+    console.log(`Stopping training for ${model} model`);
+    
+    res.json({
+      success: true,
+      model,
+      status: 'training_stopped',
+      message: `${model} model training stopped`,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Stop training error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Bybit V5 API Configuration
 const BYBIT_API_KEY = process.env.BYBIT_API_KEY;
 const BYBIT_API_SECRET = process.env.BYBIT_API_SECRET;
