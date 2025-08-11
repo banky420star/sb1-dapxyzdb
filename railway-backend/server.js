@@ -138,18 +138,38 @@ app.post('/api/models/train', async (req, res) => {
   }
 });
 
+// Global training status tracking
+let trainingStatus = {
+  LSTM: { status: 'idle', epoch: 0, epochs: 20, loss: 0, acc: 0, startTime: null },
+  RF: { status: 'idle', epoch: 0, epochs: 15, loss: 0, acc: 0, startTime: null },
+  DDQN: { status: 'idle', epoch: 0, epochs: 25, loss: 0, acc: 0, startTime: null }
+};
+
+// Simulate training progress
+const simulateTraining = (model) => {
+  if (trainingStatus[model].status === 'training') {
+    trainingStatus[model].epoch++;
+    
+    // Simulate loss and accuracy improvements
+    trainingStatus[model].loss = Math.max(0, trainingStatus[model].loss - 0.01);
+    trainingStatus[model].acc = Math.min(1, trainingStatus[model].acc + 0.02);
+    
+    // Check if training is complete
+    if (trainingStatus[model].epoch >= trainingStatus[model].epochs) {
+      trainingStatus[model].status = 'completed';
+      console.log(`${model} training completed!`);
+    } else {
+      // Continue training
+      setTimeout(() => simulateTraining(model), 2000); // 2 second intervals
+    }
+  }
+};
+
 app.get('/api/models/status', async (req, res) => {
   try {
-    // Return current model status
-    const models = {
-      LSTM: { status: 'idle', epoch: 0, epochs: 20, loss: 0, acc: 0 },
-      RF: { status: 'idle', epoch: 0, epochs: 15, loss: 0, acc: 0 },
-      DDQN: { status: 'idle', epoch: 0, epochs: 25, loss: 0, acc: 0 }
-    };
-    
     res.json({
       success: true,
-      models,
+      models: trainingStatus,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -166,15 +186,29 @@ app.post('/api/models/start-training', async (req, res) => {
       return res.status(400).json({ error: 'Invalid model. Must be LSTM, RF, or DDQN' });
     }
     
-    // Simulate starting training
+    // Start training simulation
     console.log(`Starting training for ${model} model`);
+    
+    // Update training status
+    trainingStatus[model] = {
+      status: 'training',
+      epoch: 0,
+      epochs: model === 'LSTM' ? 20 : model === 'RF' ? 15 : 25,
+      loss: 1.0,
+      acc: 0.0,
+      startTime: new Date().toISOString()
+    };
+    
+    // Start simulation
+    simulateTraining(model);
     
     res.json({
       success: true,
       model,
       status: 'training_started',
       message: `${model} model training started`,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      trainingStatus: trainingStatus[model]
     });
   } catch (error) {
     console.error('Start training error:', error);
@@ -190,18 +224,47 @@ app.post('/api/models/stop-training', async (req, res) => {
       return res.status(400).json({ error: 'Invalid model. Must be LSTM, RF, or DDQN' });
     }
     
-    // Simulate stopping training
+    // Stop training
     console.log(`Stopping training for ${model} model`);
+    trainingStatus[model].status = 'stopped';
     
     res.json({
       success: true,
       model,
       status: 'training_stopped',
       message: `${model} model training stopped`,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      trainingStatus: trainingStatus[model]
     });
   } catch (error) {
     console.error('Stop training error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Real-time data sync endpoint
+app.get('/api/sync/status', async (req, res) => {
+  try {
+    const syncData = {
+      backend: {
+        status: 'healthy',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString()
+      },
+      trading: {
+        accountBalance: await getAccountBalance(),
+        positions: await getPositions()
+      },
+      models: trainingStatus,
+      lastSync: new Date().toISOString()
+    };
+    
+    res.json({
+      success: true,
+      data: syncData
+    });
+  } catch (error) {
+    console.error('Sync error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -396,3 +459,48 @@ server.on('upgrade', (request, socket, head) => {
     wss.emit('connection', ws, request);
   });
 }); 
+
+// Helper functions for trading data
+async function getAccountBalance() {
+  try {
+    const response = await fetch(`https://api-testnet.bybit.com/v5/account/wallet-balance?accountType=UNIFIED`, {
+      headers: {
+        'X-BAPI-API-KEY': process.env.BYBIT_API_KEY,
+        'X-BAPI-TIMESTAMP': Date.now().toString(),
+        'X-BAPI-RECV-WINDOW': process.env.BYBIT_RECV_WINDOW || '5000',
+        'X-BAPI-SIGN': signBybitRequest(Date.now(), process.env.BYBIT_API_KEY, process.env.BYBIT_RECV_WINDOW || '5000', 'accountType=UNIFIED')
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data.result?.list?.[0] || {};
+    }
+    return {};
+  } catch (error) {
+    console.error('Error fetching account balance:', error);
+    return {};
+  }
+}
+
+async function getPositions() {
+  try {
+    const response = await fetch(`https://api-testnet.bybit.com/v5/position/list?accountType=UNIFIED&category=linear&symbol=BTCUSDT`, {
+      headers: {
+        'X-BAPI-API-KEY': process.env.BYBIT_API_KEY,
+        'X-BAPI-TIMESTAMP': Date.now().toString(),
+        'X-BAPI-RECV-WINDOW': process.env.BYBIT_RECV_WINDOW || '5000',
+        'X-BAPI-SIGN': signBybitRequest(Date.now(), process.env.BYBIT_API_KEY, process.env.BYBIT_RECV_WINDOW || '5000', 'accountType=UNIFIED&category=linear&symbol=BTCUSDT')
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      return data.result?.list || [];
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching positions:', error);
+    return [];
+  }
+} 
