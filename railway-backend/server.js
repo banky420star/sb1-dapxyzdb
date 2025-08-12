@@ -14,8 +14,9 @@ const PORT = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet());
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',').map(o => o.trim());
 app.use(cors({
-  origin: ['https://delightful-crumble-983869.netlify.app', 'http://localhost:5173'],
+  origin: allowedOrigins,
   credentials: true
 }));
 

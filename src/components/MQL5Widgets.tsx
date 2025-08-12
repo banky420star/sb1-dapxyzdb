@@ -142,9 +142,10 @@ export const WidgetLoader: React.FC<WidgetLoaderProps> = ({ position = 'main', c
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadWidgetConfig = async () => {
+    const loadWidgets = async () => {
       try {
-        const response = await fetch('/api/widgets');
+        const API_URL = import.meta.env.VITE_API_URL || window.location.origin
+        const response = await fetch(`${API_URL}/api/widgets`);
         if (response.ok) {
           const data = await response.json();
           const filteredWidgets = data.widgets.filter(
@@ -153,13 +154,11 @@ export const WidgetLoader: React.FC<WidgetLoaderProps> = ({ position = 'main', c
           setWidgets(filteredWidgets);
         }
       } catch (error) {
-        console.error('Failed to load widget configuration:', error);
-      } finally {
-        setLoading(false);
+        console.error('Failed to load widgets', error);
       }
     };
 
-    loadWidgetConfig();
+    loadWidgets();
   }, [position]);
 
   if (loading) {

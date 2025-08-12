@@ -40,7 +40,8 @@ export default function Dashboard() {
 
   const fetchSystemMetrics = async () => {
     try {
-      const response = await fetch('/api/dashboard/metrics');
+      const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+      const response = await fetch(`${API_URL}/api/dashboard/metrics`);
       if (response.ok) {
         const metrics = await response.json();
         setSystemMetrics(metrics);

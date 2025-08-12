@@ -87,7 +87,11 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const newSocket = io('https://methtrader.xyz', {
+    const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+    const WS_URL = import.meta.env.VITE_WEBSOCKET_URL || API_URL;
+
+    const newSocket = io(WS_URL, {
+      path: '/ws',
       transports: ['websocket', 'polling'],
       timeout: 20000,
     });
@@ -117,18 +121,18 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
     setSocket(newSocket);
 
     // Fetch initial data
-    fetchInitialData();
+    fetchInitialData(API_URL);
 
     return () => {
       newSocket.close();
     };
   }, []);
 
-  const fetchInitialData = async () => {
+  const fetchInitialData = async (API_URL: string) => {
     try {
       const [signalsRes, portfolioRes] = await Promise.all([
-        fetch('https://methtrader.xyz/api/signals'),
-        fetch('https://methtrader.xyz/api/portfolio')
+        fetch(`${API_URL}/api/signals`),
+        fetch(`${API_URL}/api/portfolio`)
       ]);
 
       if (signalsRes.ok) {
@@ -147,7 +151,8 @@ export const TradingProvider: React.FC<TradingProviderProps> = ({ children }) =>
 
   const startTraining = async (model: string) => {
     try {
-      const response = await fetch(`https://methtrader.xyz/api/train/${model}`, {
+      const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+      const response = await fetch(`${API_URL}/api/train/${model}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
