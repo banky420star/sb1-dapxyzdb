@@ -233,6 +233,39 @@ app.get('/api/trading/status', (_req, res) => {
   });
 });
 
+// --- Internal Scheduler (Canvas Plan) ---
+if (process.env.AUTO_TRADER_ENABLED === 'true') {
+  const SYMBOL = process.env.AUTO_SYMBOL || 'BTCUSDT';
+  const INTERVAL_MS = Number(process.env.AUTO_INTERVAL_MS || 30000);
+  
+  console.log(`🤖 Autonomous trading scheduler enabled: ${SYMBOL} every ${INTERVAL_MS}ms`);
+  
+  setInterval(async () => {
+    try {
+      // TODO: fetch real candles from Bybit API
+      const candles = generateMockCandles();
+      const features = buildFeatures({ candles });
+      const consensus = await getConsensus(features);
+      
+      if (consensus.passes) {
+        const qty = Number(process.env.MAX_TRADE_SIZE_BTC || 0.001);
+        const result = await placeMarketOrder({
+          symbol: SYMBOL,
+          side: consensus.finalSignal,
+          qty
+        });
+        
+        console.log(`🤖 Autonomous trade: ${consensus.finalSignal} ${SYMBOL}`, {
+          consensus: consensus.avgConfidence,
+          result: result.paper ? 'PAPER' : 'LIVE'
+        });
+      }
+    } catch (e) { 
+      console.error('🤖 Auto loop error:', e); 
+    }
+  }, INTERVAL_MS);
+}
+
 // --- Boot ---
 const PORT = Number(process.env.PORT) || 8000;  // Railway injects PORT
 const server = app.listen(PORT, '0.0.0.0', () => {
