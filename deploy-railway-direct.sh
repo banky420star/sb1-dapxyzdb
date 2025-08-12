@@ -8,9 +8,9 @@ set -e
 echo "🚀 DIRECT RAILWAY DEPLOYMENT"
 echo "=============================="
 
-# Railway credentials
-RAILWAY_TOKEN="b951cfd1-282e-4fc6-b55a-c6d0d5929d25"
-PROJECT_ID="fe622622-dbe0-490e-ab89-151fd0b8d21d"
+# Railway credentials (must be provided via environment)
+: "${RAILWAY_TOKEN:?Set RAILWAY_TOKEN in your environment}"
+: "${PROJECT_ID:?Set PROJECT_ID in your environment}"
 
 echo "📁 Preparing backend for deployment..."
 
@@ -39,10 +39,13 @@ RAILWAY_URL=$(railway domain --project $PROJECT_ID)
 echo "✅ Backend deployed at: $RAILWAY_URL"
 
 echo "🔐 Setting environment variables..."
-railway variables set BYBIT_API_KEY="3fg29yhr1a9JJ1etm3" --project $PROJECT_ID
-railway variables set BYBIT_API_SECRET="wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14" --project $PROJECT_ID
-railway variables set BYBIT_RECV_WINDOW="5000" --project $PROJECT_ID
+# Set required variables if provided
+[ -n "$BYBIT_API_KEY" ] && railway variables set BYBIT_API_KEY="$BYBIT_API_KEY" --project $PROJECT_ID || echo "Skip BYBIT_API_KEY (not set)"
+[ -n "$BYBIT_API_SECRET" ] && railway variables set BYBIT_API_SECRET="$BYBIT_API_SECRET" --project $PROJECT_ID || echo "Skip BYBIT_API_SECRET (not set)"
+railway variables set BYBIT_RECV_WINDOW="${BYBIT_RECV_WINDOW:-5000}" --project $PROJECT_ID
 railway variables set NODE_ENV="production" --project $PROJECT_ID
+[ -n "$ALLOWED_ORIGINS" ] && railway variables set ALLOWED_ORIGINS="$ALLOWED_ORIGINS" --project $PROJECT_ID || echo "Set ALLOWED_ORIGINS later in dashboard"
+[ -n "$VITE_RAILWAY_API_URL" ] && railway variables set VITE_RAILWAY_API_URL="$VITE_RAILWAY_API_URL" --project $PROJECT_ID || true
 
 echo "🧪 Testing deployment..."
 sleep 10

@@ -1,4 +1,5 @@
 [build]
+# Explicitly use Dockerfile for build
 builder = "dockerfile"
 
 [deploy]
@@ -12,6 +13,5 @@ replicas = 1
 [deploy.envs]
 NODE_ENV = "production"
 PORT = "3000"
-
-# Performance optimizations
+ALLOWED_ORIGINS = "https://your-frontend-domain.com,http://localhost:5173"
 NODE_OPTIONS = "--max-old-space-size=512" 
