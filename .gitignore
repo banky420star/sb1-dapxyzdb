@@ -129,13 +129,20 @@ temp/
 *.crt
 
 # Database
+data/
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
 
 # Backup files
 *.bak
 *.backup
+
+# Build artifacts
+*.tar.gz
+railway-deployment.tar.gz
 
 # IDE
 .vscode/
