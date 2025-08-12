@@ -55,13 +55,15 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
 
+  const API_BASE = (import.meta as any).env?.VITE_RAILWAY_API_URL || 'https://sb1-dapxyzdb-trade-shit.up.railway.app';
+
   // Real-time sync function
   const syncWithBackend = useCallback(async () => {
     try {
       setIsSyncing(true);
       setSyncError(null);
       
-      const response = await fetch('https://sb1-dapxyzdb-trade-shit.up.railway.app/api/sync/status');
+      const response = await fetch(`${API_BASE}/api/sync/status`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -130,7 +132,7 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Start training function
   const startTraining = async (model: string) => {
     try {
-      const response = await fetch(`https://sb1-dapxyzdb-trade-shit.up.railway.app/api/models/start-training`, {
+      const response = await fetch(`${API_BASE}/api/models/start-training`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,7 +179,7 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Stop training function
   const stopTraining = async (model: string) => {
     try {
-      const response = await fetch(`https://sb1-dapxyzdb-trade-shit.up.railway.app/api/models/stop-training`, {
+      const response = await fetch(`${API_BASE}/api/models/stop-training`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -220,7 +222,7 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   useEffect(() => {
     const interval = setInterval(() => {
       syncWithBackend();
-    }, 5000); // 5 second intervals
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [syncWithBackend]);
