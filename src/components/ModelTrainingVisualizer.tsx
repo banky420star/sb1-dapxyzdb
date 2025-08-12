@@ -436,7 +436,8 @@ const ModelTrainingVisualizer: React.FC = () => {
 
   const loadTrainingData = async () => {
     try {
-      const response = await fetch('/api/ml/training-data')
+      const API_URL = import.meta.env.VITE_API_URL || window.location.origin
+      const response = await fetch(`${API_URL}/api/ml/training-data`)
       if (response.ok) {
         const data = await response.json()
         setActiveTrainings(data.activeTrainings || [])
@@ -450,7 +451,8 @@ const ModelTrainingVisualizer: React.FC = () => {
 
   const loadSessionMetrics = async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/ml/training-metrics/${sessionId}`)
+      const API_URL = import.meta.env.VITE_API_URL || window.location.origin
+      const response = await fetch(`${API_URL}/api/ml/training-metrics/${sessionId}`)
       if (response.ok) {
         const data = await response.json()
         setTrainingMetrics(data)
@@ -462,7 +464,8 @@ const ModelTrainingVisualizer: React.FC = () => {
 
   const startTraining = async (modelType: string) => {
     try {
-      const response = await fetch('/api/ml/start-training', {
+      const API_URL = import.meta.env.VITE_API_URL || window.location.origin
+      const response = await fetch(`${API_URL}/api/ml/start-training`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ modelType })
@@ -477,7 +480,8 @@ const ModelTrainingVisualizer: React.FC = () => {
 
   const stopTraining = async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/ml/stop-training/${sessionId}`, {
+      const API_URL = import.meta.env.VITE_API_URL || window.location.origin
+      const response = await fetch(`${API_URL}/api/ml/stop-training/${sessionId}`, {
         method: 'POST'
       })
       if (response.ok) {
@@ -785,9 +789,10 @@ const SessionDetails: React.FC<{ sessionId: string }> = ({ sessionId }) => {
   useEffect(() => {
     const loadSessionData = async () => {
       try {
+        const API_URL = import.meta.env.VITE_API_URL || window.location.origin
         const [sessionResponse, metricsResponse] = await Promise.all([
-          fetch(`/api/ml/training-session/${sessionId}`),
-          fetch(`/api/ml/training-metrics/${sessionId}`)
+          fetch(`${API_URL}/api/ml/training-session/${sessionId}`),
+          fetch(`${API_URL}/api/ml/training-metrics/${sessionId}`)
         ])
         
         if (sessionResponse.ok) {

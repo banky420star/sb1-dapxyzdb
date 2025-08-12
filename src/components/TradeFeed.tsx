@@ -27,7 +27,10 @@ export default function TradeFeed({ maxTrades = 50, autoScroll = true }: TradeFe
 
   useEffect(() => {
     // Initialize WebSocket connection
-    const newSocket = io(import.meta.env.VITE_WS_URL || 'ws://localhost:8000', {
+    const API_URL = import.meta.env.VITE_API_URL || window.location.origin;
+    const WS_URL = import.meta.env.VITE_WEBSOCKET_URL || import.meta.env.VITE_WS_URL || API_URL;
+
+    const newSocket = io(WS_URL, {
       path: '/ws',
       auth: { 
         token: localStorage.getItem('jwt') 
