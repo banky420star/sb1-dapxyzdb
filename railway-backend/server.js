@@ -38,18 +38,27 @@ app.use(helmet({
   },
 }));
 
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://delightful-crumble-983869.netlify.app,http://localhost:5173')
+  .split(',')
+  .map(o => o.trim());
+
 app.use(cors({
-  origin: ['https://delightful-crumble-983869.netlify.app', 'http://localhost:5173'],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
 // Rate limiting - more aggressive for production
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 1000, // allow up to 1000 requests per 15 minutes per IP
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.path === '/health' || req.path.startsWith('/debug') || req.path.startsWith('/api/sync')
 });
 app.use(limiter);
 

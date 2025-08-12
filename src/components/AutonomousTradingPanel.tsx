@@ -31,9 +31,11 @@ const AutonomousTradingPanel: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showConfig, setShowConfig] = useState(false);
 
+  const API_BASE = (import.meta as any).env?.VITE_RAILWAY_API_URL || 'https://sb1-dapxyzdb-trade-shit.up.railway.app';
+
   const fetchTradingStatus = async () => {
     try {
-      const response = await fetch('https://sb1-dapxyzdb-trade-shit.up.railway.app/api/trading/status');
+      const response = await fetch(`${API_BASE}/api/trading/status`);
       if (response.ok) {
         const result = await response.json();
         setTradingStatus(result.data);
@@ -54,7 +56,7 @@ const AutonomousTradingPanel: React.FC = () => {
     setError(null);
     
     try {
-      const response = await fetch('https://sb1-dapxyzdb-trade-shit.up.railway.app/api/trading/start', {
+      const response = await fetch(`${API_BASE}/api/trading/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -76,7 +78,7 @@ const AutonomousTradingPanel: React.FC = () => {
     setError(null);
     
     try {
-      const response = await fetch('https://sb1-dapxyzdb-trade-shit.up.railway.app/api/trading/stop', {
+      const response = await fetch(`${API_BASE}/api/trading/stop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
