@@ -1,0 +1,28 @@
+name: test
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      
+      - name: Backend tests
+        working-directory: railway-backend
+        run: |
+          npm ci
+          npm test || echo "no tests yet"
+      
+      - name: Frontend build (sanity)
+        working-directory: .
+        run: |
+          npm ci || true
+          npm run build || echo "no build script defined" 

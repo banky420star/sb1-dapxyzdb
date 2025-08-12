@@ -1,22 +1,39 @@
-# Dependencies
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node
 node_modules/
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Production builds
+yarn.lock
+pnpm-lock.yaml
 dist/
 build/
-*.tar.gz
+coverage/
+.cache/
+.next/
+out/
 
-# Database files
-data/trading.db
-data/trading.db-shm
-data/trading.db-wal
-*.db
-*.db-shm
-*.db-wal
+# Env
+.env
+.env.*
+!.env.example
+
+# Frontend builds
+frontend/dist/
+frontend/.vite/
+frontend/.cache/
+
+# Backend builds
+backend/dist/
+backend/.cache/
+railway-backend/dist/
+railway-backend/.cache/
 
 # Logs
 logs/
@@ -24,10 +41,9 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-lerna-debug.log*
 
 # Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
@@ -39,23 +55,9 @@ coverage/
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
-
-# Bower dependency directory (https://bower.io/)
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
-
 # Dependency directories
+node_modules/
 jspm_packages/
-
-# TypeScript cache
-*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -78,44 +80,68 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env
-.env.test
-.env.production
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
 # parcel-bundler cache (https://parceljs.org/)
-.cache
 .parcel-cache
 
-# Next.js build output
+# next.js build output
 .next
 
-# Nuxt.js build / generate output
+# nuxt.js build output
 .nuxt
-dist
 
-# Gatsby files
-.cache/
-public
+# vuepress build output
+.vuepress/dist
 
-# Storybook build outputs
-.out
-.storybook-out
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
 
 # Temporary folders
 tmp/
 temp/
 
-# Editor directories and files
+# Railway
+.railway/
+
+# Netlify
+.netlify/
+
+# Vercel
+.vercel/
+
+# Docker
+.dockerignore
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS generated files
 .DS_Store
@@ -125,49 +151,3 @@ temp/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Secrets Security
-*.key
-*.pem
-*.crt
-*.p12
-*.pfx
-secrets/
-.sops.yaml
-age.key*
-
-# Backup files
-backups/
-*.backup
-*.bak
-
-# Test files
-test-output.html
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.git
-.mypy_cache
-.pytest_cache
-.hypothesis
-
-# Docker
-.dockerignore
-
-# Monitoring
-monitoring/loki.yml
-monitoring/prometheus.yml
-monitoring/promtail.yml

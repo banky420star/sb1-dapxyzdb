@@ -1,43 +1,21 @@
-# Railway Backend Dockerfile - Production Ready
 FROM node:20-alpine
 
-# Set working directory
 WORKDIR /app
+ENV NODE_ENV=production
 
-# Install system dependencies
-RUN apk add --no-cache \
-    curl \
-    bash \
-    dumb-init
-
-# Copy package files first for better caching
+# Copy package files
 COPY package*.json ./
+RUN npm ci --only=production
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy application code
+# Copy source code
 COPY . .
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S trader -u 1001 -G nodejs
-
-# Change ownership to non-root user
-RUN chown -R trader:nodejs /app
-
-# Switch to non-root user
-USER trader
-
 # Expose port
-EXPOSE 3000
+EXPOSE 8000
 
-# Health check with proper timeout
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-# Use dumb-init for proper signal handling
-ENTRYPOINT ["dumb-init", "--"]
-
-# Start the application with proper signal handling
-CMD ["npm", "start"] 
+# Start the application
+CMD ["node", "enhanced-server.js"] 
