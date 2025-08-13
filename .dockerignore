@@ -154,7 +154,7 @@ vultr-production.env
 # Ecosystem config
 ecosystem.config.cjs
 
-# Package lock (we'll copy package.json and install fresh)
-package-lock.json
+# Lockfiles (keep package-lock.json for npm ci)
+# package-lock.json
 yarn.lock
 pnpm-lock.yaml
