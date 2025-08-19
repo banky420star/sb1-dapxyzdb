@@ -25,4 +25,4 @@ jobs:
         working-directory: .
         run: |
           npm ci || true
-          npm run lint || echo "no lint script defined" 
+          npm run lint || echo "no lint script defined"

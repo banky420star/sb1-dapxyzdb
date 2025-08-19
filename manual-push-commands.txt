@@ -1,0 +1,20 @@
+# MANUAL PUSH COMMANDS
+# Copy and paste these commands into a NEW terminal window
+
+# Navigate to your project
+cd /Users/mac/sb1-dapxyzdb
+
+# Add the updated files
+git add railway-backend/server.js
+git add railway-backend/package.json
+git add railway-backend/railway.json
+
+# Commit the changes
+git commit -m "fix: update server for Railway compatibility - ES modules, simplified dependencies, proper port binding"
+
+# Push to trigger Railway redeploy
+git push origin railway-deployment
+
+# Test the deployment (wait 2-3 minutes after push)
+curl https://sb1-dapxyzdb-trade-shit.up.railway.app/health
+curl https://sb1-dapxyzdb-trade-shit.up.railway.app/api/status 

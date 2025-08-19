@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import fetch from 'node-fetch';
+// Using built-in fetch (available in Node.js 18+)
 
 const API_KEY = process.env.BYBIT_API_KEY || '';
 const API_SECRET = process.env.BYBIT_API_SECRET || '';
