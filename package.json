@@ -9,7 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "server": "node server/index.js",
-    "start": "pm2-runtime ecosystem.config.cjs",
+    "start": "node server.js",
     "start:dev": "node server/index.js",
     "start:simple": "node start-simple.js",
     "stop": "pm2 stop ecosystem.config.cjs",
