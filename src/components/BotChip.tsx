@@ -1,11 +1,11 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ModelActivity } from '../contexts/TradingContext'
+import { ModelStatus } from '../contexts/TradingContext'
 
 interface BotChipProps {
   modelName: string
-  activity: ModelActivity | null
+  activity: ModelStatus | null
 }
 
 export const BotChip: React.FC<BotChipProps> = ({ modelName, activity }) => {
@@ -45,6 +45,7 @@ export const BotChip: React.FC<BotChipProps> = ({ modelName, activity }) => {
       className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:shadow-lg transition-shadow cursor-pointer"
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      type="button"
     >
       {/* Model Icon */}
       <span className="text-lg">{getModelIcon()}</span>
