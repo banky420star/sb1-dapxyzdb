@@ -143,6 +143,9 @@ app.post('/api/trading/start', async (req, res) => {
     autonomousBotState.cycleInterval = setInterval(() => {
       executeTradingCycle();
     }, autonomousBotState.config.dataInterval);
+    
+    // Store interval ID separately to avoid circular reference
+    autonomousBotState.intervalId = autonomousBotState.cycleInterval;
 
     console.log('✅ Autonomous trading bot started successfully');
     
@@ -186,6 +189,7 @@ app.post('/api/trading/stop', async (req, res) => {
     if (autonomousBotState.cycleInterval) {
       clearInterval(autonomousBotState.cycleInterval);
       autonomousBotState.cycleInterval = null;
+      autonomousBotState.intervalId = null;
     }
 
     console.log('✅ Autonomous trading bot stopped successfully');

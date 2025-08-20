@@ -41,7 +41,7 @@ class EnhancedAutonomousTradingBot {
 
     console.log('🚀 Starting Enhanced Autonomous Trading Bot with ML Decision Pipeline...');
     this.isRunning = true;
-
+    
     // Start trading cycles
     this.cycleInterval = setInterval(() => {
       this.executeTradingCycle();
@@ -87,14 +87,14 @@ class EnhancedAutonomousTradingBot {
         });
       }
 
-      this.marketDataCache[symbol] = {
-        ohlcv,
+        this.marketDataCache[symbol] = {
+          ohlcv,
         indicators: this.calculateTechnicalIndicators(ohlcv),
-        patterns: {},
-        lastUpdate: new Date()
-      };
-      
-      console.log(`📈 Fetched ${ohlcv.length} candles for ${symbol}`);
+          patterns: {},
+          lastUpdate: new Date()
+        };
+        
+        console.log(`📈 Fetched ${ohlcv.length} candles for ${symbol}`);
     } catch (error) {
       console.error(`Error fetching OHLCV for ${symbol}:`, error.message);
     }
@@ -141,8 +141,8 @@ class EnhancedAutonomousTradingBot {
     try {
       await this.fetchOHLCVData(symbol);
       
-      const indicators = this.marketDataCache[symbol]?.indicators;
-      if (!indicators) return null;
+    const indicators = this.marketDataCache[symbol]?.indicators;
+    if (!indicators) return null;
 
       // Simulate 3 AI models
       const models = {
@@ -221,10 +221,10 @@ class EnhancedAutonomousTradingBot {
       };
     }
     
-    return {
-      allowed: true,
+    return { 
+      allowed: true, 
       reason: 'Risk check passed',
-      positionSize,
+      positionSize, 
       stopLoss,
       takeProfit
     };
