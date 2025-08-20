@@ -113,7 +113,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-              {/* Autonomous Trading Bot Section */}
+      {/* Main Content */}
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Autonomous Trading Bot Section */}
         <div className="mb-6 sm:mb-8">
           <AutonomousTradingPanel />
         </div>
@@ -228,7 +230,6 @@ export default function Dashboard() {
         {/* Data Pipeline Monitor - Full Width */}
         <div className="mt-4 sm:mt-8">
           <DataPipelineMonitor refreshInterval={15000} />
-        </div>
         </div>
       </div>
 
