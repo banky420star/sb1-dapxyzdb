@@ -35,6 +35,9 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
+// --- Serve frontend static files ---
+app.use(express.static('./dist'));
+
 const limiter = rateLimit({
   windowMs: 30 * 1000,
   max: 100
@@ -333,6 +336,11 @@ app.get('/api/account/balance', (_req, res) => {
 
 app.get('/api/account/positions', (_req, res) => {
   res.json(getPositions());
+});
+
+// --- Catch-all route for frontend ---
+app.get('*', (req, res) => {
+  res.sendFile('./dist/index.html', { root: '.' });
 });
 
 // --- Boot ---

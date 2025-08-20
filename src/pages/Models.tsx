@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useTrading } from '../contexts/TradingContext';
+import { useTradingContext } from '../contexts/TradingContext';
 import { BotVisualizer } from '../components/BotVisualizer';
 import ModelTrainingVisualizer from '../components/ModelTrainingVisualizer';
 import CandlestickLoader from '../components/CandlestickLoader';
@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 const Models: React.FC = () => {
-  const { activity, isConnected } = useTrading();
+  const { activity, syncData } = useTradingContext();
   const [activeTab, setActiveTab] = useState<'overview' | 'training' | 'analytics'>('overview');
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -61,9 +61,9 @@ const Models: React.FC = () => {
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                 <div className={`px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold glass ${
-                  isConnected ? 'text-green-400 border-green-500/30' : 'text-red-400 border-red-500/30'
+                  syncData ? 'text-green-400 border-green-500/30' : 'text-red-400 border-red-500/30'
                 } border`}>
-                  {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
+                  {syncData ? '🟢 Connected' : '🔴 Disconnected'}
                 </div>
                 {hasActiveTraining && (
                   <div className="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-400 animate-pulse">
