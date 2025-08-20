@@ -1,57 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import TradeFeed from '../components/TradeFeed';
 import ModelTrainingMonitor from '../components/ModelTrainingMonitor';
 import DataPipelineMonitor from '../components/DataPipelineMonitor';
 import AutonomousTradingPanel from '../components/AutonomousTradingPanel';
+import { useTradingContext } from '../contexts/TradingContext';
 import { format } from 'date-fns';
 
-interface SystemMetrics {
-  totalTrades: number;
-  activeModels: number;
-  dataSources: number;
-  portfolioValue: number;
-  dailyPnL: number;
-  sharpeRatio: number;
-  maxDrawdown: number;
-}
-
 export default function Dashboard() {
-  const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
-    totalTrades: 0,
-    activeModels: 0,
-    dataSources: 0,
-    portfolioValue: 0,
-    dailyPnL: 0,
-    sharpeRatio: 0,
-    maxDrawdown: 0
-  });
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchSystemMetrics();
-    
-    const interval = setInterval(() => {
-      fetchSystemMetrics();
-      setLastUpdate(new Date());
-    }, 30000); // Update every 30 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchSystemMetrics = async () => {
-    try {
-      const response = await fetch('/api/dashboard/metrics');
-      if (response.ok) {
-        const metrics = await response.json();
-        setSystemMetrics(metrics);
-      }
-    } catch (error) {
-      console.error('Failed to fetch system metrics:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { state, refresh } = useTradingContext();
+  const bal = state.balance;
+  const ensemble = state.models.find(m => m.type === 'ensemble')?.metrics ?? { accuracy: 0, trades: 0, profitPct: 0 };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -76,17 +34,6 @@ export default function Dashboard() {
     return 'text-red-500';
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="text-gray-400 mt-4">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* Header */}
@@ -96,14 +43,14 @@ export default function Dashboard() {
             <div className="flex items-center space-x-2 sm:space-x-4">
               <h1 className="text-lg sm:text-xl font-bold text-white">MetaTrader.xyz</h1>
               <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-400">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Live Trading System</span>
+                <div className={`w-2 h-2 rounded-full ${state.systemStatus === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span>{state.systemStatus === 'online' ? 'Live Trading System' : 'System Offline'}</span>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-400">
-              <span className="hidden sm:inline">Last update: {format(lastUpdate, 'HH:mm:ss')}</span>
+              <span className="hidden sm:inline">Last update: {format(new Date(), 'HH:mm:ss')}</span>
               <button
-                onClick={fetchSystemMetrics}
+                onClick={refresh}
                 className="text-gray-400 hover:text-white px-2 sm:px-3 py-1 rounded hover:bg-gray-700"
               >
                 Refresh
@@ -128,7 +75,7 @@ export default function Dashboard() {
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Portfolio Value</p>
                 <p className="text-lg sm:text-2xl font-bold text-white truncate">
-                  {formatCurrency(systemMetrics.portfolioValue)}
+                  {bal ? formatCurrency(bal.equity) : '$0'}
                 </p>
               </div>
               <div className="text-2xl sm:text-3xl ml-2">💰</div>
@@ -140,37 +87,37 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Daily P&L</p>
-                <p className={`text-lg sm:text-2xl font-bold truncate ${getPnLColor(systemMetrics.dailyPnL)}`}>
-                  {formatPercentage(systemMetrics.dailyPnL)}
+                <p className={`text-lg sm:text-2xl font-bold truncate ${getPnLColor(bal?.pnl24hPct || 0)}`}>
+                  {bal ? formatPercentage(bal.pnl24hPct) : '0.00%'}
                 </p>
               </div>
               <div className="text-2xl sm:text-3xl ml-2">📈</div>
             </div>
           </div>
 
-          {/* Sharpe Ratio */}
+          {/* Ensemble Accuracy */}
           <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Sharpe Ratio</p>
-                <p className={`text-lg sm:text-2xl font-bold truncate ${getSharpeColor(systemMetrics.sharpeRatio)}`}>
-                  {systemMetrics.sharpeRatio.toFixed(2)}
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">AI Accuracy</p>
+                <p className={`text-lg sm:text-2xl font-bold truncate ${getSharpeColor(ensemble.accuracy)}`}>
+                  {ensemble.accuracy.toFixed(1)}%
                 </p>
               </div>
               <div className="text-2xl sm:text-3xl ml-2">⚡</div>
             </div>
           </div>
 
-          {/* Max Drawdown */}
+          {/* Total Trades */}
           <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Max Drawdown</p>
-                <p className="text-lg sm:text-2xl font-bold text-red-500 truncate">
-                  {formatPercentage(systemMetrics.maxDrawdown)}
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Total Trades</p>
+                <p className="text-lg sm:text-2xl font-bold text-white truncate">
+                  {ensemble.trades.toLocaleString()}
                 </p>
               </div>
-              <div className="text-2xl sm:text-3xl ml-2">📉</div>
+              <div className="text-2xl sm:text-3xl ml-2">🔄</div>
             </div>
           </div>
         </div>
@@ -180,21 +127,9 @@ export default function Dashboard() {
           <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Total Trades</p>
-                <p className="text-lg sm:text-2xl font-bold text-white truncate">
-                  {systemMetrics.totalTrades.toLocaleString()}
-                </p>
-              </div>
-              <div className="text-2xl sm:text-3xl ml-2">🔄</div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Active Models</p>
                 <p className="text-lg sm:text-2xl font-bold text-white truncate">
-                  {systemMetrics.activeModels}
+                  {state.models.filter(m => m.status === 'ready').length}
                 </p>
               </div>
               <div className="text-2xl sm:text-3xl ml-2">🤖</div>
@@ -204,9 +139,21 @@ export default function Dashboard() {
           <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Data Sources</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Trading Mode</p>
                 <p className="text-lg sm:text-2xl font-bold text-white truncate">
-                  {systemMetrics.dataSources}
+                  {state.tradingMode.toUpperCase()}
+                </p>
+              </div>
+              <div className="text-2xl sm:text-3xl ml-2">🎯</div>
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Profit %</p>
+                <p className="text-lg sm:text-2xl font-bold text-white truncate">
+                  {formatPercentage(ensemble.profitPct)}
                 </p>
               </div>
               <div className="text-2xl sm:text-3xl ml-2">📊</div>
@@ -243,9 +190,9 @@ export default function Dashboard() {
               <span>Always Learning, Self-Upgrading, Pair-Hoovering</span>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <span>Status: Operational</span>
+              <span>Status: {state.systemStatus === 'online' ? 'Operational' : 'Offline'}</span>
               <span className="hidden sm:inline">•</span>
-              <span>Uptime: 99.9%</span>
+              <span>Mode: {state.tradingMode.toUpperCase()}</span>
             </div>
           </div>
         </div>
