@@ -1,19 +1,15 @@
-const API_BASE = import.meta.env.VITE_API_BASE?.replace(/\/$/, '') || '';
+// src/lib/api.ts
+export const API_BASE =
+  import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : '')
 
-async function request(path: string, options: RequestInit = {}) {
-  const url = `${API_BASE}${path}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    }
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status} ${res.statusText} — ${text}`);
-  }
-  return res.json().catch(() => ({}));
+export async function getJSON<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    credentials: 'include',
+    ...init,
+    headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json() as Promise<T>
 }
 
 export interface TradeRequest {
@@ -58,43 +54,43 @@ export interface TradeResponse {
 
 export const api = {
   // Status and health
-  status: () => request('/api/status'),
-  health: () => request('/health'),
+  status: () => getJSON('/api/status'),
+  health: () => getJSON('/health'),
   
   // Trading operations (v2)
   executeTrade: (payload: any) =>
-    request('/api/trade/execute', { 
+    getJSON('/api/trade/execute', { 
       method: 'POST', 
       body: JSON.stringify(payload) 
     }),
   
   // Autonomous tick (v2)
   tick: (payload: any) => 
-    request('/api/auto/tick', { 
+    getJSON('/api/auto/tick', { 
       method: 'POST', 
       body: JSON.stringify(payload) 
     }),
   
   // Account information
-  getBalance: () => request('/api/account/balance'),
+  getBalance: () => getJSON('/api/account/balance'),
   getPositions: (symbol?: string) => 
-    request(`/api/positions${symbol ? `?symbol=${symbol}` : ''}`),
+    getJSON(`/api/positions${symbol ? `?symbol=${symbol}` : ''}`),
   
   // AI consensus
   getConsensus: (features?: any): Promise<ConsensusResponse> =>
-    request('/api/ai/consensus', { 
+    getJSON('/api/ai/consensus', { 
       method: 'POST', 
       body: JSON.stringify({ features }) 
     }),
   
   // Autonomous trading control
   startAutonomousTrading: () =>
-    request('/api/trading/start', { method: 'POST' }),
+    getJSON('/api/trading/start', { method: 'POST' }),
   
   stopAutonomousTrading: () =>
-    request('/api/trading/stop', { method: 'POST' }),
+    getJSON('/api/trading/stop', { method: 'POST' }),
   
-  getTradingStatus: () => request('/api/trading/status'),
+  getTradingStatus: () => getJSON('/api/trading/status'),
 };
 
 export default api; 

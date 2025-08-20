@@ -1,244 +1,67 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+// src/contexts/TradingContext.tsx
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { getJSON } from '../lib/api'
 
-interface ModelStatus {
-  status: 'idle' | 'training' | 'completed' | 'stopped';
-  epoch: number;
-  epochs: number;
-  loss: number;
-  acc: number;
-  startTime?: string;
+type Model = { type: string; status: string; metrics?: { accuracy: number; trades: number; profitPct: number } }
+
+type TradingState = {
+  systemStatus: 'online' | 'offline'
+  tradingMode: 'paper' | 'live'
+  balance?: { currency: string; available: number; equity: number; pnl24hPct: number; updatedAt: string }
+  positions: any[]
+  openOrders: any[]
+  models: Model[]
+  training: { isTraining: boolean; currentModel: string | null; progress: number; lastTraining: string | null }
 }
 
-interface SyncData {
-  backend: {
-    status: string;
-    uptime: number;
-    timestamp: string;
-  };
-  trading: {
-    accountBalance: any;
-    positions: any[];
-  };
-  models: {
-    LSTM: ModelStatus;
-    RF: ModelStatus;
-    DDQN: ModelStatus;
-  };
-  lastSync: string;
+const defaultState: TradingState = {
+  systemStatus: 'offline',
+  tradingMode: 'paper',
+  positions: [],
+  openOrders: [],
+  models: [],
+  training: { isTraining: false, currentModel: null, progress: 0, lastTraining: null },
 }
 
-interface TradingContextType {
-  activity: Record<string, any>;
-  syncData: SyncData | null;
-  isSyncing: boolean;
-  lastSyncTime: string | null;
-  startTraining: (model: string) => Promise<void>;
-  stopTraining: (model: string) => Promise<void>;
-  refreshSync: () => Promise<void>;
-  syncError: string | null;
-}
+const Ctx = createContext<{ state: TradingState; refresh: () => Promise<void> }>({
+  state: defaultState, refresh: async () => {}
+})
 
-const TradingContext = createContext<TradingContextType | undefined>(undefined);
+export const useTradingContext = () => useContext(Ctx)
 
-export const useTradingContext = () => {
-  const context = useContext(TradingContext);
-  if (!context) {
-    throw new Error('useTradingContext must be used within a TradingProvider');
+export function TradingProvider({ children }: { children: React.ReactNode }) {
+  const [state, setState] = useState<TradingState>(defaultState)
+
+  const refresh = async () => {
+    const [health, balance, trading, models, training] = await Promise.all([
+      getJSON<{ status: string }>('/api/health').catch(() => null),
+      getJSON<{ mode: string; currency: string; available: number; equity: number; pnl24hPct: number; updatedAt: string }>('/api/balance').catch(() => null),
+      getJSON<{ mode: string; positions: any[]; openOrders: any[]; pnlDayPct: number; updatedAt: string }>('/api/trading/state').catch(() => null),
+      getJSON<{ models: Model[] }>('/api/models').catch(() => null),
+      getJSON<{ isTraining: boolean; currentModel: string | null; progress: number; lastTraining: string | null; updatedAt: string }>('/api/training/status').catch(() => null),
+    ])
+
+    setState(s => ({
+      ...s,
+      systemStatus: health?.status === 'healthy' ? 'online' : 'offline',
+      tradingMode: (trading?.mode ?? s.tradingMode) as 'paper' | 'live',
+      balance: balance ? {
+        currency: balance.currency, available: balance.available,
+        equity: balance.equity, pnl24hPct: balance.pnl24hPct, updatedAt: balance.updatedAt
+      } : s.balance,
+      positions: trading?.positions ?? s.positions,
+      openOrders: trading?.openOrders ?? s.openOrders,
+      models: models?.models ?? s.models,
+      training: training ? {
+        isTraining: training.isTraining,
+        currentModel: training.currentModel,
+        progress: training.progress,
+        lastTraining: training.lastTraining,
+      } : s.training,
+    }))
   }
-  return context;
-};
 
-export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activity, setActivity] = useState<Record<string, any>>({});
-  const [syncData, setSyncData] = useState<SyncData | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
-  const [syncError, setSyncError] = useState<string | null>(null);
+  useEffect(() => { refresh() }, [])
 
-  // Real-time sync function
-  const syncWithBackend = useCallback(async () => {
-    try {
-      setIsSyncing(true);
-      setSyncError(null);
-      
-      const response = await fetch('https://sb1-dapxyzdb-trade-shit.up.railway.app/api/sync/status');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setSyncData(result.data);
-        setLastSyncTime(new Date().toISOString());
-        
-        // Update activity state with model training status
-        const newActivity = { ...activity };
-        Object.entries(result.data.models).forEach(([model, status]: [string, any]) => {
-          if (status.status === 'training') {
-            newActivity[model] = {
-              model,
-              epoch: status.epoch,
-              epochs: status.epochs,
-              batch: 0,
-              loss: status.loss,
-              acc: status.acc,
-              extra: {
-                hiddenNorm: 0,
-                gradientNorm: 0,
-                qValue: 0
-              },
-              timestamp: Date.now(),
-              status: 'training'
-            };
-          } else if (status.status === 'completed') {
-            newActivity[model] = {
-              model,
-              epoch: status.epochs,
-              epochs: status.epochs,
-              batch: 0,
-              loss: status.loss,
-              acc: status.acc,
-              extra: {
-                hiddenNorm: 0,
-                gradientNorm: 0,
-                qValue: 0
-              },
-              timestamp: Date.now(),
-              status: 'completed'
-            };
-          }
-        });
-        setActivity(newActivity);
-      } else {
-        throw new Error('Backend sync failed');
-      }
-    } catch (error) {
-      console.error('Sync error:', error);
-      setSyncError(error instanceof Error ? error.message : 'Sync failed');
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [activity]);
-
-  // Manual refresh function
-  const refreshSync = useCallback(async () => {
-    await syncWithBackend();
-  }, [syncWithBackend]);
-
-  // Start training function
-  const startTraining = async (model: string) => {
-    try {
-      const response = await fetch(`https://sb1-dapxyzdb-trade-shit.up.railway.app/api/models/start-training`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ model })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`Started training for ${model}:`, data);
-        
-        // Update activity state
-        setActivity(prev => ({
-          ...prev,
-          [model]: {
-            model,
-            epoch: 0,
-            epochs: model === 'LSTM' ? 20 : model === 'RF' ? 15 : 25,
-            batch: 0,
-            loss: 1.0,
-            acc: 0.0,
-            extra: {
-              hiddenNorm: 0,
-              gradientNorm: 0,
-              qValue: 0
-            },
-            timestamp: Date.now(),
-            status: 'training'
-          }
-        }));
-        
-        // Trigger immediate sync to get updated status
-        setTimeout(() => syncWithBackend(), 1000);
-      } else {
-        console.error(`Failed to start training for ${model}`);
-        throw new Error(`Failed to start training for ${model}`);
-      }
-    } catch (error) {
-      console.error('Error starting training:', error);
-      throw error;
-    }
-  };
-
-  // Stop training function
-  const stopTraining = async (model: string) => {
-    try {
-      const response = await fetch(`https://sb1-dapxyzdb-trade-shit.up.railway.app/api/models/stop-training`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ model })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log(`Stopped training for ${model}:`, data);
-        
-        // Update activity state
-        setActivity(prev => ({
-          ...prev,
-          [model]: {
-            ...prev[model],
-            status: 'stopped',
-            timestamp: Date.now()
-          }
-        }));
-        
-        // Trigger immediate sync
-        setTimeout(() => syncWithBackend(), 1000);
-      } else {
-        console.error(`Failed to stop training for ${model}`);
-        throw new Error(`Failed to stop training for ${model}`);
-      }
-    } catch (error) {
-      console.error('Error stopping training:', error);
-      throw error;
-    }
-  };
-
-  // Initial sync on mount
-  useEffect(() => {
-    syncWithBackend();
-  }, []);
-
-  // Periodic sync every 5 seconds for real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      syncWithBackend();
-    }, 5000); // 5 second intervals
-
-    return () => clearInterval(interval);
-  }, [syncWithBackend]);
-
-  const value: TradingContextType = {
-    activity,
-    syncData,
-    isSyncing,
-    lastSyncTime,
-    startTraining,
-    stopTraining,
-    refreshSync,
-    syncError
-  };
-
-  return (
-    <TradingContext.Provider value={value}>
-      {children}
-    </TradingContext.Provider>
-  );
-};
+  return <Ctx.Provider value={{ state, refresh }}>{children}</Ctx.Provider>
+}
