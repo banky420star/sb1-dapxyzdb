@@ -9,7 +9,13 @@ import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 
+// Import the enhanced autonomous trading bot
+import EnhancedAutonomousTradingBot from './enhanced-trading-bot.js';
+
 const app = express();
+
+// Initialize the autonomous trading bot
+const autonomousBot = new EnhancedAutonomousTradingBot();
 
 // --- Security & basics ---
 app.use(helmet());
@@ -152,6 +158,77 @@ app.post('/api/auto/tick', guardTrade, async (req, res) => {
     res.json(tradeResult);
   } catch (err) {
     res.status(500).json({ error: String(err.message || err) });
+  }
+});
+
+// --- AUTONOMOUS TRADING BOT ENDPOINTS ---
+
+// Start autonomous trading
+app.post('/api/trading/start', async (req, res) => {
+  try {
+    console.log('🚀 Starting autonomous trading bot...');
+    
+    await autonomousBot.start();
+    
+    res.json({
+      success: true,
+      message: 'Autonomous trading bot started successfully',
+      status: autonomousBot.getStatus(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('Error starting autonomous trading bot:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: String(err.message || err) 
+    });
+  }
+});
+
+// Stop autonomous trading
+app.post('/api/trading/stop', async (req, res) => {
+  try {
+    console.log('🛑 Stopping autonomous trading bot...');
+    
+    await autonomousBot.stop();
+    
+    res.json({
+      success: true,
+      message: 'Autonomous trading bot stopped successfully',
+      status: autonomousBot.getStatus(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error('Error stopping autonomous trading bot:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: String(err.message || err) 
+    });
+  }
+});
+
+// Get trading status
+app.get('/api/trading/status', async (req, res) => {
+  try {
+    const status = autonomousBot.getStatus();
+    
+    res.json({
+      success: true,
+      data: {
+        isActive: status.isRunning,
+        config: status.config,
+        tradeLog: status.tradeLog,
+        modelPredictions: status.modelPredictions,
+        marketData: status.marketData,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    console.error('Error getting trading status:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: String(err.message || err) 
+    });
   }
 });
 

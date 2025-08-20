@@ -580,4 +580,4 @@ class EnhancedAutonomousTradingBot {
   }
 }
 
-module.exports = EnhancedAutonomousTradingBot; 
+export default EnhancedAutonomousTradingBot; 
