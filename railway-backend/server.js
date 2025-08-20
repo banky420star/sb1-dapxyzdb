@@ -9,13 +9,22 @@ import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 
-// Import the enhanced autonomous trading bot
-import EnhancedAutonomousTradingBot from './enhanced-trading-bot.js';
-
 const app = express();
 
-// Initialize the autonomous trading bot
-const autonomousBot = new EnhancedAutonomousTradingBot();
+// --- Autonomous Trading Bot State ---
+let autonomousBotState = {
+  isRunning: false,
+  cycleInterval: null,
+  tradeLog: [],
+  config: {
+    maxPositionSize: 0.001,
+    stopLossPercent: 2.0,
+    takeProfitPercent: 5.0,
+    minConfidence: 70,
+    tradingPairs: ['BTCUSDT', 'ETHUSDT', 'XRPUSDT'],
+    dataInterval: 30000
+  }
+};
 
 // --- Security & basics ---
 app.use(helmet());
@@ -70,7 +79,8 @@ app.get('/api/status', (_req, res) => {
   res.json({
     status: 'ok',
     mode: getMode(),
-    time: new Date().toISOString()
+    time: new Date().toISOString(),
+    autonomousTrading: autonomousBotState.isRunning
   });
 });
 
@@ -166,15 +176,37 @@ app.post('/api/auto/tick', guardTrade, async (req, res) => {
 // Start autonomous trading
 app.post('/api/trading/start', async (req, res) => {
   try {
+    if (autonomousBotState.isRunning) {
+      return res.json({
+        success: false,
+        message: 'Autonomous trading bot is already running',
+        status: {
+          isRunning: autonomousBotState.isRunning,
+          config: autonomousBotState.config,
+          tradeLog: autonomousBotState.tradeLog
+        }
+      });
+    }
+
     console.log('🚀 Starting autonomous trading bot...');
     
-    await autonomousBot.start();
+    autonomousBotState.isRunning = true;
+    
+    // Start trading cycle
+    autonomousBotState.cycleInterval = setInterval(() => {
+      executeTradingCycle();
+    }, autonomousBotState.config.dataInterval);
+
+    console.log('✅ Autonomous trading bot started successfully');
     
     res.json({
       success: true,
       message: 'Autonomous trading bot started successfully',
-      status: autonomousBot.getStatus(),
-      timestamp: new Date().toISOString()
+      status: {
+        isRunning: autonomousBotState.isRunning,
+        config: autonomousBotState.config,
+        tradeLog: autonomousBotState.tradeLog
+      }
     });
   } catch (err) {
     console.error('Error starting autonomous trading bot:', err);
@@ -188,15 +220,37 @@ app.post('/api/trading/start', async (req, res) => {
 // Stop autonomous trading
 app.post('/api/trading/stop', async (req, res) => {
   try {
+    if (!autonomousBotState.isRunning) {
+      return res.json({
+        success: false,
+        message: 'Autonomous trading bot is not running',
+        status: {
+          isRunning: autonomousBotState.isRunning,
+          config: autonomousBotState.config,
+          tradeLog: autonomousBotState.tradeLog
+        }
+      });
+    }
+
     console.log('🛑 Stopping autonomous trading bot...');
     
-    await autonomousBot.stop();
+    autonomousBotState.isRunning = false;
+    
+    if (autonomousBotState.cycleInterval) {
+      clearInterval(autonomousBotState.cycleInterval);
+      autonomousBotState.cycleInterval = null;
+    }
+
+    console.log('✅ Autonomous trading bot stopped successfully');
     
     res.json({
       success: true,
       message: 'Autonomous trading bot stopped successfully',
-      status: autonomousBot.getStatus(),
-      timestamp: new Date().toISOString()
+      status: {
+        isRunning: autonomousBotState.isRunning,
+        config: autonomousBotState.config,
+        tradeLog: autonomousBotState.tradeLog
+      }
     });
   } catch (err) {
     console.error('Error stopping autonomous trading bot:', err);
@@ -210,16 +264,12 @@ app.post('/api/trading/stop', async (req, res) => {
 // Get trading status
 app.get('/api/trading/status', async (req, res) => {
   try {
-    const status = autonomousBot.getStatus();
-    
     res.json({
       success: true,
       data: {
-        isActive: status.isRunning,
-        config: status.config,
-        tradeLog: status.tradeLog,
-        modelPredictions: status.modelPredictions,
-        marketData: status.marketData,
+        isActive: autonomousBotState.isRunning,
+        config: autonomousBotState.config,
+        tradeLog: autonomousBotState.tradeLog,
         timestamp: new Date().toISOString()
       }
     });
@@ -231,6 +281,50 @@ app.get('/api/trading/status', async (req, res) => {
     });
   }
 });
+
+// Trading cycle execution
+function executeTradingCycle() {
+  if (!autonomousBotState.isRunning) return;
+
+  console.log('🔄 Executing autonomous trading cycle...');
+
+  for (const symbol of autonomousBotState.config.tradingPairs) {
+    try {
+      // Simulate AI consensus
+      const consensus = {
+        passes: Math.random() > 0.5, // 50% chance of passing
+        signal: Math.random() > 0.5 ? 'buy' : 'sell',
+        confidence: 70 + Math.random() * 20, // 70-90%
+        models: [
+          { signal: 'buy', confidence: 75 + Math.random() * 15 },
+          { signal: 'buy', confidence: 70 + Math.random() * 20 },
+          { signal: 'sell', confidence: 65 + Math.random() * 25 }
+        ]
+      };
+
+      if (consensus.passes) {
+        // Simulate trade execution
+        const trade = {
+          id: `trade_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          symbol,
+          side: consensus.signal,
+          qty: autonomousBotState.config.maxPositionSize,
+          price: 120000 + (Math.random() - 0.5) * 1000, // Simulated BTC price
+          stopLoss: 0,
+          takeProfit: 0,
+          timestamp: new Date().toISOString(),
+          consensus: consensus,
+          simulated: true
+        };
+
+        autonomousBotState.tradeLog.push(trade);
+        console.log(`✅ ${consensus.signal} trade executed for ${symbol} - Confidence: ${consensus.confidence.toFixed(1)}%`);
+      }
+    } catch (error) {
+      console.error(`Error in trading cycle for ${symbol}:`, error.message);
+    }
+  }
+}
 
 // --- Account endpoints ---
 app.get('/api/account/balance', (_req, res) => {
