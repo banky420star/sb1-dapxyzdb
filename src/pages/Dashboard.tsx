@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTradingContext } from '../contexts/TradingContext';
 import TradeFeed from '../components/TradeFeed';
 import ModelTrainingMonitor from '../components/ModelTrainingMonitor';
 import DataPipelineMonitor from '../components/DataPipelineMonitor';
@@ -16,6 +17,24 @@ interface SystemMetrics {
 }
 
 export default function Dashboard() {
+  const { state, syncData } = useTradingContext();
+  
+  // Derived model performance from state
+  const modelPerf = (state.models ?? []).reduce((acc: Record<string, any>, m: any) => {
+    acc[m.type] = {
+      accuracy: m?.metrics?.accuracy ?? 0,
+      trades: m?.metrics?.trades ?? 0,
+      profit: m?.metrics?.profitPct ?? 0,
+    }
+    return acc
+  }, {})
+
+  // Example safe access where you render cards
+  const ensemble = modelPerf['ensemble'] ?? { accuracy: 0, trades: 0, profit: 0 }
+  const lstm = modelPerf['LSTM'] ?? { accuracy: 0, trades: 0, profit: 0 }
+  const rf = modelPerf['RF'] ?? { accuracy: 0, trades: 0, profit: 0 }
+  const ddqn = modelPerf['DDQN'] ?? { accuracy: 0, trades: 0, profit: 0 }
+
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
     totalTrades: 0,
     activeModels: 0,

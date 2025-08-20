@@ -5,6 +5,7 @@ import cors from 'cors'
 import compression from 'compression'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import rateLimit from 'express-rate-limit'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 import cron from 'node-cron'
@@ -73,11 +74,21 @@ let cryptoTradingEngine = null
 // Initialize Autonomous Orchestrator (will be initialized after core components are ready)
 const autonomousOrchestrator = new AutonomousOrchestrator()
 
+// CORS configuration
+const allowed = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean)
+
 // Middleware
-app.use(helmet())
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' }}))
 app.use(compression())
 app.use(morgan('combined'))
-app.use(cors())
+app.use(cors({
+  origin: (origin, cb) => cb(null, !origin || allowed.includes(origin)),
+  credentials: true
+}))
+app.use(rateLimit({ windowMs: 60_000, max: 300 }))
 app.use(express.json())
 
 // Global state

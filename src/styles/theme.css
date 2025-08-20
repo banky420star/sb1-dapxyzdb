@@ -1,0 +1,18 @@
+:root {
+  --bg: 255 255 255;
+  --fg: 17 24 39;       /* gray-900 */
+  --muted: 107 114 128; /* gray-500 */
+  --brand: 59 130 246;  /* blue-500 */
+}
+
+.dark {
+  --bg: 17 24 39;
+  --fg: 243 244 246;    /* gray-100 */
+  --muted: 156 163 175; /* gray-400 */
+  --brand: 59 130 246;
+}
+
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+}
