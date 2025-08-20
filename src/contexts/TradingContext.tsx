@@ -32,6 +32,10 @@ interface TradingContextType {
   syncData: SyncData | null;
   isSyncing: boolean;
   lastSyncTime: string | null;
+  state: {
+    systemStatus: string;
+    models: any[];
+  };
   startTraining: (model: string) => Promise<void>;
   stopTraining: (model: string) => Promise<void>;
   refreshSync: () => Promise<void>;
@@ -54,6 +58,10 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [state, setState] = useState({
+    systemStatus: 'online',
+    models: []
+  });
 
   // Real-time sync function
   const syncWithBackend = useCallback(async () => {
@@ -72,6 +80,19 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (result.success) {
         setSyncData(result.data);
         setLastSyncTime(new Date().toISOString());
+        
+        // Update state with system status and models
+        setState({
+          systemStatus: result.data.backend?.status === 'online' ? 'online' : 'offline',
+          models: Object.entries(result.data.models).map(([type, model]: [string, any]) => ({
+            type,
+            metrics: {
+              accuracy: model.acc || 0,
+              trades: model.trades || 0,
+              profitPct: model.profit || 0
+            }
+          }))
+        });
         
         // Update activity state with model training status
         const newActivity = { ...activity };
@@ -230,6 +251,7 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     syncData,
     isSyncing,
     lastSyncTime,
+    state,
     startTraining,
     stopTraining,
     refreshSync,

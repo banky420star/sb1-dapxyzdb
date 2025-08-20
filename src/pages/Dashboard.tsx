@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTradingContext } from '../contexts/TradingContext';
 import TradeFeed from '../components/TradeFeed';
 import ModelTrainingMonitor from '../components/ModelTrainingMonitor';
 import DataPipelineMonitor from '../components/DataPipelineMonitor';
@@ -16,6 +17,24 @@ interface SystemMetrics {
 }
 
 export default function Dashboard() {
+  const { state, syncData } = useTradingContext();
+  
+  // Derived model performance from state
+  const modelPerf = (state.models ?? []).reduce((acc: Record<string, any>, m: any) => {
+    acc[m.type] = {
+      accuracy: m?.metrics?.accuracy ?? 0,
+      trades: m?.metrics?.trades ?? 0,
+      profit: m?.metrics?.profitPct ?? 0,
+    }
+    return acc
+  }, {})
+
+  // Example safe access where you render cards
+  const ensemble = modelPerf['ensemble'] ?? { accuracy: 0, trades: 0, profit: 0 }
+  const lstm = modelPerf['LSTM'] ?? { accuracy: 0, trades: 0, profit: 0 }
+  const rf = modelPerf['RF'] ?? { accuracy: 0, trades: 0, profit: 0 }
+  const ddqn = modelPerf['DDQN'] ?? { accuracy: 0, trades: 0, profit: 0 }
+
   const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>({
     totalTrades: 0,
     activeModels: 0,
@@ -113,7 +132,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-              {/* Autonomous Trading Bot Section */}
+      {/* Main Content */}
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Autonomous Trading Bot Section */}
         <div className="mb-6 sm:mb-8">
           <AutonomousTradingPanel />
         </div>
@@ -228,7 +249,6 @@ export default function Dashboard() {
         {/* Data Pipeline Monitor - Full Width */}
         <div className="mt-4 sm:mt-8">
           <DataPipelineMonitor refreshInterval={15000} />
-        </div>
         </div>
       </div>
 
