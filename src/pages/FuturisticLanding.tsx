@@ -22,7 +22,7 @@ const FuturisticLanding: React.FC = () => {
       <header className="glass-dark fixed top-0 w-full z-20 shadow-2xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-extrabold tracking-tight text-gradient">
-            Meth<span className="text-indigo-400 text-glow">Trader</span>
+            Meta<span className="text-indigo-400 text-glow">Trader</span>
           </h1>
           
           {/* V2: Enhanced Navigation */}
@@ -160,7 +160,7 @@ const FuturisticLanding: React.FC = () => {
       <footer className="glass-dark border-t border-white/10 py-8 mt-20">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p className="text-slate-400">
-            © 2025 MethTrader. Advanced AI Trading Platform. 
+            © 2025 MetaTrader.xyz. Advanced AI Trading Platform. 
             <span className="text-indigo-400 ml-2">Powered by cutting-edge technology.</span>
           </p>
         </div>

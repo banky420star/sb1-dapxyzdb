@@ -2,58 +2,42 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
+    <!-- Preconnect to API for faster loading -->
+    <link rel="preconnect" href="https://api.methtrader.xyz" crossorigin>
     
-    <!-- Theme Color for PWA -->
-    <meta name="theme-color" content="#6366f1" />
-    <meta name="msapplication-TileColor" content="#6366f1" />
-    
-    <!-- Comprehensive Favicon Support -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg" />
-    <link rel="mask-icon" href="/favicon.svg" color="#6366f1" />
-    
-    <!-- Additional icon sizes for better bookmark support -->
-    <link rel="icon" type="image/svg+xml" sizes="16x16" href="/favicon.svg" />
-    <link rel="icon" type="image/svg+xml" sizes="32x32" href="/favicon.svg" />
-    <link rel="icon" type="image/svg+xml" sizes="48x48" href="/favicon.svg" />
-    <link rel="icon" type="image/svg+xml" sizes="192x192" href="/favicon.svg" />
-    <link rel="icon" type="image/svg+xml" sizes="512x512" href="/favicon.svg" />
+    <!-- PWA Support -->
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#3B82F6">
     
     <!-- SEO Meta Tags -->
-    <title>MetaTrader Pro - AI-Powered Trading Platform</title>
-    <meta name="description" content="Professional algorithmic trading system with ML ensemble models, real-time market data, and AI-powered trading strategies" />
-    <meta name="keywords" content="trading, algorithmic trading, AI trading, cryptocurrency, forex, machine learning, trading platform" />
-    <meta name="author" content="MetaTrader Pro" />
+    <title>MetaTrader.xyz - Autonomous Trading System</title>
+    <meta name="description" content="AI-powered autonomous trading platform with real-time analytics, risk management, and machine learning models for cryptocurrency trading.">
+    <meta name="keywords" content="trading, cryptocurrency, AI, autonomous trading, risk management, MetaTrader">
+    <meta name="author" content="MetaTrader.xyz">
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="MetaTrader Pro - AI-Powered Trading Platform" />
-    <meta property="og:description" content="Professional algorithmic trading system with ML ensemble models" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://delightful-crumble-983869.netlify.app" />
-    <meta property="og:image" content="/og-image.png" />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://methtrader.xyz/">
+    <meta property="og:title" content="MetaTrader.xyz - Autonomous Trading System">
+    <meta property="og:description" content="AI-powered autonomous trading platform with real-time analytics and risk management">
+    <meta property="og:image" content="https://methtrader.xyz/og-image.png">
     
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="MetaTrader Pro - AI-Powered Trading Platform" />
-    <meta name="twitter:description" content="Professional algorithmic trading system with ML ensemble models" />
-    <meta name="twitter:image" content="/og-image.png" />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://methtrader.xyz/">
+    <meta property="twitter:title" content="MetaTrader.xyz - Autonomous Trading System">
+    <meta property="twitter:description" content="AI-powered autonomous trading platform with real-time analytics and risk management">
+    <meta property="twitter:image" content="https://methtrader.xyz/og-image.png">
     
-    <!-- Performance optimizations -->
-    <link rel="dns-prefetch" href="//c.mql5.com">
-    <link rel="preconnect" href="https://c.mql5.com" crossorigin>
+    <!-- Security -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
     
-    <!-- Preload critical resources -->
-    <link rel="preload" href="/src/main.tsx" as="script" type="module" />
-    
-    <!-- Remove non-critical scripts -->
-    <!-- <script src="/mql5-config.js"></script> -->
-    <!-- <link rel="preload" href="https://c.mql5.com/js/widgets/widget.js" as="script"> -->
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://methtrader.xyz/">
   </head>
   <body>
     <div id="root"></div>

@@ -1,15 +1,99 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  Activity, 
+  Zap,
+  Shield,
+  Clock,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle
+} from 'lucide-react';
+import { useTradingContext } from '../contexts/TradingContext';
+import AutonomousTradingPanel from '../components/AutonomousTradingPanel';
 import TradeFeed from '../components/TradeFeed';
 import ModelTrainingMonitor from '../components/ModelTrainingMonitor';
 import DataPipelineMonitor from '../components/DataPipelineMonitor';
-import AutonomousTradingPanel from '../components/AutonomousTradingPanel';
-import { useTradingContext } from '../contexts/TradingContext';
-import { format } from 'date-fns';
 
-export default function Dashboard() {
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  change?: number;
+  icon: React.ReactNode;
+  loading?: boolean;
+  lastUpdated?: string;
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({ 
+  title, 
+  value, 
+  change, 
+  icon, 
+  loading = false,
+  lastUpdated 
+}) => {
+  const getChangeColor = (change?: number) => {
+    if (!change) return 'text-text-tertiary';
+    return change >= 0 ? 'text-profit' : 'text-loss';
+  };
+
+  const getChangeIcon = (change?: number) => {
+    if (!change) return null;
+    return change >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />;
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-bg-secondary rounded-lg p-6 border border-border-primary hover:border-border-accent transition-colors"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-text-tertiary mb-1">{title}</p>
+          {loading ? (
+            <div className="skeleton h-8 w-24 rounded mb-2"></div>
+          ) : (
+            <p className="text-2xl font-bold text-text-primary mb-1">{value}</p>
+          )}
+          {change !== undefined && !loading && (
+            <div className="flex items-center space-x-1">
+              {getChangeIcon(change)}
+              <span className={`text-sm font-medium ${getChangeColor(change)}`}>
+                {change >= 0 ? '+' : ''}{change.toFixed(2)}%
+              </span>
+            </div>
+          )}
+          {lastUpdated && (
+            <p className="text-xs text-text-muted mt-2">
+              Last updated: {new Date(lastUpdated).toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+        <div className="flex-shrink-0">
+          <div className="w-12 h-12 bg-brand-primary bg-opacity-10 rounded-lg flex items-center justify-center">
+            {icon}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const Dashboard: React.FC = () => {
   const { state, refresh } = useTradingContext();
-  const bal = state.balance;
-  const ensemble = state.models.find(m => m.type === 'ensemble')?.metrics ?? { accuracy: 0, trades: 0, profitPct: 0 };
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refresh();
+    setLastRefresh(new Date());
+    setIsRefreshing(false);
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -24,36 +108,48 @@ export default function Dashboard() {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
-  const getPnLColor = (value: number) => {
-    return value >= 0 ? 'text-green-500' : 'text-red-500';
+  const getSystemStatusIcon = () => {
+    return state.systemStatus === 'online' ? 
+      <CheckCircle className="w-6 h-6 text-success" /> : 
+      <AlertTriangle className="w-6 h-6 text-error" />;
   };
 
-  const getSharpeColor = (value: number) => {
-    if (value >= 1.5) return 'text-green-500';
-    if (value >= 1.0) return 'text-yellow-500';
-    return 'text-red-500';
+  const getSystemStatusColor = () => {
+    return state.systemStatus === 'online' ? 'text-success' : 'text-error';
+  };
+
+  const ensemble = state.models.find(m => m.type === 'ensemble')?.metrics ?? { 
+    accuracy: 0, 
+    trades: 0, 
+    profitPct: 0 
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700 flex-shrink-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <h1 className="text-lg sm:text-xl font-bold text-white">MetaTrader.xyz</h1>
-              <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-400">
-                <div className={`w-2 h-2 rounded-full ${state.systemStatus === 'online' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span>{state.systemStatus === 'online' ? 'Live Trading System' : 'System Offline'}</span>
-              </div>
+    <div className="min-h-screen bg-bg-primary">
+      {/* Page Header */}
+      <div className="bg-bg-secondary border-b border-border-primary">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
+              <p className="text-text-tertiary mt-1">
+                Real-time overview of your autonomous trading system
+              </p>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-400">
-              <span className="hidden sm:inline">Last update: {format(new Date(), 'HH:mm:ss')}</span>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                {getSystemStatusIcon()}
+                <span className={`text-sm font-medium ${getSystemStatusColor()}`}>
+                  {state.systemStatus === 'online' ? 'System Online' : 'System Offline'}
+                </span>
+              </div>
               <button
-                onClick={refresh}
-                className="text-gray-400 hover:text-white px-2 sm:px-3 py-1 rounded hover:bg-gray-700"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="flex items-center space-x-2 px-3 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-primary-dark focus-ring disabled:opacity-50"
               >
-                Refresh
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
               </button>
             </div>
           </div>
@@ -61,142 +157,115 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Autonomous Trading Bot Section */}
-        <div className="mb-6 sm:mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Key Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <MetricCard
+            title="Portfolio Value"
+            value={state.balance ? formatCurrency(state.balance.equity) : '$0'}
+            change={state.balance?.pnl24hPct}
+            icon={<DollarSign className="w-6 h-6 text-brand-primary" />}
+            lastUpdated={state.balance?.updatedAt}
+          />
+          
+          <MetricCard
+            title="AI Accuracy"
+            value={`${ensemble.accuracy.toFixed(1)}%`}
+            icon={<Zap className="w-6 h-6 text-brand-secondary" />}
+            lastUpdated={state.autonomousTrading.lastUpdate}
+          />
+          
+          <MetricCard
+            title="Total Trades"
+            value={ensemble.trades.toLocaleString()}
+            icon={<Activity className="w-6 h-6 text-brand-accent" />}
+            lastUpdated={state.autonomousTrading.lastUpdate}
+          />
+          
+          <MetricCard
+            title="Profit %"
+            value={formatPercentage(ensemble.profitPct)}
+            change={ensemble.profitPct}
+            icon={<TrendingUp className="w-6 h-6 text-success" />}
+            lastUpdated={state.autonomousTrading.lastUpdate}
+          />
+        </div>
+
+        {/* Autonomous Trading Panel */}
+        <div className="mb-8">
           <AutonomousTradingPanel />
         </div>
 
-        {/* System Metrics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          {/* Portfolio Value */}
-          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Portfolio Value</p>
-                <p className="text-lg sm:text-2xl font-bold text-white truncate">
-                  {bal ? formatCurrency(bal.equity) : '$0'}
-                </p>
-              </div>
-              <div className="text-2xl sm:text-3xl ml-2">💰</div>
-            </div>
-          </div>
-
-          {/* Daily P&L */}
-          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Daily P&L</p>
-                <p className={`text-lg sm:text-2xl font-bold truncate ${getPnLColor(bal?.pnl24hPct || 0)}`}>
-                  {bal ? formatPercentage(bal.pnl24hPct) : '0.00%'}
-                </p>
-              </div>
-              <div className="text-2xl sm:text-3xl ml-2">📈</div>
-            </div>
-          </div>
-
-          {/* Ensemble Accuracy */}
-          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">AI Accuracy</p>
-                <p className={`text-lg sm:text-2xl font-bold truncate ${getSharpeColor(ensemble.accuracy)}`}>
-                  {ensemble.accuracy.toFixed(1)}%
-                </p>
-              </div>
-              <div className="text-2xl sm:text-3xl ml-2">⚡</div>
-            </div>
-          </div>
-
-          {/* Total Trades */}
-          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Total Trades</p>
-                <p className="text-lg sm:text-2xl font-bold text-white truncate">
-                  {ensemble.trades.toLocaleString()}
-                </p>
-              </div>
-              <div className="text-2xl sm:text-3xl ml-2">🔄</div>
-            </div>
-          </div>
+        {/* Secondary Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <MetricCard
+            title="Active Models"
+            value={state.models.filter(m => m.status === 'ready').length}
+            icon={<Shield className="w-6 h-6 text-brand-primary" />}
+          />
+          
+          <MetricCard
+            title="Trading Mode"
+            value={state.tradingMode.toUpperCase()}
+            icon={<Activity className="w-6 h-6 text-brand-secondary" />}
+          />
+          
+          <MetricCard
+            title="System Uptime"
+            value={`${Math.floor((Date.now() - new Date(state.autonomousTrading.lastUpdate).getTime()) / 1000 / 60)}m`}
+            icon={<Clock className="w-6 h-6 text-brand-accent" />}
+          />
         </div>
 
-        {/* Activity Metrics */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Active Models</p>
-                <p className="text-lg sm:text-2xl font-bold text-white truncate">
-                  {state.models.filter(m => m.status === 'ready').length}
-                </p>
-              </div>
-              <div className="text-2xl sm:text-3xl ml-2">🤖</div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Trading Mode</p>
-                <p className="text-lg sm:text-2xl font-bold text-white truncate">
-                  {state.tradingMode.toUpperCase()}
-                </p>
-              </div>
-              <div className="text-2xl sm:text-3xl ml-2">🎯</div>
-            </div>
-          </div>
-
-          <div className="bg-gray-800 rounded-lg p-3 sm:p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-400 truncate">Profit %</p>
-                <p className="text-lg sm:text-2xl font-bold text-white truncate">
-                  {formatPercentage(ensemble.profitPct)}
-                </p>
-              </div>
-              <div className="text-2xl sm:text-3xl ml-2">📊</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Monitoring Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+        {/* Monitoring Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Trade Feed */}
           <div>
-            <TradeFeed maxTrades={25} />
+            <div className="bg-bg-secondary rounded-lg border border-border-primary">
+              <div className="px-6 py-4 border-b border-border-primary">
+                <h3 className="text-lg font-semibold text-text-primary">Recent Trades</h3>
+              </div>
+              <div className="p-6">
+                <TradeFeed maxTrades={10} />
+              </div>
+            </div>
           </div>
 
           {/* Model Training Monitor */}
           <div>
-            <ModelTrainingMonitor maxRuns={5} />
+            <div className="bg-bg-secondary rounded-lg border border-border-primary">
+              <div className="px-6 py-4 border-b border-border-primary">
+                <h3 className="text-lg font-semibold text-text-primary">Model Training</h3>
+              </div>
+              <div className="p-6">
+                <ModelTrainingMonitor maxRuns={5} />
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Data Pipeline Monitor - Full Width */}
-        <div className="mt-4 sm:mt-8">
-          <DataPipelineMonitor refreshInterval={15000} />
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="bg-gray-800 border-t border-gray-700 flex-shrink-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between text-xs sm:text-sm text-gray-400 space-y-2 sm:space-y-0">
-            <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-4 text-center sm:text-left">
-              <span>MetaTrader.xyz - Autonomous Trading System</span>
-              <span className="hidden sm:inline">•</span>
-              <span>Always Learning, Self-Upgrading, Pair-Hoovering</span>
+        <div className="mt-8">
+          <div className="bg-bg-secondary rounded-lg border border-border-primary">
+            <div className="px-6 py-4 border-b border-border-primary">
+              <h3 className="text-lg font-semibold text-text-primary">Data Pipeline Status</h3>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <span>Status: {state.systemStatus === 'online' ? 'Operational' : 'Offline'}</span>
-              <span className="hidden sm:inline">•</span>
-              <span>Mode: {state.tradingMode.toUpperCase()}</span>
+            <div className="p-6">
+              <DataPipelineMonitor refreshInterval={15000} />
             </div>
           </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-text-muted">
+            Last refresh: {lastRefresh.toLocaleTimeString()} • 
+            Auto-refresh: {state.systemStatus === 'online' ? 'Active' : 'Paused'}
+          </p>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Dashboard;

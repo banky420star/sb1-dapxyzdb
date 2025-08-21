@@ -1,220 +1,251 @@
-import React, { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { useTradingContext } from '../contexts/TradingContext'
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Menu, 
   X, 
-  Bell, 
+  TrendingUp, 
+  BarChart3, 
   Settings, 
-  User,
-  BarChart3,
-  TrendingUp,
-  Bot,
-  Shield,
+  Shield, 
   Activity,
-  Zap,
-  ChevronDown,
-  Bitcoin
-} from 'lucide-react'
-import Logo from './Logo'
+  RefreshCw,
+  Wifi,
+  WifiOff,
+  Sun,
+  Moon,
+  ChevronDown
+} from 'lucide-react';
+import { useTradingContext } from '../contexts/TradingContext';
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: BarChart3, description: 'Overview and analytics' },
-  { name: 'Trading', href: '/trading', icon: TrendingUp, description: 'Live trading interface' },
-  { name: 'Crypto', href: '/crypto', icon: Bitcoin, description: 'Cryptocurrency trading' },
-  { name: 'Models', href: '/models', icon: Bot, description: 'AI model management' },
-  { name: 'Risk', href: '/risk', icon: Shield, description: 'Risk management tools' },
-  { name: 'Analytics', href: '/analytics', icon: Activity, description: 'Performance analysis' },
-  { name: 'Settings', href: '/settings', icon: Settings, description: 'System configuration' }
-]
+interface LayoutProps {
+  children: React.ReactNode;
+}
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const location = useLocation()
-  const alerts: any[] = [] // Simple notifications for now
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(30);
+  const { state, refresh } = useTradingContext();
+  const location = useLocation();
 
-  const currentPath = location.pathname
-  const currentNav = navigation.find(nav => nav.href === currentPath)
+  // Theme management
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'dark' | 'light';
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  // Auto-refresh management
+  useEffect(() => {
+    if (!autoRefresh) return;
+    
+    const interval = setInterval(() => {
+      refresh();
+    }, refreshInterval * 1000);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, refreshInterval, refresh]);
+
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: TrendingUp },
+    { name: 'Trading', href: '/trading', icon: Activity },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'AI & Risk', href: '/models', icon: Shield },
+    { name: 'Settings', href: '/settings', icon: Settings },
+  ];
+
+  const isActive = (href: string) => {
+    if (href === '/dashboard') {
+      return location.pathname === '/dashboard';
+    }
+    return location.pathname.startsWith(href);
+  };
+
+  const getStatusColor = () => {
+    return state.systemStatus === 'online' ? 'text-success' : 'text-error';
+  };
+
+  const getStatusIcon = () => {
+    return state.systemStatus === 'online' ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />;
+  };
+
+  const getModeBadge = () => {
+    const isLive = state.tradingMode === 'live';
+    return (
+      <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
+        isLive ? 'badge-live' : 'badge-paper'
+      }`}>
+        {state.tradingMode.toUpperCase()}
+      </span>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-bg-deep">
-      {/* Mobile sidebar */}
-      <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-y-0 left-0 flex w-80 flex-col bg-surface border-r border-gray-700">
-          <div className="flex h-20 items-center justify-between px-6 border-b border-gray-700">
-            <Logo size="md" />
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="text-gray-400 hover:text-white transition-colors"
-              aria-label="Close sidebar"
-            >
-              <X className="h-6 w-6" />
-            </button>
+    <div className="min-h-screen bg-bg-primary">
+      {/* Skip link for accessibility */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-bg-secondary border-r border-border-primary transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex items-center justify-between h-16 px-6 border-b border-border-primary">
+          <div className="flex items-center space-x-3">
+            <img src="/logo.svg" alt="MetaTrader" className="w-8 h-8" />
+            <div>
+              <h1 className="text-lg font-bold text-text-primary">MetaTrader</h1>
+              <p className="text-xs text-text-tertiary">Autonomous Trading</p>
+            </div>
           </div>
-          <nav className="flex-1 space-y-2 px-4 py-6">
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-1 rounded-md text-text-tertiary hover:text-text-primary focus-ring"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <nav className="mt-6 px-3">
+          <div className="space-y-1">
             {navigation.map((item) => {
-              const isActive = currentPath === item.href
+              const Icon = item.icon;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`nav-item group ${isActive ? 'active' : ''}`}
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-brand-primary text-white'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
+                  }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <item.icon className="h-5 w-5 mr-3" />
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">{item.name}</div>
-                    <div className="text-xs text-gray-400">{item.description}</div>
-                  </div>
+                  <Icon className="w-5 h-5 mr-3" />
+                  {item.name}
                 </Link>
-              )
+              );
             })}
-          </nav>
-        </div>
-      </div>
-
-      {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-80 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-surface border-r border-gray-700">
-          <div className="flex items-center h-20 px-6 border-b border-gray-700">
-            <Logo size="md" />
           </div>
-          <nav className="flex-1 space-y-2 px-4 py-6">
-            {navigation.map((item) => {
-              const isActive = currentPath === item.href
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`nav-item group ${isActive ? 'active' : ''}`}
-                >
-                  <item.icon className="h-5 w-5 mr-3" />
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">{item.name}</div>
-                    <div className="text-xs text-gray-400">{item.description}</div>
-                  </div>
-                </Link>
-              )
-            })}
-          </nav>
+        </nav>
+
+        {/* System Status */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border-primary">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-text-tertiary">System Status</span>
+              <div className="flex items-center space-x-2">
+                {getStatusIcon()}
+                <span className={`text-xs font-medium ${getStatusColor()}`}>
+                  {state.systemStatus === 'online' ? 'Online' : 'Offline'}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-text-tertiary">Trading Mode</span>
+              {getModeBadge()}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-80">
-        {/* Top bar */}
-        <div className="sticky top-0 z-40 bg-surface border-b border-gray-700">
-          <div className="flex h-16 md:h-20 items-center justify-between px-3 md:px-6">
-            <div className="flex items-center space-x-2 md:space-x-4">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden text-gray-400 hover:text-white transition-colors p-1"
-                aria-label="Open sidebar"
-              >
-                <Menu className="h-5 w-5 md:h-6 md:w-6" />
-              </button>
-              {currentNav && (
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-lg md:text-xl font-semibold text-white truncate">{currentNav.name}</h1>
-                  <p className="text-xs md:text-sm text-gray-400 truncate">{currentNav.description}</p>
-                </div>
-              )}
+      <div className="lg:pl-64">
+        {/* Header */}
+        <header className="sticky top-0 z-30 bg-bg-secondary border-b border-border-primary">
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-md text-text-tertiary hover:text-text-primary focus-ring"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+
+            {/* Header content */}
+            <div className="flex items-center space-x-4">
+              <div className="hidden sm:flex items-center space-x-4">
+                <span className="text-sm text-text-secondary">
+                  Last updated: {new Date().toLocaleTimeString()}
+                </span>
+              </div>
             </div>
 
-            <div className="flex items-center space-x-2 md:space-x-4">
-              {/* System Status */}
-              <div className="hidden sm:flex items-center space-x-2 px-2 md:px-3 py-1 md:py-1.5 bg-bg-deep rounded-lg border border-gray-700">
-                <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
-                <span className="text-xs md:text-sm text-gray-300">System Online</span>
-              </div>
-
-              {/* Notifications */}
-              <div className="relative">
+            {/* Header actions */}
+            <div className="flex items-center space-x-2">
+              {/* Auto-refresh controls */}
+              <div className="hidden sm:flex items-center space-x-2">
                 <button
-                  onClick={() => setNotificationsOpen(!notificationsOpen)}
-                  className="relative p-1.5 md:p-2 text-gray-400 hover:text-white transition-colors"
-                  aria-label="Toggle notifications"
-                  aria-expanded={notificationsOpen}
+                  onClick={() => setAutoRefresh(!autoRefresh)}
+                  className={`p-2 rounded-md text-sm font-medium transition-colors ${
+                    autoRefresh 
+                      ? 'bg-success text-white' 
+                      : 'bg-bg-tertiary text-text-secondary hover:text-text-primary'
+                  }`}
+                  title={`Auto-refresh ${autoRefresh ? 'enabled' : 'disabled'}`}
                 >
-                  <Bell className="h-4 w-4 md:h-5 md:w-5" />
-                  {alerts.filter((alert: {read: boolean}) => !alert.read).length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-critical rounded-full" aria-label="Unread notifications"></span>
-                  )}
+                  <RefreshCw className={`w-4 h-4 ${autoRefresh ? 'animate-spin' : ''}`} />
                 </button>
-                {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-72 md:w-80 bg-surface border border-gray-700 rounded-lg shadow-lg z-50">
-                    <div className="p-3 md:p-4 border-b border-gray-700">
-                      <h3 className="text-sm font-medium text-white">Notifications</h3>
-                    </div>
-                    <div className="max-h-48 md:max-h-64 overflow-y-auto">
-                      {alerts.length > 0 ? (
-                        alerts.map((alert: any, index: number) => (
-                          <div key={index} className="p-3 md:p-4 border-b border-gray-700 last:border-b-0">
-                            <div className="flex items-start space-x-2 md:space-x-3">
-                              <div className="w-2 h-2 bg-accent rounded-full mt-2"></div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-white break-words">{alert.message}</p>
-                                <p className="text-xs text-gray-400 mt-1">{alert.timestamp}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-3 md:p-4 text-center text-gray-400">
-                          <p className="text-sm">No notifications</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                {autoRefresh && (
+                  <select
+                    value={refreshInterval}
+                    onChange={(e) => setRefreshInterval(Number(e.target.value))}
+                    className="bg-bg-tertiary text-text-primary text-xs rounded-md px-2 py-1 border border-border-primary focus-ring"
+                  >
+                    <option value={15}>15s</option>
+                    <option value={30}>30s</option>
+                    <option value={60}>60s</option>
+                  </select>
                 )}
               </div>
 
-              {/* User Menu */}
-              <div className="relative">
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center space-x-1 md:space-x-2 p-1.5 md:p-2 text-gray-400 hover:text-white transition-colors"
-                  aria-label="Toggle user menu"
-                  aria-expanded={userMenuOpen}
-                >
-                  <div className="w-7 h-7 md:w-8 md:h-8 bg-primary rounded-lg flex items-center justify-center">
-                    <User className="h-3 w-3 md:h-4 md:w-4 text-white" />
-                  </div>
-                  <span className="hidden sm:block text-xs md:text-sm font-medium">Admin</span>
-                  <ChevronDown className="h-3 w-3 md:h-4 md:w-4" />
-                </button>
-                {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-40 md:w-48 bg-surface border border-gray-700 rounded-lg shadow-lg z-50">
-                    <div className="py-1">
-                      <Link
-                        to="/settings"
-                        className="block px-3 md:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                        onClick={() => setUserMenuOpen(false)}
-                      >
-                        Settings
-                      </Link>
-                      <button 
-                        className="block w-full text-left px-3 md:px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                        aria-label="Sign out"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Manual refresh */}
+              <button
+                onClick={refresh}
+                className="p-2 rounded-md bg-bg-tertiary text-text-secondary hover:text-text-primary focus-ring"
+                title="Refresh data"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+
+              {/* Theme toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-md bg-bg-tertiary text-text-secondary hover:text-text-primary focus-ring"
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Page content */}
-        <main className="flex-1">
+        {/* Main content area */}
+        <main id="main-content" className="flex-1">
           {children}
         </main>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default Layout;
