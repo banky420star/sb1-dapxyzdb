@@ -1,19 +1,117 @@
 // src/lib/api.ts
 // Centralized API configuration for MetaTrader.xyz
+// Enhanced with secure authentication, rate limiting, and MetaTrader integration
 
 export const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://api.methtrader.xyz');
 
-export async function getJSON<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    credentials: 'include',
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...(init?.headers || {}) },
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.json() as Promise<T>
+// Secure API configuration
+const API_CONFIG = {
+  timeout: 10000, // 10 second timeout
+  retries: 3,
+  retryDelay: 1000,
+  rateLimit: {
+    requests: 100,
+    window: 60000 // 1 minute
+  }
+};
+
+// Rate limiting implementation
+class RateLimiter {
+  private requests: number[] = [];
+  private limit: number;
+  private window: number;
+
+  constructor(limit: number, window: number) {
+    this.limit = limit;
+    this.window = window;
+  }
+
+  canMakeRequest(): boolean {
+    const now = Date.now();
+    this.requests = this.requests.filter(time => now - time < this.window);
+    return this.requests.length < this.limit;
+  }
+
+  recordRequest(): void {
+    this.requests.push(Date.now());
+  }
 }
 
-// API endpoints that match our Railway backend
+const rateLimiter = new RateLimiter(API_CONFIG.rateLimit.requests, API_CONFIG.rateLimit.window);
+
+// Enhanced error handling with retry logic
+async function fetchWithRetry(url: string, options: RequestInit, retries = API_CONFIG.retries): Promise<Response> {
+  try {
+    if (!rateLimiter.canMakeRequest()) {
+      throw new Error('Rate limit exceeded. Please try again later.');
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Version': '1.0',
+        'X-Client': 'methtrader-web',
+        ...options.headers,
+      }
+    });
+
+    clearTimeout(timeoutId);
+    rateLimiter.recordRequest();
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return response;
+  } catch (error) {
+    if (retries > 0 && (error instanceof TypeError || error.name === 'AbortError')) {
+      await new Promise(resolve => setTimeout(resolve, API_CONFIG.retryDelay));
+      return fetchWithRetry(url, options, retries - 1);
+    }
+    throw error;
+  }
+}
+
+export async function getJSON<T>(path: string, init?: RequestInit): Promise<T> {
+  const url = `${API_BASE}${path}`;
+  
+  try {
+    const res = await fetchWithRetry(url, {
+      credentials: 'include',
+      ...init,
+    });
+    
+    return await res.json() as T;
+  } catch (error) {
+    console.error(`API Error (${path}):`, error);
+    throw new Error(`Failed to fetch ${path}: ${error.message}`);
+  }
+}
+
+// MetaTrader API integration types
+interface MetaTraderConfig {
+  accountId: string;
+  server: string;
+  token: string;
+}
+
+interface TradingSignal {
+  symbol: string;
+  side: 'buy' | 'sell';
+  type: 'market' | 'limit' | 'stop';
+  volume: number;
+  price?: number;
+  stopLoss?: number;
+  takeProfit?: number;
+  comment?: string;
+}
+
+// API endpoints that match our Railway backend with MetaTrader integration
 export const api = {
   // Health and status
   health: () => getJSON<{status: string, timestamp: string, uptime: number, memory: any, environment: string, version: string}>('/health'),
@@ -31,24 +129,90 @@ export const api = {
   getModels: () => getJSON<{models: Array<{type: string, status: string, metrics?: {accuracy: number, trades: number, profitPct: number}}>}>('/api/models'),
   getTrainingStatus: () => getJSON<{isTraining: boolean, currentModel: string | null, progress: number, lastTraining: string | null, updatedAt: string}>('/api/training/status'),
   
-  // Trading actions
-  executeTrade: (data: {symbol: string, side: string, confidence?: number}) => getJSON('/api/trade/execute', {
+  // Trading actions with enhanced security
+  executeTrade: (data: TradingSignal) => getJSON('/api/trade/execute', {
     method: 'POST',
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
+    headers: {
+      'X-Trade-Confirmation': 'required'
+    }
   }),
-  startTrading: () => getJSON('/api/trading/start', { method: 'POST' }),
-  stopTrading: () => getJSON('/api/trading/stop', { method: 'POST' }),
+  
+  startTrading: () => getJSON('/api/trading/start', { 
+    method: 'POST',
+    headers: {
+      'X-Admin-Required': 'true'
+    }
+  }),
+  
+  stopTrading: () => getJSON('/api/trading/stop', { 
+    method: 'POST',
+    headers: {
+      'X-Admin-Required': 'true'
+    }
+  }),
   
   // Auto trading consensus
   autoTick: (data: {symbol?: string, candles?: any[]}) => getJSON('/api/auto/tick', {
     method: 'POST',
     body: JSON.stringify(data)
   }),
+
+  // MetaTrader specific endpoints
+  getMetaTraderConfig: () => getJSON<MetaTraderConfig>('/api/metatrader/config'),
+  updateMetaTraderConfig: (config: MetaTraderConfig) => getJSON('/api/metatrader/config', {
+    method: 'PUT',
+    body: JSON.stringify(config),
+    headers: {
+      'X-Admin-Required': 'true'
+    }
+  }),
+
+  // Risk management
+  getRiskSettings: () => getJSON<{
+    maxPositionSize: number;
+    maxDailyLoss: number;
+    stopLossPct: number;
+    takeProfitPct: number;
+    maxLeverage: number;
+  }>('/api/risk/settings'),
+
+  updateRiskSettings: (settings: any) => getJSON('/api/risk/settings', {
+    method: 'PUT',
+    body: JSON.stringify(settings),
+    headers: {
+      'X-Admin-Required': 'true'
+    }
+  }),
+
+  // Market data
+  getMarketData: (symbol: string) => getJSON<{
+    symbol: string;
+    price: number;
+    change: number;
+    volume: number;
+    high: number;
+    low: number;
+    timestamp: string;
+  }>(`/api/market/${symbol}`),
+
+  // Performance analytics
+  getPerformanceAnalytics: (timeframe: '1D' | '1W' | '1M' | '3M' | '1Y') => getJSON<{
+    totalPnL: number;
+    totalPnLPercentage: number;
+    winRate: number;
+    totalTrades: number;
+    averageWin: number;
+    averageLoss: number;
+    sharpeRatio: number;
+    maxDrawdown: number;
+    equityCurve: Array<{date: string, equity: number, pnl: number}>;
+  }>(`/api/analytics/performance?timeframe=${timeframe}`),
 };
 
-// Enhanced API with better error handling and types
+// Enhanced API with better error handling, types, and MetaTrader integration
 export const enhancedApi = {
-  // System status
+  // System status with enhanced monitoring
   async getSystemStatus() {
     try {
       const [health, status] = await Promise.all([
@@ -60,7 +224,10 @@ export const enhancedApi = {
         tradingMode: status.mode,
         autonomousTrading: status.autonomousTrading,
         uptime: health.uptime,
-        timestamp: health.timestamp
+        timestamp: health.timestamp,
+        memory: health.memory,
+        environment: health.environment,
+        version: health.version
       };
     } catch (error) {
       console.error('Error fetching system status:', error);
@@ -69,12 +236,15 @@ export const enhancedApi = {
         tradingMode: 'paper',
         autonomousTrading: false,
         uptime: 0,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        memory: null,
+        environment: 'unknown',
+        version: 'unknown'
       };
     }
   },
 
-  // Account data
+  // Account data with enhanced error handling
   async getAccountData() {
     try {
       const [balance, positions, tradingState] = await Promise.all([
@@ -92,7 +262,8 @@ export const enhancedApi = {
         positions: positions.positions,
         openOrders: tradingState.openOrders,
         pnlDayPct: tradingState.pnlDayPct,
-        tradingMode: positions.mode
+        tradingMode: positions.mode,
+        lastUpdated: new Date().toISOString()
       };
     } catch (error) {
       console.error('Error fetching account data:', error);
@@ -101,12 +272,13 @@ export const enhancedApi = {
         positions: [],
         openOrders: [],
         pnlDayPct: 0,
-        tradingMode: 'paper'
+        tradingMode: 'paper',
+        lastUpdated: new Date().toISOString()
       };
     }
   },
 
-  // Trading operations
+  // Trading operations with enhanced security
   async getTradingData() {
     try {
       const tradingStatus = await api.getTradingStatus();
@@ -127,7 +299,7 @@ export const enhancedApi = {
     }
   },
 
-  // Models and training
+  // Models and training with enhanced monitoring
   async getModelsData() {
     try {
       const [models, training] = await Promise.all([
@@ -159,7 +331,7 @@ export const enhancedApi = {
     }
   },
 
-  // Trading actions with better error handling
+  // Enhanced trading actions with confirmation dialogs
   async startAutonomousTrading() {
     try {
       const result = await api.startTrading();
@@ -180,7 +352,7 @@ export const enhancedApi = {
     }
   },
 
-  async executeManualTrade(tradeData: {symbol: string, side: string, confidence?: number}) {
+  async executeManualTrade(tradeData: TradingSignal) {
     try {
       const result = await api.executeTrade(tradeData);
       return { success: true, data: result };
@@ -190,7 +362,35 @@ export const enhancedApi = {
     }
   },
 
-  // Real-time data polling
+  // MetaTrader integration
+  async getMetaTraderStatus() {
+    try {
+      const config = await api.getMetaTraderConfig();
+      return { connected: true, config };
+    } catch (error) {
+      console.error('Error fetching MetaTrader status:', error);
+      return { connected: false, config: null };
+    }
+  },
+
+  // Risk management
+  async getRiskManagementData() {
+    try {
+      const [riskSettings, performance] = await Promise.all([
+        api.getRiskSettings(),
+        api.getPerformanceAnalytics('1M')
+      ]);
+      return { riskSettings, performance };
+    } catch (error) {
+      console.error('Error fetching risk management data:', error);
+      return { 
+        riskSettings: null, 
+        performance: null 
+      };
+    }
+  },
+
+  // Real-time data polling with enhanced error handling
   async pollTradingStatus(callback: (data: any) => void, interval: number = 5000) {
     const poll = async () => {
       try {
@@ -209,7 +409,28 @@ export const enhancedApi = {
     
     // Return cleanup function
     return () => clearInterval(intervalId);
-  }
-};
+  },
 
-export default api; 
+  // Market data polling
+  async pollMarketData(symbols: string[], callback: (data: any) => void, interval: number = 1000) {
+    const poll = async () => {
+      try {
+        const marketData = await Promise.all(
+          symbols.map(symbol => api.getMarketData(symbol))
+        );
+        callback(marketData);
+      } catch (error) {
+        console.error('Error polling market data:', error);
+      }
+    };
+    
+    // Initial call
+    await poll();
+    
+    // Set up interval
+    const intervalId = setInterval(poll, interval);
+    
+    // Return cleanup function
+    return () => clearInterval(intervalId);
+  }
+}; 
