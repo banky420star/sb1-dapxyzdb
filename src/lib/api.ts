@@ -1,6 +1,6 @@
 // src/lib/api.ts
 export const API_BASE =
-  import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : '')
+  import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://normal-sofa-production-9d2b.up.railway.app')
 
 export async function getJSON<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -12,85 +12,25 @@ export async function getJSON<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-export interface TradeRequest {
-  symbol: string;
-  features?: any;
-  manualOverride?: {
-    side: 'buy' | 'sell';
-    confidence: number;
-  };
-}
-
-export interface ConsensusResponse {
-  passes: boolean;
-  finalSignal: 'buy' | 'sell' | 'hold';
-  avgConfidence: number;
-  voteBreakdown: {
-    buy: number;
-    sell: number;
-    hold: number;
-  };
-  models: Array<{
-    name: string;
-    signal: string;
-    confidence: number;
-  }>;
-  timestamp: string;
-  riskParams?: {
-    positionSize: number;
-    stopLoss: number;
-    takeProfit: number;
-    maxTradeSize: number;
-  };
-}
-
-export interface TradeResponse {
-  ok: boolean;
-  consensus: ConsensusResponse;
-  tradeResult: any;
-  appliedRisk: any;
-  timestamp: string;
-}
-
+// New API endpoints that match our Railway backend
 export const api = {
-  // Status and health
-  status: () => getJSON('/api/status'),
-  health: () => getJSON('/health'),
-  
-  // Trading operations (v2)
-  executeTrade: (payload: any) =>
-    getJSON('/api/trade/execute', { 
-      method: 'POST', 
-      body: JSON.stringify(payload) 
-    }),
-  
-  // Autonomous tick (v2)
-  tick: (payload: any) => 
-    getJSON('/api/auto/tick', { 
-      method: 'POST', 
-      body: JSON.stringify(payload) 
-    }),
+  // Health and status
+  health: () => getJSON('/api/health'),
+  version: () => getJSON('/api/version'),
   
   // Account information
-  getBalance: () => getJSON('/api/account/balance'),
-  getPositions: (symbol?: string) => 
-    getJSON(`/api/positions${symbol ? `?symbol=${symbol}` : ''}`),
+  getBalance: () => getJSON('/api/balance'),
   
-  // AI consensus
-  getConsensus: (features?: any): Promise<ConsensusResponse> =>
-    getJSON('/api/ai/consensus', { 
-      method: 'POST', 
-      body: JSON.stringify({ features }) 
-    }),
+  // Trading state
+  getTradingState: () => getJSON('/api/trading/state'),
   
-  // Autonomous trading control
-  startAutonomousTrading: () =>
-    getJSON('/api/trading/start', { method: 'POST' }),
+  // Models and training
+  getModels: () => getJSON('/api/models'),
+  getTrainingStatus: () => getJSON('/api/training/status'),
   
-  stopAutonomousTrading: () =>
-    getJSON('/api/trading/stop', { method: 'POST' }),
-  
-  getTradingStatus: () => getJSON('/api/trading/status'),
+  // Legacy endpoints (for compatibility)
+  status: () => getJSON('/api/health'),
+  getPositions: () => getJSON('/api/trading/state').then(data => data.positions || []),
 };
 
 export default api; 
