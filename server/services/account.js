@@ -24,8 +24,11 @@ function generateSignature(params, secret) {
 // Get real balance from Bybit
 async function getBybitBalance() {
   if (!BYBIT_API_KEY || !BYBIT_SECRET) {
+    console.error('Bybit API credentials not configured')
     throw new Error('Bybit API credentials not configured')
   }
+
+  console.log('Fetching real Bybit balance...')
 
   const timestamp = Date.now().toString()
   const params = {
@@ -42,42 +45,59 @@ async function getBybitBalance() {
 
   const url = `${BYBIT_BASE_URL}/v5/account/wallet-balance?${queryString}&sign=${signature}`
 
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'X-BAPI-API-KEY': BYBIT_API_KEY,
-      'X-BAPI-TIMESTAMP': timestamp,
-      'X-BAPI-RECV-WINDOW': params.recvWindow
+  console.log('Bybit API URL:', url)
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-BAPI-API-KEY': BYBIT_API_KEY,
+        'X-BAPI-TIMESTAMP': timestamp,
+        'X-BAPI-RECV-WINDOW': params.recvWindow
+      }
+    })
+
+    console.log('Bybit API response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Bybit API error response:', errorText)
+      throw new Error(`Bybit API error: ${response.status} - ${errorText}`)
     }
-  })
 
-  if (!response.ok) {
-    throw new Error(`Bybit API error: ${response.status}`)
-  }
+    const data = await response.json()
+    console.log('Bybit API response data:', JSON.stringify(data, null, 2))
+    
+    if (data.retCode !== 0) {
+      console.error('Bybit API error:', data.retMsg)
+      throw new Error(`Bybit API error: ${data.retMsg}`)
+    }
 
-  const data = await response.json()
-  
-  if (data.retCode !== 0) {
-    throw new Error(`Bybit API error: ${data.retMsg}`)
-  }
+    const balance = data.result.list[0]?.coin[0]
+    if (!balance) {
+      console.error('No balance data found in response')
+      throw new Error('No balance data found')
+    }
 
-  const balance = data.result.list[0]?.coin[0]
-  if (!balance) {
-    throw new Error('No balance data found')
-  }
+    console.log('Successfully fetched Bybit balance:', balance)
 
-  return {
-    mode: 'live',
-    currency: balance.coin,
-    available: parseFloat(balance.walletBalance),
-    equity: parseFloat(balance.walletBalance),
-    pnl24hPct: 0, // Would need additional API call for PnL
-    updatedAt: new Date().toISOString()
+    return {
+      mode: 'live',
+      currency: balance.coin,
+      available: parseFloat(balance.walletBalance),
+      equity: parseFloat(balance.walletBalance),
+      pnl24hPct: 0, // Would need additional API call for PnL
+      updatedAt: new Date().toISOString()
+    }
+  } catch (error) {
+    console.error('Error in getBybitBalance:', error.message)
+    throw error
   }
 }
 
 // Get paper trading balance (simulated)
 function getPaperBalance() {
+  console.log('Using paper trading balance (fallback)')
   return {
     mode: 'paper',
     currency: 'USDT',
@@ -90,6 +110,9 @@ function getPaperBalance() {
 
 export async function getLiveBalance() {
   const mode = (process.env.TRADING_MODE || 'paper').toLowerCase()
+  console.log('Trading mode:', mode)
+  console.log('Bybit API Key configured:', !!BYBIT_API_KEY)
+  console.log('Bybit Secret configured:', !!BYBIT_SECRET)
   
   try {
     if (mode === 'live' && BYBIT_API_KEY && BYBIT_SECRET) {
