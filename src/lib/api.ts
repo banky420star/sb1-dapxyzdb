@@ -208,6 +208,151 @@ export const api = {
     maxDrawdown: number;
     equityCurve: Array<{date: string, equity: number, pnl: number}>;
   }>(`/api/analytics/performance?timeframe=${timeframe}`),
+
+  // Risk management endpoints
+  getRiskStatus: () => getJSON<{
+    config: any;
+    state: any;
+    alerts: any[];
+    violations: any[];
+    riskLevel: string;
+  }>('/api/risk/status'),
+
+  getRiskConfig: () => getJSON<{
+    maxPositionSize: number;
+    maxTotalExposure: number;
+    maxLeverage: number;
+    defaultStopLoss: number;
+    defaultTakeProfit: number;
+    maxDailyLoss: number;
+  }>('/api/risk/config'),
+
+  updateRiskConfig: (config: any) => getJSON('/api/risk/config', {
+    method: 'PUT',
+    body: JSON.stringify(config),
+    headers: {
+      'X-Admin-Required': 'true'
+    }
+  }),
+
+  getRiskViolations: (severity?: string, limit?: number) => {
+    const params = new URLSearchParams()
+    if (severity) params.append('severity', severity)
+    if (limit) params.append('limit', limit.toString())
+    return getJSON<{
+      data: any[];
+      count: number;
+    }>(`/api/risk/violations?${params.toString()}`)
+  },
+
+  emergencyStop: () => getJSON('/api/risk/emergency-stop', {
+    method: 'POST',
+    headers: {
+      'X-Admin-Required': 'true'
+    }
+  }),
+
+  resetDailyRisk: () => getJSON('/api/risk/reset-daily', {
+    method: 'POST',
+    headers: {
+      'X-Admin-Required': 'true'
+    }
+  }),
+
+  validatePosition: (data: {
+    accountBalance: number;
+    positionSize: number;
+    symbol: string;
+    currentPositions?: any[];
+  }) => getJSON('/api/risk/validate-position', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+
+  calculatePositionSize: (data: {
+    accountBalance: number;
+    entryPrice: number;
+    stopLossPrice: number;
+    riskPerTrade?: number;
+  }) => getJSON('/api/risk/calculate-position-size', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+
+  // Monitoring endpoints
+  getMonitoringMetrics: () => getJSON<{
+    api: any;
+    trading: any;
+    system: any;
+    risk: any;
+  }>('/api/monitoring/metrics'),
+
+  getSystemHealth: () => getJSON<{
+    status: string;
+    lastCheck: string;
+    issues: string[];
+  }>('/api/monitoring/health'),
+
+  getAlerts: (severity?: string, limit?: number) => {
+    const params = new URLSearchParams()
+    if (severity) params.append('severity', severity)
+    if (limit) params.append('limit', limit.toString())
+    return getJSON<{
+      data: any[];
+      count: number;
+    }>(`/api/monitoring/alerts?${params.toString()}`)
+  },
+
+  getApiPerformance: () => getJSON<{
+    totalRequests: number;
+    successfulRequests: number;
+    failedRequests: number;
+    successRate: string;
+    averageLatency: string;
+    lastLatency: number;
+    errorRate: string;
+  }>('/api/monitoring/api-performance'),
+
+  getTradingPerformance: () => getJSON<{
+    totalOrders: number;
+    successfulOrders: number;
+    failedOrders: number;
+    successRate: string;
+    averageSlippage: string;
+    lastOrderLatency: number;
+    failureRate: string;
+  }>('/api/monitoring/trading-performance'),
+
+  getSystemMetrics: () => getJSON<{
+    memoryUsage: string;
+    cpuUsage: string;
+    activeConnections: number;
+    uptime: number;
+    uptimeFormatted: string;
+  }>('/api/monitoring/system-metrics'),
+
+  getRiskMetrics: () => getJSON<{
+    violations: number;
+    alerts: number;
+    riskLevel: string;
+  }>('/api/monitoring/risk-metrics'),
+
+  getPerformanceReport: () => getJSON<{
+    summary: any;
+    api: any;
+    trading: any;
+    system: any;
+    risk: any;
+    recentAlerts: any[];
+    issues: string[];
+  }>('/api/monitoring/performance-report'),
+
+  resetMetrics: () => getJSON('/api/monitoring/reset-metrics', {
+    method: 'POST',
+    headers: {
+      'X-Admin-Required': 'true'
+    }
+  }),
 };
 
 // Enhanced API with better error handling, types, and MetaTrader integration
