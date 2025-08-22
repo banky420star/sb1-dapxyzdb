@@ -12,6 +12,7 @@ import { health } from './routes/health.js'
 import { account } from './routes/account.js'
 import { trading } from './routes/trading.js'
 import { models } from './routes/models.js'
+import { liveData } from './routes/live-data.js'
 import riskRoutes from './routes/risk.js'
 import monitoringRoutes from './routes/monitoring.js'
 // import { monitoringMiddleware } from './services/monitoring.js'
@@ -56,6 +57,7 @@ app.use('/api', health)
 app.use('/api', account)
 app.use('/api', trading)
 app.use('/api', models)
+app.use('/api', liveData)
 app.use('/api/risk', riskRoutes)
 app.use('/api/monitoring', monitoringRoutes)
 
@@ -66,7 +68,7 @@ app.get('/', (_req, res) => {
     service: 'api',
     mode: process.env.TRADING_MODE || 'paper',
     hint: 'Frontend is deployed on Netlify',
-    features: ['trading', 'risk-management', 'monitoring', 'models']
+    features: ['trading', 'risk-management', 'monitoring', 'models', 'live-data-feed']
   })
 })
 
@@ -81,5 +83,5 @@ app.use((err, _req, res, _next) => {
 const PORT = process.env.PORT || 8000
 app.listen(PORT, () => {
   console.log(`[api] listening on ${PORT} | mode=${process.env.TRADING_MODE || 'paper'}`)
-  console.log(`[api] features: trading, risk-management, monitoring, models`)
+  console.log(`[api] features: trading, risk-management, monitoring, models, live-data-feed`)
 })

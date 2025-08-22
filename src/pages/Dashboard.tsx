@@ -28,6 +28,7 @@ import AutonomousTradingPanel from '../components/AutonomousTradingPanel';
 import TradeFeed from '../components/TradeFeed';
 import ModelTrainingMonitor from '../components/ModelTrainingMonitor';
 import DataPipelineMonitor from '../components/DataPipelineMonitor';
+import LiveDataFeed from '../components/LiveDataFeed';
 
 interface MetricCardProps {
   title: string;
@@ -404,6 +405,11 @@ const Dashboard: React.FC = () => {
           <h2 className="text-lg font-semibold text-text-primary mb-4">Recent Trades</h2>
           <TradeFeed />
         </motion.div>
+      </div>
+
+      {/* Live Data Feed Section */}
+      <div className="mt-6">
+        <LiveDataFeed />
       </div>
     </div>
   );
