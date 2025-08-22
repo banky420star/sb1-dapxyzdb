@@ -4,6 +4,49 @@
 
 export const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://normal-sofa-production-9d2b.up.railway.app');
 
+// API response types
+interface HealthResponse {
+  ok: boolean;
+  uptime?: number;
+  timestamp?: string;
+  memory?: any;
+  environment?: string;
+  version?: string;
+}
+
+interface TradingStateResponse {
+  ok: boolean;
+  mode: string;
+  autonomousTrading?: boolean;
+  positions: any[];
+  openOrders: any[];
+  pnlDayPct?: number;
+  updatedAt?: string;
+}
+
+interface BalanceResponse {
+  mode: string;
+  currency: string;
+  total: number;
+  available: number;
+  equity: number;
+  pnl24hPct: number;
+  updatedAt: string;
+}
+
+interface TradingStatusResponse {
+  ok: boolean;
+  isActive: boolean;
+  config: any;
+  tradeLog: any[];
+  lastUpdate: string;
+}
+
+interface ModelsResponse {
+  ok: boolean;
+  models: any[];
+}
+
 // Secure API configuration
 const API_CONFIG = {
   timeout: 10000, // 10 second timeout
@@ -114,19 +157,19 @@ interface TradingSignal {
 // API endpoints that match our Railway backend with MetaTrader integration
 export const api = {
   // Health and status
-  health: () => getJSON<{status: string, timestamp: string, uptime: number, memory: any, environment: string, version: string}>('/api/health'),
+  health: () => getJSON<HealthResponse>('/api/health'),
   status: () => getJSON<{status: string, mode: string, time: string, autonomousTrading: boolean}>('/api/status'),
   
   // Account information
-  getBalance: () => getJSON<{total: number, available: number, currency: string, mode: string}>('/api/account/balance'),
+  getBalance: () => getJSON<BalanceResponse>('/api/account/balance'),
   getPositions: () => getJSON<{positions: any[], mode: string}>('/api/account/positions'),
   
   // Trading state
-  getTradingStatus: () => getJSON<{success: boolean, data: {isActive: boolean, config: any, tradeLog: any[], timestamp: string}}>('/api/trading/status'),
-  getTradingState: () => getJSON<{mode: string, positions: any[], openOrders: any[], pnlDayPct: number, updatedAt: string}>('/api/trading/state'),
+  getTradingStatus: () => getJSON<TradingStatusResponse>('/api/trading/status'),
+  getTradingState: () => getJSON<TradingStateResponse>('/api/trading/state'),
   
   // Models and training
-  getModels: () => getJSON<{models: Array<{type: string, status: string, metrics?: {accuracy: number, trades: number, profitPct: number}}>}>('/api/models'),
+  getModels: () => getJSON<ModelsResponse>('/api/models'),
   getTrainingStatus: () => getJSON<{isTraining: boolean, currentModel: string | null, progress: number, lastTraining: string | null, updatedAt: string}>('/api/training/status'),
   
   // Trading actions with enhanced security
@@ -360,19 +403,17 @@ export const enhancedApi = {
   // System status with enhanced monitoring
   async getSystemStatus() {
     try {
-      const [health, status] = await Promise.all([
-        api.health(),
-        api.status()
-      ]);
+      const health = await getJSON<HealthResponse>('/health');
+      const tradingState = await getJSON<TradingStateResponse>('/trading/state');
       return {
-        isOnline: health.status === 'healthy',
-        tradingMode: status.mode,
-        autonomousTrading: status.autonomousTrading,
-        uptime: health.uptime,
-        timestamp: health.timestamp,
-        memory: health.memory,
-        environment: health.environment,
-        version: health.version
+        isOnline: health.ok === true,
+        tradingMode: tradingState.mode || 'paper',
+        autonomousTrading: tradingState.autonomousTrading || false,
+        uptime: health.uptime || 0,
+        timestamp: health.timestamp || new Date().toISOString(),
+        memory: health.memory || null,
+        environment: health.environment || 'production',
+        version: health.version || '1.0.0'
       };
     } catch (error) {
       console.error('Error fetching system status:', error);
@@ -392,23 +433,20 @@ export const enhancedApi = {
   // Account data with enhanced error handling
   async getAccountData() {
     try {
-      const [balance, positions, tradingState] = await Promise.all([
-        api.getBalance(),
-        api.getPositions(),
-        api.getTradingState()
-      ]);
+      const balance = await getJSON<BalanceResponse>('/account/balance');
+      const tradingState = await getJSON<TradingStateResponse>('/trading/state');
       return {
         balance: {
-          total: balance.total,
-          available: balance.available,
-          currency: balance.currency,
-          mode: balance.mode
+          total: balance.total || 0,
+          available: balance.available || 0,
+          currency: balance.currency || 'USDT',
+          mode: balance.mode || 'paper'
         },
-        positions: positions.positions,
-        openOrders: tradingState.openOrders,
-        pnlDayPct: tradingState.pnlDayPct,
-        tradingMode: positions.mode,
-        lastUpdated: new Date().toISOString()
+        positions: tradingState.positions || [],
+        openOrders: tradingState.openOrders || [],
+        pnlDayPct: tradingState.pnlDayPct || 0,
+        tradingMode: tradingState.mode || 'paper',
+        lastUpdated: tradingState.updatedAt || new Date().toISOString()
       };
     } catch (error) {
       console.error('Error fetching account data:', error);
@@ -426,12 +464,12 @@ export const enhancedApi = {
   // Trading operations with enhanced security
   async getTradingData() {
     try {
-      const tradingStatus = await api.getTradingStatus();
+      const tradingStatus = await getJSON<TradingStatusResponse>('/trading/status');
       return {
-        isActive: tradingStatus.data.isActive,
-        config: tradingStatus.data.config,
-        tradeLog: tradingStatus.data.tradeLog,
-        timestamp: tradingStatus.data.timestamp
+        isActive: tradingStatus.isActive || false,
+        config: tradingStatus.config || {},
+        tradeLog: tradingStatus.tradeLog || [],
+        timestamp: tradingStatus.lastUpdate || new Date().toISOString()
       };
     } catch (error) {
       console.error('Error fetching trading data:', error);
@@ -447,18 +485,15 @@ export const enhancedApi = {
   // Models and training with enhanced monitoring
   async getModelsData() {
     try {
-      const [models, training] = await Promise.all([
-        api.getModels(),
-        api.getTrainingStatus()
-      ]);
+      const models = await getJSON<ModelsResponse>('/models');
       return {
-        models: models.models,
+        models: models.models || [],
         training: {
-          isTraining: training.isTraining,
-          currentModel: training.currentModel,
-          progress: training.progress,
-          lastTraining: training.lastTraining,
-          updatedAt: training.updatedAt
+          isTraining: false, // We'll implement this later
+          currentModel: null,
+          progress: 0,
+          lastTraining: null,
+          updatedAt: new Date().toISOString()
         }
       };
     } catch (error) {
