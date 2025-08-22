@@ -1,6 +1,8 @@
 // server/services/models.js
 // Real model status and training monitoring
 
+import { continuousTrainingService } from './continuous-training.js'
+
 // Simulated model performance data (would connect to real ML models)
 function getModelMetrics() {
   const baseAccuracy = 65 + Math.random() * 25 // 65-90% accuracy
@@ -86,11 +88,6 @@ export async function listModels() {
 }
 
 export async function getTrainingStatus() {
-  // In a real implementation, this would:
-  // 1. Check if training processes are running
-  // 2. Read training logs for progress
-  // 3. Check GPU/CPU usage
-  // 4. Return real training status
-  
-  return getTrainingStatusInternal()
+  // Return real training status from continuous training service
+  return continuousTrainingService.getStatus()
 }
