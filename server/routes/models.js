@@ -1,7 +1,6 @@
 // server/routes/models.js
 import { Router } from 'express'
-import { listModels, getTrainingStatus } from '../services/models.js'
-import { continuousTrainingService } from '../services/continuous-training.js'
+import { listModels, getTrainingStatus, startTraining, stopTraining } from '../services/models.js'
 
 export const models = Router()
 
@@ -22,27 +21,28 @@ models.get('/training/status', async (_req, res, next) => {
 })
 
 // POST /api/training/start
-models.post('/training/start', async (_req, res, next) => {
+models.post('/training/start', async (req, res, next) => {
   try {
-    continuousTrainingService.start()
-    res.json({ 
-      ok: true, 
-      message: 'Continuous training started',
-      status: continuousTrainingService.getStatus()
-    })
-  } catch (e) { next(e) }
+    const { model } = req.body
+    if (!model) {
+      return res.status(400).json({ ok: false, error: 'Model type required' })
+    }
+    
+    const result = await startTraining(model)
+    res.json({ ok: true, message: `Training started for ${model}`, ...result })
+  } catch (e) { 
+    res.status(400).json({ ok: false, error: e.message })
+  }
 })
 
 // POST /api/training/stop
 models.post('/training/stop', async (_req, res, next) => {
   try {
-    continuousTrainingService.stop()
-    res.json({ 
-      ok: true, 
-      message: 'Continuous training stopped',
-      status: continuousTrainingService.getStatus()
-    })
-  } catch (e) { next(e) }
+    const result = await stopTraining()
+    res.json({ ok: true, message: 'Training stopped', ...result })
+  } catch (e) { 
+    res.status(400).json({ ok: false, error: e.message })
+  }
 })
 
 // GET /api/training/metrics
