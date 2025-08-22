@@ -48,7 +48,7 @@ function getModelMetrics() {
 }
 
 // Check if any model is currently training
-function getTrainingStatus() {
+function getTrainingStatusInternal() {
   // Simulate occasional training (10% chance)
   const isTraining = Math.random() < 0.1
   
@@ -92,5 +92,5 @@ export async function getTrainingStatus() {
   // 3. Check GPU/CPU usage
   // 4. Return real training status
   
-  return getTrainingStatus()
+  return getTrainingStatusInternal()
 }
