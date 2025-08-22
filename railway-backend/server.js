@@ -113,6 +113,28 @@ app.get('/health', (_req, res) => {
   });
 });
 
+// --- API Health endpoint (for frontend) ---
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0'
+  });
+});
+
+// --- API Version endpoint (for frontend) ---
+app.get('/api/version', (_req, res) => {
+  res.status(200).json({
+    version: '2.0.0',
+    build: process.env.RAILWAY_GIT_COMMIT_SHA || 'local',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // --- Status for UI ---
 app.get('/api/status', (_req, res) => {
   res.json({

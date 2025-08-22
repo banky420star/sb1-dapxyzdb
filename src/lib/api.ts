@@ -114,7 +114,7 @@ interface TradingSignal {
 // API endpoints that match our Railway backend with MetaTrader integration
 export const api = {
   // Health and status
-  health: () => getJSON<{status: string, timestamp: string, uptime: number, memory: any, environment: string, version: string}>('/health'),
+  health: () => getJSON<{status: string, timestamp: string, uptime: number, memory: any, environment: string, version: string}>('/api/health'),
   status: () => getJSON<{status: string, mode: string, time: string, autonomousTrading: boolean}>('/api/status'),
   
   // Account information
