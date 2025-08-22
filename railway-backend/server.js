@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import { continuousTrainingService } from './server/services/continuous-training.js';
 
 const app = express();
 
@@ -73,6 +74,9 @@ app.get('/', (_req, res) => {
       'GET /api/trading/state',
       'GET /api/models',
       'GET /api/training/status',
+      'POST /api/training/start',
+      'POST /api/training/stop',
+      'GET /api/training/metrics',
       'POST /api/trade/execute',
       'POST /api/trading/start',
       'POST /api/trading/stop'
@@ -431,15 +435,36 @@ app.get('/api/models', (_req, res) => {
   });
 });
 
+
+
 // --- Training status endpoint ---
 app.get('/api/training/status', (_req, res) => {
-  res.json({
-    isTraining: false,
-    currentModel: null,
-    progress: 0,
-    lastTraining: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 24 hours ago
-    updatedAt: new Date().toISOString()
+  const status = continuousTrainingService.getStatus();
+  res.json(status);
+});
+
+// --- Training control endpoints ---
+app.post('/api/training/start', (_req, res) => {
+  continuousTrainingService.start();
+  res.json({ 
+    ok: true, 
+    message: 'Continuous training started',
+    status: continuousTrainingService.getStatus()
   });
+});
+
+app.post('/api/training/stop', (_req, res) => {
+  continuousTrainingService.stop();
+  res.json({ 
+    ok: true, 
+    message: 'Continuous training stopped',
+    status: continuousTrainingService.getStatus()
+  });
+});
+
+app.get('/api/training/metrics', (_req, res) => {
+  const metrics = continuousTrainingService.getTrainingMetrics();
+  res.json({ ok: true, metrics });
 });
 
 // --- Enhanced trading state endpoint ---
@@ -467,6 +492,9 @@ app.use('*', (req, res) => {
       'GET /api/trading/state',
       'GET /api/models',
       'GET /api/training/status',
+      'POST /api/training/start',
+      'POST /api/training/stop',
+      'GET /api/training/metrics',
       'POST /api/trade/execute',
       'POST /api/trading/start',
       'POST /api/trading/stop',
