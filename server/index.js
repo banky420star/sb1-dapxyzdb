@@ -14,7 +14,7 @@ import { trading } from './routes/trading.js'
 import { models } from './routes/models.js'
 import riskRoutes from './routes/risk.js'
 import monitoringRoutes from './routes/monitoring.js'
-import { monitoringMiddleware } from './services/monitoring.js'
+// import { monitoringMiddleware } from './services/monitoring.js'
 
 const app = express()
 
@@ -49,7 +49,7 @@ app.use(rateLimit({
 app.use(morgan('combined'))
 
 // Monitoring middleware (track API performance)
-app.use(monitoringMiddleware)
+// app.use(monitoringMiddleware)
 
 // --- API routes ---
 app.use('/api', health)

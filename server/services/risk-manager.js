@@ -1,7 +1,7 @@
 // server/services/risk-manager.js
 // Comprehensive Risk Management System
 
-import { logger } from '../utils/logger.js'
+import logger from '../utils/simple-logger.js'
 
 // Risk Management Configuration
 const RISK_CONFIG = {

@@ -2,7 +2,7 @@
 // Enhanced Real Bybit API integration with Risk Management and Monitoring
 
 import crypto from 'crypto'
-import { logger } from '../utils/logger.js'
+import logger from '../utils/simple-logger.js'
 import { riskManager } from './risk-manager.js'
 import { performanceMonitor } from './monitoring.js'
 

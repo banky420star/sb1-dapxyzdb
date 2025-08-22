@@ -1,7 +1,7 @@
 // server/services/monitoring.js
 // Comprehensive Monitoring and Alerting System
 
-import { logger } from '../utils/logger.js'
+import logger from '../utils/simple-logger.js'
 import { riskManager } from './risk-manager.js'
 
 // Monitoring configuration

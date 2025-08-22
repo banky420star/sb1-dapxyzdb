@@ -3,7 +3,7 @@
 
 import express from 'express'
 import { riskManager } from '../services/risk-manager.js'
-import { logger } from '../utils/logger.js'
+import logger from '../utils/simple-logger.js'
 
 const router = express.Router()
 
