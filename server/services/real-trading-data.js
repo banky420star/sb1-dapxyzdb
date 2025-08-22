@@ -20,7 +20,6 @@ async function getRealBybitBalance() {
   const timestamp = Date.now().toString()
   const params = {
     accountType: 'UNIFIED',
-    coin: 'USDT',
     timestamp: timestamp,
     recvWindow: '5000'
   }
@@ -37,6 +36,8 @@ async function getRealBybitBalance() {
 
   const url = `https://api.bybit.com/v5/account/wallet-balance?${queryString}&sign=${signature}`
 
+  console.log('Fetching Bybit balance from:', url)
+
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -47,25 +48,49 @@ async function getRealBybitBalance() {
   })
 
   if (!response.ok) {
-    throw new Error(`Bybit API error: ${response.status}`)
+    const errorText = await response.text()
+    console.error('Bybit API response error:', response.status, errorText)
+    throw new Error(`Bybit API error: ${response.status} - ${errorText}`)
   }
 
   const data = await response.json()
+  console.log('Bybit API response:', JSON.stringify(data, null, 2))
   
   if (data.retCode !== 0) {
     throw new Error(`Bybit API error: ${data.retMsg}`)
   }
 
-  const balance = data.result.list[0]?.coin[0]
-  if (!balance) {
-    throw new Error('No balance data found')
+  // Handle the correct response structure
+  const accountInfo = data.result.list[0]
+  if (!accountInfo) {
+    throw new Error('No account data found')
+  }
+
+  // Calculate total balance from all coins
+  let totalBalance = 0
+  let availableBalance = 0
+  
+  if (accountInfo.coin && Array.isArray(accountInfo.coin)) {
+    // New API structure with coin array
+    for (const coin of accountInfo.coin) {
+      if (coin.coin === 'USDT') {
+        totalBalance = parseFloat(coin.walletBalance || 0)
+        availableBalance = parseFloat(coin.availableToWithdraw || 0)
+        break
+      }
+    }
+  } else {
+    // Fallback to old structure
+    totalBalance = parseFloat(accountInfo.totalWalletBalance || 0)
+    availableBalance = parseFloat(accountInfo.availableToWithdraw || 0)
   }
 
   return {
     mode: 'live',
-    currency: balance.coin,
-    available: parseFloat(balance.walletBalance),
-    equity: parseFloat(balance.walletBalance),
+    currency: 'USDT',
+    total: totalBalance,
+    available: availableBalance,
+    equity: totalBalance,
     pnl24hPct: 0,
     updatedAt: new Date().toISOString()
   }

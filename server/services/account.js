@@ -9,7 +9,8 @@ function getPaperBalance() {
   return {
     mode: 'paper',
     currency: 'USDT',
-    available: 10000.00,
+    total: 10000.00,
+    available: 9500.00,
     equity: 10250.75,
     pnl24hPct: 2.5,
     updatedAt: new Date().toISOString()
