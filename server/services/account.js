@@ -22,16 +22,15 @@ export async function getLiveBalance() {
   console.log('Trading mode:', mode)
   
   try {
-    if (mode === 'live') {
-      const realData = getRealDataCache()
-      if (realData.balance) {
-        console.log('Returning real Bybit balance')
-        return realData.balance
-      } else {
-        console.log('No real balance available, using paper trading')
-        return getPaperBalance()
-      }
+    // Always try to get real data first, regardless of mode
+    const realData = getRealDataCache()
+    console.log('Real data cache:', realData)
+    
+    if (realData.balance && realData.balance.mode === 'live') {
+      console.log('Returning real Bybit balance:', realData.balance)
+      return realData.balance
     } else {
+      console.log('No real balance available or not in live mode, using paper trading')
       return getPaperBalance()
     }
   } catch (error) {
