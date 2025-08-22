@@ -98,7 +98,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
                 className="p-1 rounded text-text-tertiary hover:text-text-primary transition-colors"
                 title="Toggle widget visibility"
               >
-                <EyeOff className="w-4 h-4" />
+                <Eye className="w-4 h-4" />
               </button>
             )}
             <button
@@ -114,47 +114,23 @@ const MetricCard: React.FC<MetricCardProps> = ({
         {/* Widget Content */}
         <div className="space-y-3">
           {loading ? (
-            <div className="skeleton h-8 w-24 rounded mb-2"></div>
-          ) : (
-            <div className="flex items-end justify-between">
-              <p className="text-2xl font-bold text-text-primary">{value}</p>
-              {change !== undefined && (
-                <div className="flex items-center space-x-1">
-                  {getChangeIcon(change)}
-                  <span className={`text-sm font-medium ${getChangeColor(change)}`}>
-                    {change >= 0 ? '+' : ''}{change.toFixed(2)}%
-                  </span>
-                </div>
-              )}
+            <div className="animate-pulse">
+              <div className="h-8 bg-bg-tertiary rounded"></div>
             </div>
-          )}
-
-          {/* Expanded Content */}
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="pt-4 border-t border-border-primary"
-            >
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-text-tertiary">24h Volume</p>
-                  <p className="font-medium text-text-primary">$2.4M</p>
-                </div>
-                <div>
-                  <p className="text-text-tertiary">Active Trades</p>
-                  <p className="font-medium text-text-primary">12</p>
-                </div>
-                <div>
-                  <p className="text-text-tertiary">Win Rate</p>
-                  <p className="font-medium text-profit">68.5%</p>
-                </div>
-                <div>
-                  <p className="text-text-tertiary">Risk Level</p>
-                  <p className="font-medium text-warning">Medium</p>
-                </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold text-text-primary">{value}</span>
+                {change !== undefined && (
+                  <div className={`flex items-center space-x-1 ${getChangeColor(change)}`}>
+                    {getChangeIcon(change)}
+                    <span className="text-sm font-medium">
+                      {change >= 0 ? '+' : ''}{change.toFixed(2)}%
+                    </span>
+                  </div>
+                )}
               </div>
-            </motion.div>
+            </>
           )}
         </div>
       </div>
@@ -164,252 +140,195 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
 const Dashboard: React.FC = () => {
   const { state, refresh } = useTradingContext();
+  const [visibleWidgets, setVisibleWidgets] = useState<Set<string>>(new Set([
+    'balance', 'trading-status', 'autonomous-trading', 'models', 'live-data'
+  ]));
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [widgetVisibility, setWidgetVisibility] = useState({
-    portfolio: true,
-    accuracy: true,
-    trades: true,
-    profit: true,
-    autonomous: true,
-    models: true,
-    pipeline: true
-  });
-  const [layoutMode, setLayoutMode] = useState<'grid' | 'list'>('grid');
+
+  const toggleWidget = (widgetId: string) => {
+    const newVisible = new Set(visibleWidgets);
+    if (newVisible.has(widgetId)) {
+      newVisible.delete(widgetId);
+    } else {
+      newVisible.add(widgetId);
+    }
+    setVisibleWidgets(newVisible);
+  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refresh();
-    setLastRefresh(new Date());
     setIsRefreshing(false);
   };
 
-  const toggleWidget = (widgetId: string) => {
-    setWidgetVisibility(prev => ({
-      ...prev,
-      [widgetId]: !prev[widgetId as keyof typeof prev]
-    }));
-  };
+  useEffect(() => {
+    refresh();
+    const interval = setInterval(refresh, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, [refresh]);
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
+      minimumFractionDigits: 2
+    }).format(amount);
   };
-
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(2)}%`;
-  };
-
-  const metrics = [
-    {
-      id: 'portfolio',
-      title: 'Portfolio Value',
-      value: formatCurrency(state.balance?.total || 0),
-      change: state.pnl24hPct || 0,
-      icon: <DollarSign className="w-5 h-5 text-brand-primary" />,
-      lastUpdated: state.lastUpdated
-    },
-    {
-      id: 'accuracy',
-      title: 'AI Accuracy',
-      value: formatPercentage(state.models?.[0]?.metrics?.accuracy || 0),
-      change: 2.5,
-      icon: <Target className="w-5 h-5 text-success" />,
-      lastUpdated: state.lastUpdated
-    },
-    {
-      id: 'trades',
-      title: 'Total Trades',
-      value: state.models?.[0]?.metrics?.trades || 0,
-      change: 12.5,
-      icon: <Activity className="w-5 h-5 text-info" />,
-      lastUpdated: state.lastUpdated
-    },
-    {
-      id: 'profit',
-      title: 'Profit %',
-      value: formatPercentage(state.models?.[0]?.metrics?.profitPct || 0),
-      change: state.pnl24hPct || 0,
-      icon: <TrendingUp className="w-5 h-5 text-profit" />,
-      lastUpdated: state.lastUpdated
-    }
-  ];
 
   return (
-    <div className="space-y-6">
-      {/* Enhanced Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Trading Dashboard</h1>
-          <p className="text-text-tertiary mt-1">
-            Real-time overview of your autonomous trading performance
-          </p>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          {/* Layout Toggle */}
-          <div className="flex items-center bg-bg-tertiary rounded-lg p-1">
+    <div className="min-h-screen bg-bg-primary text-text-primary p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-text-primary mb-2">
+              🤖 Autonomous Trading Dashboard
+            </h1>
+            <p className="text-text-secondary">
+              Real-time monitoring of your AI-powered trading system
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${state.systemStatus === 'online' ? 'bg-profit' : 'bg-loss'}`}></div>
+              <span className="text-sm text-text-secondary">
+                {state.systemStatus === 'online' ? 'System Online' : 'System Offline'}
+              </span>
+            </div>
             <button
-              onClick={() => setLayoutMode('grid')}
-              className={`p-2 rounded-md text-sm transition-colors ${
-                layoutMode === 'grid' 
-                  ? 'bg-brand-primary text-white' 
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-              title="Grid layout"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="flex items-center space-x-2 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors disabled:opacity-50"
             >
-              <Grid3X3 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setLayoutMode('list')}
-              className={`p-2 rounded-md text-sm transition-colors ${
-                layoutMode === 'list' 
-                  ? 'bg-brand-primary text-white' 
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-              title="List layout"
-            >
-              <BarChart3 className="w-4 h-4" />
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
             </button>
           </div>
-
-          {/* Refresh Button */}
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="flex items-center space-x-2 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
-          </button>
-
-          {/* Widget Settings */}
-          <button className="p-2 rounded-lg bg-bg-tertiary text-text-secondary hover:text-text-primary transition-colors">
-            <Settings className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
-      {/* Last Updated Status */}
-      <div className="flex items-center justify-between text-sm text-text-tertiary">
-        <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
-        <div className="flex items-center space-x-2">
-          <div className={`w-2 h-2 rounded-full ${state.systemStatus === 'online' ? 'bg-success' : 'bg-error'}`}></div>
-          <span>{state.systemStatus === 'online' ? 'System Online' : 'System Offline'}</span>
-        </div>
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+        <MetricCard
+          title="Total Balance"
+          value={state.balance ? formatCurrency(state.balance.total) : '$0.00'}
+          change={state.balance?.pnl24hPct}
+          icon={<DollarSign className="w-5 h-5" />}
+          loading={!state.balance}
+          lastUpdated={state.balance?.updatedAt}
+          widgetId="balance"
+          onToggle={toggleWidget}
+          isVisible={visibleWidgets.has('balance')}
+        />
+
+        <MetricCard
+          title="Available Balance"
+          value={state.balance ? formatCurrency(state.balance.available) : '$0.00'}
+          icon={<Shield className="w-5 h-5" />}
+          loading={!state.balance}
+          lastUpdated={state.balance?.updatedAt}
+          widgetId="available"
+          onToggle={toggleWidget}
+          isVisible={visibleWidgets.has('available')}
+        />
+
+        <MetricCard
+          title="Trading Mode"
+          value={state.tradingMode.toUpperCase()}
+          icon={<Activity className="w-5 h-5" />}
+          lastUpdated={state.balance?.updatedAt}
+          widgetId="trading-mode"
+          onToggle={toggleWidget}
+          isVisible={visibleWidgets.has('trading-mode')}
+        />
+
+        <MetricCard
+          title="Autonomous Trading"
+          value={state.autonomousTrading.isActive ? 'ACTIVE' : 'INACTIVE'}
+          icon={<Bot className="w-5 h-5" />}
+          lastUpdated={state.autonomousTrading.lastUpdate}
+          widgetId="autonomous-trading"
+          onToggle={toggleWidget}
+          isVisible={visibleWidgets.has('autonomous-trading')}
+        />
+
+        <MetricCard
+          title="Total Positions"
+          value={state.positions.length}
+          icon={<BarChart3 className="w-5 h-5" />}
+          lastUpdated={state.balance?.updatedAt}
+          widgetId="positions"
+          onToggle={toggleWidget}
+          isVisible={visibleWidgets.has('positions')}
+        />
+
+        <MetricCard
+          title="Open Orders"
+          value={state.openOrders.length}
+          icon={<Clock className="w-5 h-5" />}
+          lastUpdated={state.balance?.updatedAt}
+          widgetId="orders"
+          onToggle={toggleWidget}
+          isVisible={visibleWidgets.has('orders')}
+        />
+
+        <MetricCard
+          title="AI Models Ready"
+          value={state.models.filter(m => m.status === 'ready').length}
+          icon={<Cpu className="w-5 h-5" />}
+          lastUpdated={state.balance?.updatedAt}
+          widgetId="models"
+          onToggle={toggleWidget}
+          isVisible={visibleWidgets.has('models')}
+        />
+
+        <MetricCard
+          title="Live Data Feed"
+          value={state.autonomousTrading.isActive ? 'ACTIVE' : 'INACTIVE'}
+          icon={<Zap className="w-5 h-5" />}
+          lastUpdated={state.autonomousTrading.lastUpdate}
+          widgetId="live-data"
+          onToggle={toggleWidget}
+          isVisible={visibleWidgets.has('live-data')}
+        />
       </div>
 
-      {/* Enhanced Metrics Grid */}
-      <div className={`grid gap-6 ${
-        layoutMode === 'grid' 
-          ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' 
-          : 'grid-cols-1'
-      }`}>
-        {metrics.map((metric) => (
-          <MetricCard
-            key={metric.id}
-            widgetId={metric.id}
-            title={metric.title}
-            value={metric.value}
-            change={metric.change}
-            icon={metric.icon}
-            loading={isRefreshing}
-            lastUpdated={metric.lastUpdated}
-            onToggle={toggleWidget}
-            isVisible={widgetVisibility[metric.id as keyof typeof widgetVisibility]}
-          />
-        ))}
-      </div>
-
-      {/* Enhanced Widgets Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Main Content Sections */}
+      <div className="space-y-6">
         {/* Autonomous Trading Panel */}
-        {widgetVisibility.autonomous && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-bg-secondary rounded-lg border border-border-primary p-6"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center">
-                <Bot className="w-5 h-5 mr-2 text-brand-primary" />
-                Autonomous Trading
-              </h2>
-              <button
-                onClick={() => toggleWidget('autonomous')}
-                className="p-1 rounded text-text-tertiary hover:text-text-primary transition-colors"
-              >
-                <EyeOff className="w-4 h-4" />
-              </button>
-            </div>
+        {visibleWidgets.has('autonomous-trading') && (
+          <div className="bg-bg-secondary rounded-lg border border-border-primary p-6">
             <AutonomousTradingPanel />
-          </motion.div>
+          </div>
         )}
 
-        {/* AI Models Status */}
-        {widgetVisibility.models && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-bg-secondary rounded-lg border border-border-primary p-6"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center">
-                <Cpu className="w-5 h-5 mr-2 text-success" />
-                AI Models Status
-              </h2>
-              <button
-                onClick={() => toggleWidget('models')}
-                className="p-1 rounded text-text-tertiary hover:text-text-primary transition-colors"
-              >
-                <EyeOff className="w-4 h-4" />
-              </button>
-            </div>
+        {/* Trade Feed */}
+        {visibleWidgets.has('trades') && (
+          <div className="bg-bg-secondary rounded-lg border border-border-primary p-6">
+            <TradeFeed />
+          </div>
+        )}
+
+        {/* Model Training Monitor */}
+        {visibleWidgets.has('training') && (
+          <div className="bg-bg-secondary rounded-lg border border-border-primary p-6">
             <ModelTrainingMonitor />
-          </motion.div>
+          </div>
         )}
 
         {/* Data Pipeline Monitor */}
-        {widgetVisibility.pipeline && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-bg-secondary rounded-lg border border-border-primary p-6"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-text-primary flex items-center">
-                <Zap className="w-5 h-5 mr-2 text-warning" />
-                Data Pipeline
-              </h2>
-              <button
-                onClick={() => toggleWidget('pipeline')}
-                className="p-1 rounded text-text-tertiary hover:text-text-primary transition-colors"
-              >
-                <EyeOff className="w-4 h-4" />
-              </button>
-            </div>
+        {visibleWidgets.has('pipeline') && (
+          <div className="bg-bg-secondary rounded-lg border border-border-primary p-6">
             <DataPipelineMonitor />
-          </motion.div>
+          </div>
         )}
 
-        {/* Recent Trades */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-bg-secondary rounded-lg border border-border-primary p-6"
-        >
-          <h2 className="text-lg font-semibold text-text-primary mb-4">Recent Trades</h2>
-          <TradeFeed />
-        </motion.div>
-      </div>
-
-      {/* Live Data Feed Section */}
-      <div className="mt-6">
-        <LiveDataFeed />
+        {/* Live Data Feed Section */}
+        {visibleWidgets.has('live-data') && (
+          <div className="bg-bg-secondary rounded-lg border border-border-primary p-6">
+            <LiveDataFeed />
+          </div>
+        )}
       </div>
     </div>
   );
