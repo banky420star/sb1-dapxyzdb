@@ -15,7 +15,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.methtrader.xyz; frame-ancestors 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://normal-sofa-production-9d2b.up.railway.app; frame-ancestors 'none'"
 
 # Caching for static assets
 [[headers]]
@@ -49,7 +49,7 @@
 [[headers]]
   for = "/"
   [headers.values]
-    Link = "</site.webmanifest>; rel=manifest, <https://api.methtrader.xyz>; rel=preconnect; crossorigin"
+    Link = "</site.webmanifest>; rel=manifest, <https://normal-sofa-production-9d2b.up.railway.app>; rel=preconnect; crossorigin"
 
 # SPA routing
 [[redirects]]
@@ -59,12 +59,12 @@
 
 [context.production.environment]
   NODE_ENV = "production"
-  VITE_API_BASE = "https://api.methtrader.xyz"
+  VITE_API_BASE = "https://normal-sofa-production-9d2b.up.railway.app"
 
 [context.deploy-preview.environment]
   NODE_ENV = "preview"
-  VITE_API_BASE = "https://api.methtrader.xyz"
+  VITE_API_BASE = "https://normal-sofa-production-9d2b.up.railway.app"
 
 [context.branch-deploy.environment]
   NODE_ENV = "development"
-  VITE_API_BASE = "https://api.methtrader.xyz"
+  VITE_API_BASE = "https://normal-sofa-production-9d2b.up.railway.app"
