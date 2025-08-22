@@ -2,7 +2,7 @@
 // Centralized API configuration for MetaTrader.xyz
 // Enhanced with secure authentication, rate limiting, and MetaTrader integration
 
-export const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://api.methtrader.xyz');
+export const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://normal-sofa-production-9d2b.up.railway.app');
 
 // Secure API configuration
 const API_CONFIG = {
