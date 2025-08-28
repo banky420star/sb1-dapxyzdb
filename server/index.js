@@ -6,6 +6,8 @@ import helmet from 'helmet'
 import cors from 'cors'
 import rateLimit from 'express-rate-limit'
 import morgan from 'morgan'
+import config from './config.js'
+import { loggers, logApiRequest } from './utils/logger.js'
 
 // --- Routes (added below) ---
 import { health } from './routes/health.js'
@@ -29,12 +31,8 @@ app.use(express.json())
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
 
 // CORS: allow only your sites
-const ALLOWED = (process.env.CORS_ORIGINS || '')
-  .split(',')
-  .map(s => s.trim())
-  .filter(Boolean)
 app.use(cors({
-  origin: (origin, cb) => cb(null, !origin || ALLOWED.includes(origin)),
+  origin: (origin, cb) => cb(null, !origin || config.security.corsOrigins.includes(origin)),
   credentials: true,
 }))
 
@@ -46,8 +44,18 @@ app.use(rateLimit({
   legacyHeaders: false,
 }))
 
-// Logs (structured-ish)
-app.use(morgan('combined'))
+// Request logging middleware with performance tracking
+app.use((req, res, next) => {
+  const startTime = Date.now();
+  
+  // Log response
+  res.on('finish', () => {
+    const responseTime = Date.now() - startTime;
+    logApiRequest(req, res, responseTime);
+  });
+  
+  next();
+});
 
 // Monitoring middleware (track API performance)
 // app.use(monitoringMiddleware)
@@ -66,9 +74,12 @@ app.get('/', (_req, res) => {
   res.json({
     ok: true,
     service: 'api',
-    mode: process.env.TRADING_MODE || 'paper',
+    mode: config.trading.mode,
     hint: 'Frontend is deployed on Netlify',
-    features: ['trading', 'risk-management', 'monitoring', 'models', 'live-data-feed']
+    features: ['trading', 'risk-management', 'monitoring', 'models', 'live-data-feed'],
+    version: config.deployment.version,
+    environment: config.server.nodeEnv,
+    riskEnabled: config.features.riskManagement
   })
 })
 
@@ -80,8 +91,21 @@ app.use((err, _req, res, _next) => {
 })
 
 // Start server
-const PORT = process.env.PORT || 8000
+const PORT = config.server.port
 app.listen(PORT, () => {
-  console.log(`[api] listening on ${PORT} | mode=${process.env.TRADING_MODE || 'paper'}`)
-  console.log(`[api] features: trading, risk-management, monitoring, models, live-data-feed`)
-})
+  loggers.api.info({
+    msg: 'Server started successfully',
+    port: PORT,
+    environment: config.server.nodeEnv,
+    tradingMode: config.trading.mode,
+    features: {
+      riskManagement: config.features.riskManagement,
+      autonomousTrading: config.features.autonomousTrading,
+      modelPredictions: config.features.modelPredictions
+    }
+  });
+  
+  console.log(`🚀 [api] listening on ${PORT} | mode=${config.trading.mode} | env=${config.server.nodeEnv}`);
+  console.log(`📊 [api] features: trading, risk-management, monitoring, models, live-data-feed`);
+  console.log(`🔒 [api] risk management: ${config.features.riskManagement ? 'enabled' : 'disabled'}`);
+});

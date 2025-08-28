@@ -1,6 +1,10 @@
 // server/routes/trading.js
 import { Router } from 'express'
 import { getLiveTradingState } from '../services/trading.js'
+import { validate, schemas } from '../middleware/validate.js'
+import { riskGate } from '../middleware/risk.js'
+import { logTradingDecision, loggers } from '../utils/logger.js'
+import config from '../config.js'
 
 export const trading = Router()
 
@@ -114,10 +118,95 @@ trading.get('/trading/status', async (_req, res, next) => {
       isActive: autonomousBotState.isRunning,
       config: autonomousBotState.config,
       tradeLog: autonomousBotState.tradeLog,
-      lastUpdate: new Date().toISOString()
+      lastUpdate: new Date().toISOString(),
+      riskEnabled: config.risk.enabled,
+      tradingMode: config.trading.mode
     })
   } catch (e) { next(e) }
 })
+
+// POST /api/trading/execute - Execute a trade with validation and risk management
+trading.post('/trading/execute', 
+  validate(schemas.executeTrade),
+  riskGate,
+  async (req, res, next) => {
+    try {
+      const { symbol, side, qty, price, stopLoss, takeProfit } = req.body;
+      const { idempotencyKey, volAdjustedQty, originalQty } = req.riskMetadata;
+
+      loggers.trading.info({
+        msg: 'Trade execution request received',
+        trade: {
+          symbol,
+          side,
+          originalQty,
+          volAdjustedQty,
+          price,
+          idempotencyKey
+        }
+      });
+
+      // In paper mode, simulate trade execution
+      if (config.trading.isPaper) {
+        const simulatedTrade = {
+          id: `trade_${Date.now()}`,
+          symbol,
+          side,
+          qty: volAdjustedQty,
+          price: price || getCurrentPrice(symbol),
+          stopLoss,
+          takeProfit,
+          status: 'filled',
+          timestamp: new Date().toISOString(),
+          idempotencyKey,
+          riskActions: {
+            volAdjusted: originalQty !== volAdjustedQty,
+            originalQty,
+            adjustedQty: volAdjustedQty
+          }
+        };
+
+        // Log the trading decision
+        logTradingDecision({
+          symbol,
+          side,
+          qty: volAdjustedQty,
+          price: simulatedTrade.price,
+          confidence: 0.8, // Default confidence for manual trades
+          modelVersion: 'manual',
+          riskActions: simulatedTrade.riskActions,
+          idempotencyKey
+        });
+
+        loggers.trading.info({
+          msg: 'Paper trade executed successfully',
+          trade: simulatedTrade
+        });
+
+        return res.json({
+          ok: true,
+          message: 'Paper trade executed successfully',
+          trade: simulatedTrade
+        });
+      }
+
+      // In live mode, execute real trade (placeholder for now)
+      res.status(501).json({
+        ok: false,
+        error: 'live_trading_not_implemented',
+        message: 'Live trading not yet implemented'
+      });
+
+    } catch (error) {
+      loggers.trading.error({
+        msg: 'Trade execution failed',
+        error: error.message,
+        trade: req.body
+      });
+      next(error);
+    }
+  }
+);
 
 // Autonomous trading cycle execution
 async function executeTradingCycle() {
