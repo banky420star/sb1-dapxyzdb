@@ -22,12 +22,16 @@ export const TradeTrigger: React.FC<TradeTriggerProps> = ({
     try {
       const payload: TradeRequest = {
         symbol,
+        side: useManualOverride ? manualSide : 'buy',
+        type: 'market',
+        volume: 1,
+        confidence: useManualOverride ? manualConfidence : undefined,
         ...(useManualOverride && {
           manualOverride: {
             side: manualSide,
-            confidence: manualConfidence
-          }
-        })
+            confidence: manualConfidence,
+          },
+        }),
       };
 
       const result = await api.executeTrade(payload);
@@ -65,7 +69,7 @@ export const TradeTrigger: React.FC<TradeTriggerProps> = ({
           <input
             type="text"
             value={symbol}
-            onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSymbol(event.target.value.toUpperCase())}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             placeholder="BTCUSDT"
           />
@@ -77,7 +81,7 @@ export const TradeTrigger: React.FC<TradeTriggerProps> = ({
             type="checkbox"
             id="manual-override"
             checked={useManualOverride}
-            onChange={(e) => setUseManualOverride(e.target.checked)}
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setUseManualOverride(event.target.checked)}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
           <label htmlFor="manual-override" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
@@ -94,7 +98,7 @@ export const TradeTrigger: React.FC<TradeTriggerProps> = ({
               </label>
               <select
                 value={manualSide}
-                onChange={(e) => setManualSide(e.target.value as 'buy' | 'sell')}
+                onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setManualSide(event.target.value as 'buy' | 'sell')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
               >
                 <option value="buy">Buy</option>
@@ -112,7 +116,7 @@ export const TradeTrigger: React.FC<TradeTriggerProps> = ({
                 max="1.0"
                 step="0.1"
                 value={manualConfidence}
-                onChange={(e) => setManualConfidence(Number(e.target.value))}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setManualConfidence(Number(event.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
             </div>

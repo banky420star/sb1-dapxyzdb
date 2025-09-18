@@ -9,12 +9,17 @@ export class BybitTradingV5 extends EventEmitter {
     
     // Configuration
     this.config = {
-      apiKey: process.env.BYBIT_API_KEY || '3fg29yhr1a9JJ1etm3',
-      secret: process.env.BYBIT_SECRET || 'wFVWTfRxUUeMcVTtLQSUm7ptyvJYbe3lTd14',
-      testnet: process.env.BYBIT_TESTNET === 'true' || false,
-      demo: process.env.BYBIT_DEMO === 'true' || false,
+      apiKey: process.env.BYBIT_API_KEY,
+      secret: process.env.BYBIT_SECRET,
+      testnet: process.env.BYBIT_TESTNET === 'true',
+      demo: process.env.BYBIT_DEMO === 'true',
       recvWindow: 5000,
       ...options
+    }
+    
+    // Validate required environment variables
+    if (!this.config.apiKey || !this.config.secret) {
+      throw new Error('BYBIT_API_KEY and BYBIT_SECRET environment variables are required. Please set them in your .env file.')
     }
     
     // Set base URL based on environment

@@ -1,0 +1,234 @@
+version: "3.9"
+
+services:
+  # Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trading_app}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Model Service
+  model-service:
+    build: 
+      context: ./model-service
+      dockerfile: Dockerfile
+    environment:
+      MODEL_VERSION: ${MODEL_VERSION:-dev}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./model-service:/app
+      - ./models:/app/models
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Trading Backend API
+  backend:
+    build:
+      context: ./railway-backend
+      dockerfile: Dockerfile
+    environment:
+      PORT: 8000
+      NODE_ENV: ${NODE_ENV:-development}
+      TRADING_MODE: ${TRADING_MODE:-paper}
+      MODEL_SERVICE_URL: http://model-service:9000
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.60}
+      TARGET_ANN_VOL: ${TARGET_ANN_VOL:-0.12}
+      MAX_DRAWDOWN_PCT: ${MAX_DRAWDOWN_PCT:-0.15}
+      PER_SYMBOL_USD_CAP: ${PER_SYMBOL_USD_CAP:-10000}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      BYBIT_API_KEY: ${BYBIT_API_KEY}
+      BYBIT_API_SECRET: ${BYBIT_API_SECRET}
+      BYBIT_TESTNET: ${BYBIT_TESTNET:-true}
+      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      RATE_GATE_URL: http://rate-gate:3001
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./railway-backend:/app
+      - ./logs:/app/logs
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      model-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Rate Limiting Service
+  rate-gate:
+    build:
+      context: ./services/rate-gate
+      dockerfile: Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379
+      RATE_LIMIT_ALPHA_VANTAGE: ${RATE_LIMIT_ALPHA_VANTAGE:-5}
+      RATE_LIMIT_BYBIT: ${RATE_LIMIT_BYBIT:-100}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # WebSocket Gateway
+  websocket:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      PORT: 8080
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server:/app
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ML Training Worker
+  ml-worker:
+    build:
+      context: ./server/ml
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      MODEL_SERVICE_URL: http://model-service:9000
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      ENABLE_MODEL_TRAINING: ${ENABLE_MODEL_TRAINING:-true}
+    volumes:
+      - ./server/ml:/app
+      - ./models:/app/models
+      - ./data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      model-service:
+        condition: service_healthy
+
+  # MLflow Tracking Server (optional)
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/mlflow
+      --default-artifact-root /mlflow/artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow/artifacts
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Prometheus (optional monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+  # Grafana (optional monitoring)
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: false
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+  redis_data:
+  mlflow_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  default:
+    name: trading-network
+    driver: bridge

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Command, ArrowUp, ArrowDown, Check } from 'lucide-react';
 
-interface Command {
+export interface Command {
   id: string;
   title: string;
   description: string;
@@ -93,7 +93,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
               type="text"
               placeholder="Search commands..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearch(event.target.value)}
               className="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none"
               autoFocus
             />

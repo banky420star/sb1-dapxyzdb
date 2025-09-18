@@ -27,30 +27,32 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, className = '
     lg: 'w-6 h-6'
   };
 
+  const animatedValue = <T,>(value: T): T | undefined => (animated ? value : undefined);
+
   return (
     <motion.div 
       className={`flex items-center space-x-2 sm:space-x-3 ${className}`}
-      initial={animated ? { opacity: 0, scale: 0.8 } : false}
-      animate={animated ? { opacity: 1, scale: 1 } : false}
+      initial={animatedValue({ opacity: 0, scale: 0.8 })}
+      animate={animatedValue({ opacity: 1, scale: 1 })}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
       {/* Logo Icon */}
       <motion.div 
         className={`${sizeClasses[size]} bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700 rounded-xl flex items-center justify-center shadow-lg relative overflow-hidden`}
-        whileHover={animated ? { scale: 1.05, rotate: 2 } : false}
-        whileTap={animated ? { scale: 0.95 } : false}
+        whileHover={animatedValue({ scale: 1.05, rotate: 2 })}
+        whileTap={animatedValue({ scale: 0.95 })}
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
       >
         {/* Animated background pattern */}
         <motion.div 
           className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-500/20"
-          animate={animated ? { 
+          animate={animatedValue({ 
             background: [
               "linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%)",
               "linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)",
               "linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%)"
             ]
-          } : false}
+          })}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         />
         
@@ -59,8 +61,8 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, className = '
           className={`${iconSizes[size]} text-white`} 
           viewBox="0 0 20 20" 
           fill="none"
-          initial={animated ? { pathLength: 0 } : false}
-          animate={animated ? { pathLength: 1 } : false}
+          initial={animatedValue({ pathLength: 0 })}
+          animate={animatedValue({ pathLength: 1 })}
           transition={{ duration: 1.5, ease: "easeInOut" }}
         >
           <motion.path 
@@ -69,8 +71,8 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, className = '
             strokeWidth="2" 
             strokeLinecap="round" 
             strokeLinejoin="round"
-            initial={animated ? { pathLength: 0 } : false}
-            animate={animated ? { pathLength: 1 } : false}
+            initial={animatedValue({ pathLength: 0 })}
+            animate={animatedValue({ pathLength: 1 })}
             transition={{ duration: 1.5, ease: "easeInOut" }}
           />
         </motion.svg>
@@ -78,43 +80,41 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, className = '
         {/* AI circuit dots with enhanced animations */}
         <motion.div 
           className="absolute top-1 left-1 w-1 h-1 bg-yellow-400 rounded-full"
-          animate={animated ? { 
+          animate={animatedValue({ 
             scale: [1, 1.5, 1],
             opacity: [0.5, 1, 0.5]
-          } : false}
+          })}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
           className="absolute top-1 right-1 w-1 h-1 bg-green-400 rounded-full"
-          animate={animated ? { 
+          animate={animatedValue({ 
             scale: [1, 1.5, 1],
             opacity: [0.5, 1, 0.5]
-          } : false}
+          })}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
         />
         <motion.div 
           className="absolute bottom-1 left-1 w-1 h-1 bg-red-400 rounded-full"
-          animate={animated ? { 
+          animate={animatedValue({ 
             scale: [1, 1.5, 1],
             opacity: [0.5, 1, 0.5]
-          } : false}
+          })}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
         <motion.div 
           className="absolute bottom-1 right-1 w-1 h-1 bg-purple-400 rounded-full"
-          animate={animated ? { 
+          animate={animatedValue({ 
             scale: [1, 1.5, 1],
             opacity: [0.5, 1, 0.5]
-          } : false}
+          })}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
         />
         
         {/* Glowing effect */}
         <motion.div 
           className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-purple-500/10 rounded-xl"
-          animate={animated ? { 
-            opacity: [0.3, 0.6, 0.3]
-          } : false}
+          animate={animatedValue({ opacity: [0.3, 0.6, 0.3] })}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         />
       </motion.div>
@@ -123,21 +123,21 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, className = '
       {showText && (
         <motion.div 
           className="flex flex-col"
-          initial={animated ? { opacity: 0, x: -20 } : false}
-          animate={animated ? { opacity: 1, x: 0 } : false}
+          initial={animatedValue({ opacity: 0, x: -20 })}
+          animate={animatedValue({ opacity: 1, x: 0 })}
           transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
         >
           <motion.h1 
             className={`${textSizes[size]} font-bold text-white leading-tight`}
-            whileHover={animated ? { scale: 1.02 } : false}
+            whileHover={animatedValue({ scale: 1.02 })}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
           >
             MetaTrader Pro
           </motion.h1>
           <motion.p 
             className="text-xs text-gray-300 font-medium"
-            initial={animated ? { opacity: 0 } : false}
-            animate={animated ? { opacity: 1 } : false}
+            initial={animatedValue({ opacity: 0 })}
+            animate={animatedValue({ opacity: 1 })}
             transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
           >
             AI-Powered Trading

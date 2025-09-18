@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+  # Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-trading}
+      POSTGRES_USER: ${POSTGRES_USER:-trading_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_trading_pass_2024}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trading_app}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Simple Mock Model Service
+  model-service:
+    image: python:3.11-slim
+    working_dir: /app
+    command: python -m http.server 9000
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./model-service:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Trading Backend API (using existing Docker image)
+  backend:
+    build:
+      context: ./railway-backend
+      dockerfile: Dockerfile
+    environment:
+      PORT: 8000
+      NODE_ENV: ${NODE_ENV:-development}
+      TRADING_MODE: ${TRADING_MODE:-paper}
+      MODEL_SERVICE_URL: http://model-service:9000
+      DATABASE_URL: postgres://trading_app:secure_trading_pass_2024@db:5432/trading
+      REDIS_URL: redis://redis:6379
+      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.60}
+      TARGET_ANN_VOL: ${TARGET_ANN_VOL:-0.12}
+      MAX_DRAWDOWN_PCT: ${MAX_DRAWDOWN_PCT:-0.15}
+      PER_SYMBOL_USD_CAP: ${PER_SYMBOL_USD_CAP:-10000}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      BYBIT_API_KEY: ${BYBIT_API_KEY}
+      BYBIT_API_SECRET: ${BYBIT_API_SECRET}
+      BYBIT_TESTNET: ${BYBIT_TESTNET:-true}
+      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./railway-backend:/app
+      - ./logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: trading-network
+    driver: bridge

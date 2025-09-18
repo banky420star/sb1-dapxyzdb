@@ -27,8 +27,10 @@ const LoginDrawer: React.FC<LoginDrawerProps> = ({
     onLogin(formData);
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: 'email' | 'password') => (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setFormData(prev => ({ ...prev, [field]: event.target.value }));
   };
 
   return (
@@ -79,7 +81,7 @@ const LoginDrawer: React.FC<LoginDrawerProps> = ({
                     <input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      onChange={handleInputChange('email')}
                       className="w-full pl-12 pr-4 py-4 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-colors"
                       placeholder="Enter your email"
                       required
@@ -97,7 +99,7 @@ const LoginDrawer: React.FC<LoginDrawerProps> = ({
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      onChange={handleInputChange('password')}
                       className="w-full pl-12 pr-12 py-4 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-colors"
                       placeholder="Enter your password"
                       required

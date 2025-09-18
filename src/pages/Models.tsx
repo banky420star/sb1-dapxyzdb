@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useTradingContext } from '../contexts/TradingContext';
+import { useTradingContext, useTrading } from '../contexts/TradingContext';
 import { BotVisualizer } from '../components/BotVisualizer';
 import ModelTrainingVisualizer from '../components/ModelTrainingVisualizer';
 import CandlestickLoader from '../components/CandlestickLoader';
@@ -25,6 +25,7 @@ import {
 
 const Models: React.FC = () => {
   const { activity, syncData } = useTradingContext();
+  const { isConnected } = useTrading();
   const [activeTab, setActiveTab] = useState<'overview' | 'training' | 'analytics'>('overview');
   const [isLoaded, setIsLoaded] = useState(false);
 

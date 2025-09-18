@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { format } from 'date-fns';
+import { getWsBase, resolveEndpoint } from '../lib/env';
 
 interface DataSource {
   name: string;
@@ -33,11 +34,10 @@ export default function DataPipelineMonitor({ refreshInterval = 15000 }: DataPip
 
   useEffect(() => {
     // Initialize WebSocket connection
-    const newSocket = io(import.meta.env.VITE_WS_URL || 'ws://localhost:8000', {
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem('jwt') : undefined;
+    const newSocket = io(getWsBase(), {
       path: '/ws',
-      auth: { 
-        token: localStorage.getItem('jwt') 
-      },
+      auth: token ? { token } : undefined,
       transports: ['websocket', 'polling']
     });
 
@@ -93,9 +93,9 @@ export default function DataPipelineMonitor({ refreshInterval = 15000 }: DataPip
 
   const fetchDataSources = async () => {
     try {
-      const response = await fetch('/api/data/sources');
+      const response = await fetch(resolveEndpoint('/api/data/sources'));
       if (response.ok) {
-        const sources = await response.json();
+        const sources: DataSource[] = await response.json();
         setDataSources(sources);
       }
     } catch (error) {
@@ -105,9 +105,9 @@ export default function DataPipelineMonitor({ refreshInterval = 15000 }: DataPip
 
   const fetchPairDiscoveries = async () => {
     try {
-      const response = await fetch('/api/data/discoveries');
+      const response = await fetch(resolveEndpoint('/api/data/discoveries'));
       if (response.ok) {
-        const discoveries = await response.json();
+        const discoveries: PairDiscovery[] = await response.json();
         setPairDiscoveries(discoveries);
       }
     } catch (error) {

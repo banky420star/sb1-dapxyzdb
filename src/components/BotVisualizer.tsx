@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip } from 'recharts'
-import { ModelActivity } from '../contexts/TradingContext'
+import { ModelStatus } from '../contexts/TradingContext'
 
 interface BotVisualizerProps {
-  activity: ModelActivity | null
+  activity: ModelStatus | null
   modelName: string
 }
 

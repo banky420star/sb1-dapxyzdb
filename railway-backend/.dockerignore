@@ -1,0 +1,36 @@
+# Ignore everything outside railway-backend
+../
+
+# Ignore node_modules (will be installed fresh)
+node_modules
+npm-debug.log*
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore environment files
+.env.local
+.env.development
+.env.test
+
+# Ignore git
+.git
+.gitignore
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Keep only necessary files
+!package.json
+!package-lock.json
+!server.js
+!README.md
+!.env
+!railway.json
+!railway.toml 

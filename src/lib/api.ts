@@ -2,7 +2,9 @@
 // Centralized API configuration for MetaTrader.xyz
 // Enhanced with secure authentication, rate limiting, and MetaTrader integration
 
-export const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://normal-sofa-production-9d2b.up.railway.app');
+import { getApiBase, resolveEndpoint } from './env';
+
+export const API_BASE = getApiBase();
 
 // API response types
 interface HealthResponse {
@@ -112,7 +114,11 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = API_C
 
     return response;
   } catch (error) {
-    if (retries > 0 && (error instanceof TypeError || error.name === 'AbortError')) {
+    if (
+      retries > 0 &&
+      error instanceof Error &&
+      (error instanceof TypeError || error.name === 'AbortError')
+    ) {
       await new Promise(resolve => setTimeout(resolve, API_CONFIG.retryDelay));
       return fetchWithRetry(url, options, retries - 1);
     }
@@ -121,7 +127,7 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = API_C
 }
 
 export async function getJSON<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const url = resolveEndpoint(path);
   
   try {
     const res = await fetchWithRetry(url, {
@@ -132,7 +138,8 @@ export async function getJSON<T>(path: string, init?: RequestInit): Promise<T> {
     return await res.json() as T;
   } catch (error) {
     console.error(`API Error (${path}):`, error);
-    throw new Error(`Failed to fetch ${path}: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to fetch ${path}: ${message}`);
   }
 }
 
@@ -143,7 +150,7 @@ interface MetaTraderConfig {
   token: string;
 }
 
-interface TradingSignal {
+export interface TradingSignal {
   symbol: string;
   side: 'buy' | 'sell';
   type: 'market' | 'limit' | 'stop';
@@ -152,7 +159,14 @@ interface TradingSignal {
   stopLoss?: number;
   takeProfit?: number;
   comment?: string;
+  confidence?: number;
+  manualOverride?: {
+    side: 'buy' | 'sell';
+    confidence: number;
+  };
 }
+
+export type TradeRequest = TradingSignal;
 
 // API endpoints that match our Railway backend with MetaTrader integration
 export const api = {
@@ -614,3 +628,5 @@ export const enhancedApi = {
     return () => clearInterval(intervalId);
   }
 }; 
+
+export default api;

@@ -193,6 +193,9 @@ class LiveDataFeed extends EventEmitter {
     try {
       console.log('🪙 Collecting real data from CoinGecko...')
       
+      // Add delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
       // Get current prices for major cryptocurrencies
       const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,ripple,cardano,polkadot,chainlink,litecoin,bitcoin-cash,eos,tron&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true')
       
@@ -352,6 +355,56 @@ class LiveDataFeed extends EventEmitter {
     } catch (error) {
       console.error('❌ Error collecting Alpha Vantage data:', error.message)
     }
+  }
+
+  // Generate Bybit API signature
+  generateBybitSignature(params, secret) {
+    const crypto = require('crypto')
+    const queryString = Object.keys(params)
+      .sort()
+      .map(key => `${key}=${params[key]}`)
+      .join('&')
+    
+    return crypto
+      .createHmac('sha256', secret)
+      .update(queryString)
+      .digest('hex')
+  }
+
+  // Fetch Bybit kline data
+  async fetchBybitKlineData(symbol) {
+    try {
+      if (!BYBIT_API_KEY || !BYBIT_SECRET) {
+        throw new Error('Bybit credentials not configured')
+      }
+
+      // Use Bybit V5 API for kline data (public endpoint - no signature needed)
+      const url = `https://api.bybit.com/v5/market/kline?category=spot&symbol=${symbol}&interval=1&limit=100`
+      
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const data = await response.json()
+      
+      if (data.retCode === 0 && data.result.list) {
+        return data.result.list.map(item => {
+          const [timestamp, open, high, low, close, volume] = item
+          return {
+            timestamp: parseInt(timestamp),
+            open: parseFloat(open),
+            high: parseFloat(high),
+            low: parseFloat(low),
+            close: parseFloat(close),
+            volume: parseFloat(volume)
+          }
+        })
+      }
+    } catch (error) {
+      console.error(`❌ Error fetching Bybit data for ${symbol}:`, error.message)
+    }
+    return null
   }
 
   // Fetch Alpha Vantage data

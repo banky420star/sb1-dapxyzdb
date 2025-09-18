@@ -312,7 +312,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {autoRefresh && (
                   <select
                     value={refreshInterval}
-                    onChange={(e) => setRefreshInterval(Number(e.target.value))}
+                    onChange={(event: React.ChangeEvent<HTMLSelectElement>) => setRefreshInterval(Number(event.target.value))}
                     className="bg-bg-tertiary text-text-primary text-xs rounded-md px-2 py-1 border border-border-primary focus-ring"
                   >
                     <option value={15}>15s</option>

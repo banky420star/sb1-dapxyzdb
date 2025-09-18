@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getWsBase } from '../lib/env';
 
 interface TrainingRun {
   id: string;
@@ -32,11 +33,10 @@ export default function ModelTrainingMonitor({ maxRuns = 10 }: TrainingMonitorPr
 
   useEffect(() => {
     // Initialize WebSocket connection
-    const newSocket = io(import.meta.env.VITE_WS_URL || 'ws://localhost:8000', {
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem('jwt') : undefined;
+    const newSocket = io(getWsBase(), {
       path: '/ws',
-      auth: { 
-        token: localStorage.getItem('jwt') 
-      },
+      auth: token ? { token } : undefined,
       transports: ['websocket', 'polling']
     });
 
@@ -72,7 +72,7 @@ export default function ModelTrainingMonitor({ maxRuns = 10 }: TrainingMonitorPr
           ...prev,
           {
             epoch: update.currentEpoch || 0,
-            loss: update.loss,
+            loss: update.loss ?? 0,
             valLoss: update.validationLoss || 0
           }
         ]);

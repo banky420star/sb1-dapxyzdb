@@ -1,0 +1,449 @@
+name: Codex Automated Workflow
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Task to run'
+        required: true
+        default: 'full-analysis'
+        type: choice
+        options:
+          - full-analysis
+          - security-scan
+          - code-review
+          - dependency-update
+          - documentation
+          - performance-analysis
+
+env:
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================
+  # Code Quality and Review
+  # ============================================
+  code-review:
+    name: AI Code Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Full history for better analysis
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+      
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          separator: ','
+      
+      - name: Run AI Code Review
+        run: |
+          echo "Reviewing changed files: ${{ steps.changed-files.outputs.all_changed_files }}"
+          
+          codex exec "Review the following changed files for:
+          - Code quality and best practices
+          - Potential bugs and issues
+          - Security vulnerabilities
+          - Performance concerns
+          - Test coverage
+          
+          Files: ${{ steps.changed-files.outputs.all_changed_files }}
+          
+          Format the output as a GitHub PR comment with:
+          - Summary of changes
+          - Issues found (if any)
+          - Suggestions for improvement
+          - Approval recommendation" > review-report.md
+          
+          cat review-report.md
+      
+      - name: Comment PR
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.readFileSync('review-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## 🤖 Codex AI Review\n\n' + review
+            });
+      
+      - name: Upload review artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-review-report
+          path: review-report.md
+
+  # ============================================
+  # Security Scanning
+  # ============================================
+  security-scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+      
+      - name: Run Security Scan
+        run: |
+          codex exec "Perform a comprehensive security audit:
+          1. Check for vulnerable dependencies
+          2. Scan for security anti-patterns
+          3. Look for exposed secrets or API keys
+          4. Check for SQL injection vulnerabilities
+          5. Review authentication and authorization
+          6. Check for XSS vulnerabilities
+          7. Review CORS configuration
+          8. Check for insecure cryptography
+          
+          Provide a detailed security report with:
+          - Critical issues (must fix immediately)
+          - High priority issues
+          - Medium priority issues
+          - Low priority issues
+          - Recommendations" > security-report.md
+      
+      - name: Check for critical issues
+        run: |
+          if grep -q "Critical issues" security-report.md; then
+            echo "⚠️ Critical security issues found!"
+            cat security-report.md
+            exit 1
+          fi
+      
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.md
+
+  # ============================================
+  # Test Generation and Coverage
+  # ============================================
+  test-automation:
+    name: Test Generation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          npm install -g @openai/codex
+          npm ci
+      
+      - name: Generate missing tests
+        run: |
+          codex exec "Analyze the codebase and:
+          1. Identify files with low test coverage
+          2. Generate unit tests for uncovered functions
+          3. Create integration tests for API endpoints
+          4. Add edge case tests
+          5. Generate test data factories
+          
+          Output the tests in the appropriate test files" > generated-tests.md
+      
+      - name: Run tests with coverage
+        run: |
+          npm test -- --coverage || true
+          
+      - name: Analyze coverage
+        run: |
+          codex exec "Analyze the test coverage report and:
+          1. Identify critical paths without tests
+          2. Suggest priority areas for testing
+          3. Estimate effort to reach 80% coverage
+          4. List untestable code that needs refactoring" > coverage-analysis.md
+      
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: |
+            generated-tests.md
+            coverage-analysis.md
+            coverage/
+
+  # ============================================
+  # Documentation Generation
+  # ============================================
+  documentation:
+    name: Documentation Update
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+      
+      - name: Generate API Documentation
+        run: |
+          codex exec "Generate comprehensive API documentation:
+          1. Document all endpoints with examples
+          2. Include request/response schemas
+          3. Add authentication requirements
+          4. Document error codes and handling
+          5. Create OpenAPI/Swagger specification
+          6. Generate Postman collection" > api-docs.md
+      
+      - name: Update README
+        run: |
+          codex exec "Update the README.md with:
+          1. Current project structure
+          2. Updated installation instructions
+          3. New features and changes
+          4. Updated examples
+          5. Current dependencies
+          Keep existing content where appropriate" > README-updated.md
+          
+          if [ -s README-updated.md ]; then
+            mv README-updated.md README.md
+          fi
+      
+      - name: Generate Changelog
+        run: |
+          codex exec "Generate a CHANGELOG.md entry for recent changes:
+          1. New features
+          2. Bug fixes
+          3. Breaking changes
+          4. Deprecations
+          5. Performance improvements
+          Based on recent commits and PRs" > CHANGELOG-entry.md
+      
+      - name: Create PR for documentation
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'docs: Update documentation via Codex'
+          title: '📚 Documentation Update'
+          body: |
+            This PR contains automated documentation updates generated by Codex.
+            
+            Please review the changes before merging.
+          branch: docs/automated-update
+          delete-branch: true
+
+  # ============================================
+  # Performance Analysis
+  # ============================================
+  performance-analysis:
+    name: Performance Review
+    runs-on: ubuntu-latest
+    if: github.event.schedule || github.event.inputs.task == 'performance-analysis'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          npm install -g @openai/codex
+          npm ci
+      
+      - name: Run Performance Analysis
+        run: |
+          codex exec "Analyze the codebase for performance issues:
+          1. Identify performance bottlenecks
+          2. Find inefficient algorithms (O(n²) or worse)
+          3. Detect memory leaks
+          4. Find unnecessary re-renders (React)
+          5. Identify slow database queries
+          6. Check for missing indexes
+          7. Find opportunities for caching
+          8. Suggest async/parallel processing opportunities
+          
+          Provide specific code locations and fixes" > performance-report.md
+      
+      - name: Create Performance Issue
+        if: contains(readFile('performance-report.md'), 'bottleneck')
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('performance-report.md', 'utf8');
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚡ Performance Improvements Needed',
+              body: report,
+              labels: ['performance', 'enhancement']
+            });
+
+  # ============================================
+  # Dependency Management
+  # ============================================
+  dependency-update:
+    name: Dependency Management
+    runs-on: ubuntu-latest
+    if: github.event.schedule || github.event.inputs.task == 'dependency-update'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+      
+      - name: Analyze Dependencies
+        run: |
+          codex exec "Analyze project dependencies:
+          1. List outdated packages with risk assessment
+          2. Identify unused dependencies
+          3. Find security vulnerabilities
+          4. Suggest alternative packages if better options exist
+          5. Check for duplicate dependencies
+          6. Analyze bundle size impact
+          
+          Create an update strategy with:
+          - Safe updates (patch versions)
+          - Minor updates (new features)
+          - Major updates (breaking changes)
+          - Dependencies to remove" > dependency-report.md
+      
+      - name: Create Safe Updates PR
+        run: |
+          # Extract safe updates from the report
+          codex exec "Based on dependency-report.md, generate npm commands for safe updates only" > safe-updates.sh
+          
+          # Apply safe updates
+          bash safe-updates.sh || true
+          
+          # Test after updates
+          npm test || true
+      
+      - name: Create PR for updates
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'chore: Update dependencies (safe updates only)'
+          title: '⬆️ Dependency Updates'
+          body: |
+            This PR contains safe dependency updates identified by Codex.
+            
+            See dependency-report.md for full analysis.
+          branch: deps/safe-updates
+          delete-branch: true
+
+  # ============================================
+  # Daily Summary Report
+  # ============================================
+  daily-summary:
+    name: Daily Summary
+    runs-on: ubuntu-latest
+    if: github.event.schedule
+    needs: [security-scan, test-automation, performance-analysis, dependency-update]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Generate Summary Report
+        run: |
+          codex exec "Create an executive summary from all reports:
+          1. Key metrics and health scores
+          2. Critical issues requiring attention
+          3. Progress on technical debt
+          4. Security posture
+          5. Test coverage trends
+          6. Performance metrics
+          7. Dependency health
+          8. Recommended actions for the team
+          
+          Format as a dashboard-style markdown report" > daily-summary.md
+      
+      - name: Send to Slack
+        if: env.SLACK_WEBHOOK
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          SUMMARY=$(cat daily-summary.md | head -20)
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"Daily Codex Report:\\n\${SUMMARY}\"}" \
+            $SLACK_WEBHOOK
+      
+      - name: Create Issue for Action Items
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('daily-summary.md', 'utf8');
+            
+            // Extract action items
+            const actionItems = summary.match(/Action Items:(.*?)(?=\n#|$)/s);
+            
+            if (actionItems) {
+              github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `📊 Daily Codex Report - ${new Date().toISOString().split('T')[0]}`,
+                body: summary,
+                labels: ['automation', 'daily-report']
+              });
+            }

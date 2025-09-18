@@ -74,7 +74,7 @@ export default function Settings() {
     debugMode: false
   });
 
-  const handleInputChange = (section: string, field: string, value: any) => {
+  const handleInputChange = (section: string, field: string, value: unknown) => {
     setIsDirty(true);
     switch (section) {
       case 'profile':
@@ -90,6 +90,20 @@ export default function Settings() {
         setSystemData(prev => ({ ...prev, [field]: value }));
         break;
     }
+  };
+
+  const handleTextChange = (
+    section: 'profile' | 'security' | 'notifications' | 'system',
+    field: string,
+  ) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    handleInputChange(section, field, event.target.value);
+  };
+
+  const handleNumberChange = (
+    section: 'profile' | 'security' | 'notifications' | 'system',
+    field: string,
+  ) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    handleInputChange(section, field, Number(event.target.value));
   };
 
   const handleSave = async () => {
@@ -189,7 +203,7 @@ export default function Settings() {
                   <input
                     type="text"
                     value={profileData.name}
-                    onChange={(e) => handleInputChange('profile', 'name', e.target.value)}
+                    onChange={handleTextChange('profile', 'name')}
                     className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                   />
                 </div>
@@ -199,7 +213,7 @@ export default function Settings() {
                   <input
                     type="email"
                     value={profileData.email}
-                    onChange={(e) => handleInputChange('profile', 'email', e.target.value)}
+                    onChange={handleTextChange('profile', 'email')}
                     className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                   />
                 </div>
@@ -209,7 +223,7 @@ export default function Settings() {
                   <input
                     type="tel"
                     value={profileData.phone}
-                    onChange={(e) => handleInputChange('profile', 'phone', e.target.value)}
+                    onChange={handleTextChange('profile', 'phone')}
                     className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                   />
                 </div>
@@ -218,7 +232,7 @@ export default function Settings() {
                   <label className="block text-sm font-semibold text-slate-300 mb-3">Timezone</label>
                   <select
                     value={profileData.timezone}
-                    onChange={(e) => handleInputChange('profile', 'timezone', e.target.value)}
+                    onChange={handleTextChange('profile', 'timezone')}
                     className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                   >
                     <option value="UTC-5">UTC-5 (Eastern Time)</option>
@@ -259,7 +273,7 @@ export default function Settings() {
                     <input
                       type="number"
                       value={securityData.sessionTimeout}
-                      onChange={(e) => handleInputChange('security', 'sessionTimeout', parseInt(e.target.value))}
+                      onChange={handleNumberChange('security', 'sessionTimeout')}
                       className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                     />
                   </div>
@@ -269,7 +283,7 @@ export default function Settings() {
                     <input
                       type="number"
                       value={securityData.maxLoginAttempts}
-                      onChange={(e) => handleInputChange('security', 'maxLoginAttempts', parseInt(e.target.value))}
+                      onChange={handleNumberChange('security', 'maxLoginAttempts')}
                       className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                     />
                   </div>
@@ -342,7 +356,7 @@ export default function Settings() {
                     <label className="block text-sm font-semibold text-slate-300 mb-3">Backup Frequency</label>
                     <select
                       value={systemData.backupFrequency}
-                      onChange={(e) => handleInputChange('system', 'backupFrequency', e.target.value)}
+                      onChange={handleTextChange('system', 'backupFrequency')}
                       className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                     >
                       <option value="hourly">Hourly</option>
@@ -357,7 +371,7 @@ export default function Settings() {
                     <input
                       type="number"
                       value={systemData.logRetention}
-                      onChange={(e) => handleInputChange('system', 'logRetention', parseInt(e.target.value))}
+                      onChange={handleNumberChange('system', 'logRetention')}
                       className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-300"
                     />
                   </div>

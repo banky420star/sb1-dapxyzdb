@@ -32,7 +32,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import CommandPalette from '../components/CommandPalette';
+import CommandPalette, { Command } from '../components/CommandPalette';
 import bybitApi, { BybitMarketData, BybitOrderBook, BybitTrade } from '../services/bybitApi';
 
 // Crypto-specific data
@@ -80,6 +80,11 @@ const Crypto: React.FC = () => {
     price: '',
     stopPrice: ''
   });
+  const handleOrderFormChange = (
+    field: 'quantity' | 'price' | 'stopPrice',
+  ) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    setOrderForm(prev => ({ ...prev, [field]: event.target.value }));
+  };
   const [showConfirmOrder, setShowConfirmOrder] = useState(false);
   const [confirmOrderData, setConfirmOrderData] = useState<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -154,20 +159,20 @@ const Crypto: React.FC = () => {
   }, [selectedCrypto]);
 
   // Command palette actions
-  const commands = [
+  const commands: Command[] = [
     {
       id: 'buy-btc',
       title: 'Buy Bitcoin',
       description: 'Buy 0.001 BTC at market price',
       action: () => console.log('Buy Bitcoin'),
-      category: 'crypto'
+      category: 'trading'
     },
     {
       id: 'sell-eth',
       title: 'Sell Ethereum',
       description: 'Sell 0.01 ETH at market price',
       action: () => console.log('Sell Ethereum'),
-      category: 'crypto'
+      category: 'trading'
     },
     {
       id: 'pause-crypto-bot',
@@ -548,7 +553,7 @@ const Crypto: React.FC = () => {
                   <input
                     type="number"
                     value={orderForm.quantity}
-                    onChange={(e) => setOrderForm({ ...orderForm, quantity: e.target.value })}
+                    onChange={handleOrderFormChange('quantity')}
                     placeholder="0.001"
                     className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
@@ -560,7 +565,7 @@ const Crypto: React.FC = () => {
                     <input
                       type="number"
                       value={orderForm.price}
-                      onChange={(e) => setOrderForm({ ...orderForm, price: e.target.value })}
+                      onChange={handleOrderFormChange('price')}
                       placeholder="43250.00"
                       className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
@@ -573,7 +578,7 @@ const Crypto: React.FC = () => {
                     <input
                       type="number"
                       value={orderForm.stopPrice}
-                      onChange={(e) => setOrderForm({ ...orderForm, stopPrice: e.target.value })}
+                      onChange={handleOrderFormChange('stopPrice')}
                       placeholder="43000.00"
                       className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
@@ -606,6 +611,7 @@ const Crypto: React.FC = () => {
       {/* Command Palette */}
       {showCommandPalette && (
         <CommandPalette
+          isOpen={showCommandPalette}
           commands={commands}
           onClose={() => setShowCommandPalette(false)}
         />

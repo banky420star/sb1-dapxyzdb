@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { format } from 'date-fns';
+import { getWsBase } from '../lib/env';
 
 interface Trade {
   id: string;
@@ -27,11 +28,10 @@ export default function TradeFeed({ maxTrades = 50, autoScroll = true }: TradeFe
 
   useEffect(() => {
     // Initialize WebSocket connection
-    const newSocket = io(import.meta.env.VITE_WS_URL || 'ws://localhost:8000', {
+    const token = typeof window !== 'undefined' ? window.localStorage.getItem('jwt') : undefined;
+    const newSocket = io(getWsBase(), {
       path: '/ws',
-      auth: { 
-        token: localStorage.getItem('jwt') 
-      },
+      auth: token ? { token } : undefined,
       transports: ['websocket', 'polling']
     });
 

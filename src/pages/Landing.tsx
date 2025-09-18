@@ -110,6 +110,12 @@ const Landing: React.FC = () => {
     navigate(route);
   };
 
+  const handleLoginChange = (field: 'email' | 'password') => (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setLoginForm(prev => ({ ...prev, [field]: event.target.value }));
+  };
+
   return (
     <div className="min-h-screen bg-bg-deep text-white overflow-x-hidden">
       {/* Header */}
@@ -383,10 +389,10 @@ const Landing: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="email"
-                    value={loginForm.email}
-                    onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                    <input
+                      type="email"
+                      value={loginForm.email}
+                      onChange={handleLoginChange('email')}
                     className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-colors"
                     placeholder="Enter your email"
                     required
@@ -398,10 +404,10 @@ const Landing: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={loginForm.password}
+                      onChange={handleLoginChange('password')}
                     className="w-full pl-10 pr-12 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary transition-colors"
                     placeholder="Enter your password"
                     required

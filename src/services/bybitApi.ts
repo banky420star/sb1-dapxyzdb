@@ -37,6 +37,38 @@ export interface BybitTrade {
   timestamp: number;
 }
 
+interface BybitApiResponse<T> {
+  retCode: number;
+  retMsg: string;
+  result: T;
+}
+
+interface BybitTickerResult {
+  list: BybitMarketData[];
+}
+
+type RawKline = [string, string, string, string, string, string];
+interface BybitKlineResult {
+  list: RawKline[];
+}
+
+interface BybitOrderBookResult {
+  s: string;
+  b: [string, string][];
+  a: [string, string][];
+  ts: number;
+}
+
+interface BybitTradeResult {
+  list: Array<{
+    s: string;
+    S: 'Buy' | 'Sell';
+    v: string;
+    p: string;
+    T: number;
+  }>;
+}
+
 class BybitApiService {
   private baseUrl = 'https://api.bybit.com';
   private wsUrl = 'wss://stream.bybit.com/v5/public/linear';
@@ -199,9 +231,9 @@ class BybitApiService {
   public async getTickers(category: string = 'linear'): Promise<BybitMarketData[]> {
     try {
       const response = await fetch(`${this.baseUrl}/v5/market/tickers?category=${category}`);
-      const data = await response.json();
+      const data = (await response.json()) as BybitApiResponse<BybitTickerResult>;
       
-      if (data.retCode === 0) {
+      if (data.retCode === 0 && Array.isArray(data.result?.list)) {
         return data.result.list;
       } else {
         throw new Error(data.retMsg || 'Failed to fetch tickers');
@@ -221,16 +253,16 @@ class BybitApiService {
       const response = await fetch(
         `${this.baseUrl}/v5/market/kline?category=linear&symbol=${symbol}&interval=${interval}&limit=${limit}`
       );
-      const data = await response.json();
+      const data = (await response.json()) as BybitApiResponse<BybitKlineResult>;
       
-      if (data.retCode === 0) {
-        return data.result.list.map((item: any) => ({
-          timestamp: parseInt(item[0]),
+      if (data.retCode === 0 && Array.isArray(data.result?.list)) {
+        return data.result.list.map((item) => ({
+          timestamp: parseInt(item[0], 10),
           open: item[1],
           high: item[2],
           low: item[3],
           close: item[4],
-          volume: item[5]
+          volume: item[5],
         }));
       } else {
         throw new Error(data.retMsg || 'Failed to fetch klines');
@@ -246,14 +278,14 @@ class BybitApiService {
       const response = await fetch(
         `${this.baseUrl}/v5/market/orderbook?category=linear&symbol=${symbol}&limit=${limit}`
       );
-      const data = await response.json();
+      const data = (await response.json()) as BybitApiResponse<BybitOrderBookResult>;
       
-      if (data.retCode === 0) {
+      if (data.retCode === 0 && data.result) {
         return {
           symbol: data.result.s,
           bids: data.result.b,
           asks: data.result.a,
-          timestamp: data.result.ts
+          timestamp: data.result.ts,
         };
       } else {
         throw new Error(data.retMsg || 'Failed to fetch order book');
@@ -269,15 +301,15 @@ class BybitApiService {
       const response = await fetch(
         `${this.baseUrl}/v5/market/recent-trade?category=linear&symbol=${symbol}&limit=${limit}`
       );
-      const data = await response.json();
+      const data = (await response.json()) as BybitApiResponse<BybitTradeResult>;
       
-      if (data.retCode === 0) {
-        return data.result.list.map((item: any) => ({
+      if (data.retCode === 0 && Array.isArray(data.result?.list)) {
+        return data.result.list.map((item) => ({
           symbol: item.s,
           side: item.S,
           size: item.v,
           price: item.p,
-          timestamp: item.T
+          timestamp: item.T,
         }));
       } else {
         throw new Error(data.retMsg || 'Failed to fetch recent trades');

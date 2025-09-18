@@ -9,7 +9,13 @@ export default function TradeTriggerV2() {
     try {
       setLoading(true); 
       setMsg('');
-      const out = await api.executeTrade({ symbol: 'BTCUSDT', side: 'buy', confidence: 0.9 });
+      const out = await api.executeTrade({
+        symbol: 'BTCUSDT',
+        side: 'buy',
+        type: 'market',
+        volume: 1,
+        confidence: 0.9,
+      });
       setMsg(JSON.stringify(out, null, 2));
     } catch (e:any) {
       setMsg(e.message || String(e));
@@ -22,7 +28,7 @@ export default function TradeTriggerV2() {
     try {
       setLoading(true); 
       setMsg('');
-      const out = await api.tick({ symbol: 'BTCUSDT', candles: [] }); // TODO: plug real candles
+      const out = await api.autoTick({ symbol: 'BTCUSDT', candles: [] }); // TODO: plug real candles
       setMsg(JSON.stringify(out, null, 2));
     } catch (e:any) {
       setMsg(e.message || String(e));

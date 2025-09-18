@@ -1,229 +1,301 @@
-# 🤖 Autonomous Trading Bot (Frontend + Backend)
+# Codex CLI 🤖
 
-A complete AI-powered autonomous trading system with Bybit integration, AI consensus engine, and real-time risk management.
+An AI-powered coding assistant that runs directly in your terminal. Codex helps you write code, debug issues, and manage your development workflow with the power of advanced language models.
 
-## 🚀 Quick Start (Development)
+## Features
 
-### Backend Setup
+- 🚀 **Interactive Terminal UI** - Beautiful terminal interface for seamless interaction
+- 🧠 **Multiple AI Models** - Choose from GPT-5, GPT-5 Codex, and other models
+- 🔐 **Flexible Authentication** - Sign in with ChatGPT account or use API keys
+- 📁 **File Operations** - Read, write, and manage files with intelligent suggestions
+- 💻 **Command Execution** - Run shell commands with safety controls
+- 🖼️ **Image Support** - Attach images for visual context
+- 🛡️ **Approval Modes** - Control what Codex can do on your system
+- ⚡ **Exec Mode** - Run non-interactively for automation
+
+## Installation
+
+### Install with npm
+
 ```bash
-cd railway-backend
-cp env.example .env   # fill in your Bybit API credentials
-npm ci
-npm run dev          # http://localhost:8000 (has /health endpoint)
+npm install -g @openai/codex
 ```
 
-### Frontend Setup
+### Install with Homebrew
+
 ```bash
-cp env.example .env   # set VITE_API_BASE to your backend URL
-npm ci
-npm run dev          # http://localhost:5173
+brew install codex
 ```
 
-## 🏗️ System Architecture
-
-### Frontend (Netlify)
-- **React + Vite** with TypeScript
-- **Tailwind CSS** for styling
-- **Real-time trading interface**
-- **AI consensus visualization**
-- **Risk management dashboard**
-
-### Backend (Railway)
-- **Node.js + Express** with ES modules
-- **Bybit API integration** (paper/live modes)
-- **AI Consensus Engine** (3 ML models)
-- **Risk management system**
-- **Autonomous trading bot**
-
-## 🤖 AI Consensus Engine
-
-The system uses 3 simulated ML models for trading decisions:
-
-1. **LSTM Model** - Time series analysis
-2. **CNN Model** - Pattern recognition
-3. **XGBoost Model** - Ensemble predictions
-
-### Consensus Logic
-- **Majority voting** (2+ models must agree)
-- **Confidence threshold** (default: 70%)
-- **Risk-adjusted position sizing**
-- **Real-time market feature analysis**
-
-## 🔒 Security Features
-
-- **Helmet.js** for security headers
-- **CORS protection** with whitelist
-- **Rate limiting** (100 requests/30s)
-- **Input validation** and sanitization
-- **Environment variable protection**
-- **Paper trading mode** by default
-
-## 📊 API Endpoints
-
-### Health & Status
-- `GET /health` - Health check (Railway)
-- `GET /api/status` - System status
-
-### Trading
-- `POST /api/trade/execute` - Execute trade with AI consensus
-- `GET /api/account/balance` - Get account balance
-- `GET /api/positions` - Get open positions
-
-### AI & Autonomous
-- `POST /api/ai/consensus` - Get AI consensus analysis
-- `POST /api/trading/start` - Start autonomous trading
-- `POST /api/trading/stop` - Stop autonomous trading
-- `GET /api/trading/status` - Get trading status
-
-## 🔧 Configuration
-
-### Environment Variables
+### Install from source
 
 ```bash
-# Trading Mode
-TRADING_MODE=paper  # paper | live
-
-# Bybit API
-BYBIT_API_KEY=your_key
-BYBIT_API_SECRET=your_secret
-
-# Risk Management
-MAX_TRADE_SIZE_BTC=0.001
-STOP_LOSS_PCT=0.02
-TAKE_PROFIT_PCT=0.05
-CONFIDENCE_THRESHOLD=0.7
-
-# Frontend
-VITE_API_BASE=https://your-railway-service.up.railway.app
-```
-
-## 🚀 Production Deployment
-
-### Railway Backend
-1. Connect your GitHub repo to Railway
-2. Set environment variables in Railway dashboard
-3. Deploy automatically on push to main
-
-### Netlify Frontend
-1. Connect your GitHub repo to Netlify
-2. Set `VITE_API_BASE` to your Railway URL
-3. Deploy automatically on push to main
-
-## 🧪 Testing
-
-### Manual Testing
-```bash
-# Test health endpoint
-curl https://your-railway-service.up.railway.app/health
-
-# Test AI consensus
-curl -X POST https://your-railway-service.up.railway.app/api/ai/consensus \
-  -H "Content-Type: application/json" \
-  -d '{}'
-
-# Test trade execution (paper mode)
-curl -X POST https://your-railway-service.up.railway.app/api/trade/execute \
-  -H "Content-Type: application/json" \
-  -d '{"symbol":"BTCUSDT"}'
-```
-
-### Automated Testing
-```bash
-# Backend tests
-cd railway-backend
-npm test
-
-# Frontend build test
+git clone https://github.com/openai/codex-cli.git
+cd codex-cli
+npm install
 npm run build
+npm link
 ```
 
-## 📈 Monitoring
+## Quick Start
 
-- **Health checks** every 30 seconds
-- **Real-time logging** with structured output
-- **Performance metrics** via `/health` endpoint
-- **Error tracking** with detailed stack traces
-- **Trading activity** logging
+### First Run
 
-## 🔄 CI/CD Pipeline
-
-- **GitHub Actions** for linting and testing
-- **Automatic deployment** to Railway and Netlify
-- **Code quality checks** on every PR
-- **Security scanning** for dependencies
-
-## 🛡️ Risk Management
-
-- **Position sizing** based on confidence
-- **Stop loss** and take profit orders
-- **Daily loss limits**
-- **Paper trading mode** for testing
-- **Manual override** capability
-
-## 📱 Features
-
-### Frontend
-- **Real-time trading interface**
-- **AI consensus visualization**
-- **Account balance display**
-- **Position management**
-- **Risk parameter controls**
-- **Mobile responsive design**
-
-### Backend
-- **24/7 autonomous trading**
-- **AI-powered decision making**
-- **Real-time market data**
-- **Risk management system**
-- **Comprehensive logging**
-- **Graceful error handling**
-
-## 🎯 Usage Examples
-
-### Execute AI Trade
-```typescript
-import api from './lib/api';
-
-const result = await api.executeTrade({
-  symbol: 'BTCUSDT'
-});
-console.log('AI consensus result:', result.consensus);
+```bash
+codex
 ```
 
-### Manual Override
-```typescript
-const result = await api.executeTrade({
-  symbol: 'BTCUSDT',
-  manualOverride: {
-    side: 'buy',
-    confidence: 0.85
-  }
-});
+The first time you run Codex, you'll be prompted to authenticate. We recommend signing in with your ChatGPT account to use Codex as part of your Plus, Pro, Team, Edu, or Enterprise plan.
+
+### Run with a prompt
+
+```bash
+codex "explain this codebase"
 ```
 
-### Start Autonomous Trading
-```typescript
-await api.startAutonomousTrading();
-const status = await api.getTradingStatus();
-console.log('Autonomous trading:', status.autonomousTrading);
+### Attach images
+
+```bash
+codex -i screenshot.png "Fix this error"
+codex --image diagram1.png,diagram2.png "Explain these architecture diagrams"
 ```
 
-## 🚨 Important Notes
+### Non-interactive execution
 
-1. **Always test in paper mode first**
-2. **Set appropriate risk parameters**
-3. **Monitor autonomous trading closely**
-4. **Keep API credentials secure**
-5. **Regularly review trading performance**
+```bash
+codex exec "fix the failing tests"
+```
 
-## 📞 Support
+## Commands
 
-For issues or questions:
-1. Check the logs in Railway dashboard
-2. Review the health endpoint
-3. Test with paper trading mode
-4. Verify environment variables
+### Interactive Mode Commands
+
+When running Codex interactively, you can use these commands:
+
+- `/model` - Change the AI model and reasoning level
+- `/approvals` - Change the approval mode
+- `/clear` - Clear the chat history
+- `/help` - Show available commands
+- `/exit` - Exit Codex
+
+### CLI Commands
+
+```bash
+# Main interactive mode
+codex [prompt] [options]
+
+# Execute mode (non-interactive)
+codex exec <prompt> [options]
+
+# Configuration management
+codex config --show        # Show current configuration
+codex config --reset       # Reset to defaults
+
+# Authentication management
+codex auth --status        # Check authentication status
+codex auth --logout        # Log out of current session
+```
+
+## Options
+
+### Global Options
+
+- `-m, --model <model>` - Specify the model to use (gpt-5, gpt-5-codex, o4-mini)
+- `-i, --image <paths>` - Comma-separated paths to images
+- `--api-key <key>` - Use a specific OpenAI API key
+- `--approval <mode>` - Set approval mode (auto, read-only, full)
+
+## Models & Reasoning
+
+### Available Models
+
+- **GPT-5** (Default) - Latest and most capable model
+- **GPT-5 Codex** - Optimized specifically for coding tasks
+- **O4 Mini** - Fast and efficient for simple tasks
+- **GPT-4 Turbo** - Previous generation, still very capable
+- **GPT-3.5 Turbo** - Legacy model, fast but less capable
+
+### Reasoning Levels
+
+- **Low** - Quick responses for simple tasks
+- **Medium** (Default) - Balanced performance
+- **High** - Deep analysis for complex problems
+
+Change model and reasoning level with the `/model` command in interactive mode.
+
+## Approval Modes
+
+Codex offers three approval modes to control what operations it can perform:
+
+### Auto (Default)
+- Automatic approval for operations within the working directory
+- Requires approval for:
+  - Operations outside the working directory
+  - Network access
+  - Sensitive files (.env, .git, etc.)
+  - Dangerous commands (rm, sudo, etc.)
+
+### Read Only
+- Chat-only mode
+- No file or command operations allowed
+- Perfect for planning and discussion
+
+### Full Access
+- No approval required for any operation
+- Use with caution!
+
+Change approval mode with the `/approvals` command or `--approval` flag.
+
+## Authentication
+
+### ChatGPT Account (Recommended)
+
+Sign in with your ChatGPT account to use Codex as part of your subscription:
+- Plus, Pro, Team, Edu, or Enterprise plans included
+- No additional API costs
+- Automatic updates and improvements
+
+### API Key
+
+Use your OpenAI API key for direct API access:
+```bash
+codex --api-key sk-...
+```
+
+Or set the environment variable:
+```bash
+export OPENAI_API_KEY=sk-...
+codex
+```
+
+## Examples
+
+### Explain a codebase
+```bash
+codex "explain the architecture of this project"
+```
+
+### Debug an error
+```bash
+codex -i error_screenshot.png "help me fix this error"
+```
+
+### Refactor code
+```bash
+codex "refactor the authentication module to use JWT tokens"
+```
+
+### Write tests
+```bash
+codex "write comprehensive unit tests for the UserService class"
+```
+
+### Generate documentation
+```bash
+codex "generate API documentation for all endpoints"
+```
+
+### Fix CI/CD issues
+```bash
+codex exec "fix the failing GitHub Actions workflow"
+```
+
+### Batch operations
+```bash
+codex exec "update all dependencies and fix any breaking changes"
+```
+
+## Configuration
+
+Configuration is stored in `~/.config/configstore/@openai/codex.json`
+
+### View configuration
+```bash
+codex config --show
+```
+
+### Reset configuration
+```bash
+codex config --reset
+```
+
+### Configuration options
+
+- `model` - Default AI model
+- `reasoningLevel` - Default reasoning level
+- `approvalMode` - Default approval mode
+- `workingDirectory` - Default working directory
+
+## Tips & Best Practices
+
+1. **Start with Read Only mode** when exploring a new codebase
+2. **Use specific prompts** for better results
+3. **Attach images** for visual bugs or UI issues
+4. **Review operations** before approving in Auto mode
+5. **Use exec mode** for CI/CD and automation
+6. **Switch models** based on task complexity
+7. **Clear chat** when switching contexts
+
+## Troubleshooting
+
+### Authentication Issues
+
+If you're having trouble authenticating:
+```bash
+codex auth --logout
+codex auth --status
+codex  # Re-authenticate
+```
+
+### Rate Limits
+
+If you encounter rate limits:
+- Switch to a different model
+- Reduce reasoning level
+- Wait a few moments before retrying
+
+### File Operation Errors
+
+Ensure you have proper permissions:
+```bash
+ls -la  # Check file permissions
+codex --approval full  # Temporarily use full access
+```
+
+## Privacy & Security
+
+- Codex respects `.gitignore` and won't read ignored files
+- Sensitive files require explicit approval
+- Network operations require approval in Auto mode
+- Your code is processed according to OpenAI's privacy policy
+
+## Upgrade
+
+### Upgrade with npm
+```bash
+npm install -g @openai/codex@latest
+```
+
+### Upgrade with Homebrew
+```bash
+brew upgrade codex
+```
+
+## Support
+
+- **Documentation**: https://platform.openai.com/docs/codex
+- **Issues**: https://github.com/openai/codex-cli/issues
+- **Community**: https://community.openai.com
+- **Email**: support@openai.com
+
+## License
+
+MIT License - See [LICENSE](LICENSE) file for details
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ---
 
-**Built with ❤️ for autonomous trading**
+Built with ❤️ by OpenAI

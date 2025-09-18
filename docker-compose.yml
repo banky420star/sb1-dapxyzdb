@@ -2,19 +2,9 @@ version: "3.9"
 services:
   model-service:
     build: ./model-service
-    environment:
-      - MODEL_VERSION=${MODEL_VERSION:-dev}
-    ports:
-      - "9000:9000"
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9000/health"]
-      interval: 30s
-      timeout: 3s
-      retries: 5
-    volumes:
-      - ./data:/app/data
-      - ./models:/app/models
-
+    environment: [ "MODEL_VERSION=${MODEL_VERSION:-dev}" ]
+    ports: [ "9000:9000" ]
+    healthcheck: { test: ["CMD","wget","-qO-","http://127.0.0.1:9000/health"], interval: 30s, timeout: 3s, retries: 5 }
   backend:
     build: ./railway-backend
     environment:
@@ -26,54 +16,7 @@ services:
       - MAX_DRAWDOWN_PCT=${MAX_DRAWDOWN_PCT:-0.15}
       - PER_SYMBOL_USD_CAP=${PER_SYMBOL_USD_CAP:-10000}
       - CORS_ORIGIN=*
-      - BYBIT_API_KEY=${BYBIT_API_KEY:-}
-      - BYBIT_API_SECRET=${BYBIT_API_SECRET:-}
-    ports:
-      - "8000:8000"
-    depends_on:
-      model-service:
-        condition: service_healthy
-    volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-
-  frontend:
-    build: .
-    environment:
-      - VITE_API_URL=http://localhost:8000
-      - VITE_MODEL_SERVICE_URL=http://localhost:9000
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
-    volumes:
-      - ./src:/app/src
-      - ./public:/app/public
-
-  monitoring:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana-storage:/var/lib/grafana
-    depends_on:
-      - monitoring
-
-volumes:
-  grafana-storage:
+      - BYBIT_API_KEY
+      - BYBIT_API_SECRET
+    ports: [ "8000:8000" ]
+    depends_on: { model-service: { condition: service_healthy } }

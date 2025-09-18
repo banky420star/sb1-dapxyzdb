@@ -1,13 +1,10 @@
 import React from 'react'
 import { useTrading } from '../contexts/TradingContext'
-import { Activity, AlertCircle, CheckCircle, Clock, Wifi, WifiOff, Brain, Shield, DollarSign, TrendingUp, TrendingDown } from 'lucide-react'
+import { Activity, Wifi, WifiOff, Brain, Shield, DollarSign, TrendingUp, TrendingDown } from 'lucide-react'
 
 export default function StatusIndicator() {
-  const { isConnected, portfolio, activity } = useTrading()
+  const { isConnected, portfolio, activity, tradingMode, systemStatus } = useTrading()
 
-  // Mock data for missing properties
-  const systemStatus = isConnected ? 'online' : 'offline'
-  const tradingMode = 'paper' // Default to paper trading
   const activeModels = Object.values(activity || {}).filter(a => a?.status === 'active').length
   const totalModels = 3 // LSTM, RF, DDQN
   const positions = portfolio?.positions || []
@@ -20,8 +17,6 @@ export default function StatusIndicator() {
         return <Wifi className="h-4 w-4 text-green-500" />
       case 'offline':
         return <WifiOff className="h-4 w-4 text-red-500" />
-      case 'maintenance':
-        return <Clock className="h-4 w-4 text-yellow-500" />
       default:
         return <Activity className="h-4 w-4 text-gray-500" />
     }
@@ -33,8 +28,6 @@ export default function StatusIndicator() {
         return 'text-green-600 dark:text-green-400'
       case 'offline':
         return 'text-red-600 dark:text-red-400'
-      case 'maintenance':
-        return 'text-yellow-600 dark:text-yellow-400'
       default:
         return 'text-gray-600 dark:text-gray-400'
     }
@@ -46,8 +39,6 @@ export default function StatusIndicator() {
         return 'bg-green-100 dark:bg-green-900/30'
       case 'offline':
         return 'bg-red-100 dark:bg-red-900/30'
-      case 'maintenance':
-        return 'bg-yellow-100 dark:bg-yellow-900/30'
       default:
         return 'bg-gray-100 dark:bg-gray-900/30'
     }
@@ -79,8 +70,8 @@ export default function StatusIndicator() {
         <div className="flex items-center justify-between">
           <span className="text-sm font-semibold text-gray-900 dark:text-white">Trading Mode</span>
           <div className={`p-2 rounded-lg ${
-            tradingMode === 'live' 
-              ? 'bg-red-100 dark:bg-red-900/30' 
+            tradingMode === 'live'
+              ? 'bg-red-100 dark:bg-red-900/30'
               : 'bg-green-100 dark:bg-green-900/30'
           }`}>
             <Shield className={`h-4 w-4 ${
@@ -91,11 +82,13 @@ export default function StatusIndicator() {
           </div>
         </div>
         
-        <div className={`px-3 py-2 rounded-xl ${
-          tradingMode === 'live' 
-            ? 'bg-red-100 dark:bg-red-900/30' 
-            : 'bg-green-100 dark:bg-green-900/30'
-        } border border-white/20`}>
+        <div
+          className={`px-3 py-2 rounded-xl ${
+            tradingMode === 'live'
+              ? 'bg-red-100 dark:bg-red-900/30'
+              : 'bg-green-100 dark:bg-green-900/30'
+          } border border-white/20`}
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs text-gray-600 dark:text-gray-400">Mode</span>
             <span className={`text-sm font-semibold uppercase ${
