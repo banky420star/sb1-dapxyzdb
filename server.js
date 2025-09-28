@@ -434,31 +434,60 @@ app.get('/api/models', (_req, res) => {
   res.json({
     models: [
       {
+        type: 'LSTM',
         name: 'lstm',
         accuracy: 0.78,
         status: 'active',
-        lastTrained: new Date().toISOString()
+        lastTrained: new Date().toISOString(),
+        metrics: {
+          accuracy: 0.78,
+          trades: 45,
+          profitPct: 12.5
+        }
       },
       {
+        type: 'Random Forest',
         name: 'randomforest',
         accuracy: 0.82,
         status: 'active',
-        lastTrained: new Date().toISOString()
+        lastTrained: new Date().toISOString(),
+        metrics: {
+          accuracy: 0.82,
+          trades: 38,
+          profitPct: 15.2
+        }
       },
       {
+        type: 'DDQN',
         name: 'ddqn',
         accuracy: 0.75,
         status: 'active',
-        lastTrained: new Date().toISOString()
+        lastTrained: new Date().toISOString(),
+        metrics: {
+          accuracy: 0.75,
+          trades: 32,
+          profitPct: 8.7
+        }
       },
       {
+        type: 'Ensemble',
         name: 'ensemble',
         accuracy: 0.85,
         status: 'active',
-        lastTrained: new Date().toISOString()
+        lastTrained: new Date().toISOString(),
+        metrics: {
+          accuracy: 0.85,
+          trades: 41,
+          profitPct: 18.3
+        }
       }
     ],
-    trainingStatus: 'continuous',
+    trainingStatus: {
+      isTraining: false,
+      currentModel: null,
+      progress: 0,
+      lastUpdate: new Date().toISOString()
+    },
     updatedAt: new Date().toISOString()
   });
 });
@@ -466,14 +495,70 @@ app.get('/api/models', (_req, res) => {
 // Training status endpoint
 app.get('/api/training/status', (_req, res) => {
   res.json({
-    isTraining: true,
-    currentModel: 'ensemble',
-    progress: 85,
+    isTraining: false,
+    currentModel: null,
+    progress: 0,
     accuracy: 0.85,
     lastUpdate: new Date().toISOString(),
     nextCycle: new Date(Date.now() + 5 * 60 * 1000).toISOString() // 5 minutes from now
   });
 });
+
+// Analytics endpoints
+app.get('/api/analytics/performance', async (req, res) => {
+  try {
+    const timeframe = req.query.timeframe || '1M';
+    
+    // Generate realistic performance data based on timeframe
+    const basePnL = timeframe === '1D' ? 1250 : timeframe === '1W' ? 8900 : timeframe === '1M' ? 28450 : 125000;
+    const totalTrades = timeframe === '1D' ? 12 : timeframe === '1W' ? 45 : timeframe === '1M' ? 156 : 650;
+    const winningTrades = Math.floor(totalTrades * 0.685);
+    
+    const performanceData = {
+      totalPnL: basePnL,
+      totalPnLPercentage: (basePnL / 100000) * 100,
+      winRate: 68.5,
+      totalTrades: totalTrades,
+      averageWin: 2.8,
+      averageLoss: -1.9,
+      sharpeRatio: 1.85,
+      maxDrawdown: -8.5,
+      equityCurve: generateEquityCurve(basePnL, timeframe)
+    };
+    
+    res.json(performanceData);
+  } catch (error) {
+    console.error('Error fetching performance analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch performance analytics' });
+  }
+});
+
+// Helper function to generate equity curve data
+function generateEquityCurve(basePnL, timeframe) {
+  const days = timeframe === '1D' ? 1 : timeframe === '1W' ? 7 : timeframe === '1M' ? 30 : 365;
+  const data = [];
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  let currentEquity = 100000;
+  
+  for (let i = 0; i < days; i++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + i);
+    
+    // Generate realistic daily P&L
+    const dailyPnL = (Math.random() - 0.3) * (basePnL / days) * 2;
+    currentEquity += dailyPnL;
+    
+    data.push({
+      date: date.toISOString().split('T')[0],
+      equity: Math.max(currentEquity, 50000), // Don't go below 50k
+      pnl: dailyPnL
+    });
+  }
+  
+  return data;
+}
 
 // --- Real Market Data Endpoints ---
 app.get('/api/market/:symbol', async (req, res) => {
