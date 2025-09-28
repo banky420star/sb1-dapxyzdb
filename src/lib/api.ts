@@ -2,7 +2,7 @@
 // Centralized API configuration for MetaTrader.xyz
 // Enhanced with secure authentication, rate limiting, and MetaTrader integration
 
-export const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://normal-sofa-production-9d2b.up.railway.app');
+export const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://methtrader-backend-production.up.railway.app');
 
 // API response types
 interface HealthResponse {

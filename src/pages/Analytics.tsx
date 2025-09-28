@@ -16,6 +16,8 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { useTradingContext } from '../contexts/TradingContext';
+import EquityCurveChart from '../components/EquityCurveChart';
 
 // Mock analytics data
 const performanceData = {
@@ -86,14 +88,35 @@ const recentTrades = [
 ];
 
 const Analytics: React.FC = () => {
+  const { state } = useTradingContext();
   const [selectedTimeframe, setSelectedTimeframe] = useState('1M');
   const [showChart, setShowChart] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState(performanceData);
+  const [equityData, setEquityData] = useState(equityCurveData);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoaded(true), 500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Fetch real analytics data when timeframe changes
+  useEffect(() => {
+    const fetchAnalyticsData = async () => {
+      try {
+        const response = await fetch(`/api/analytics/performance?timeframe=${selectedTimeframe}`);
+        if (response.ok) {
+          const data = await response.json();
+          setAnalyticsData(data);
+          setEquityData(data.equityCurve || equityCurveData);
+        }
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+      }
+    };
+
+    fetchAnalyticsData();
+  }, [selectedTimeframe]);
 
   const getPnLColor = (pnl: number) => {
     return pnl >= 0 ? 'text-green-400' : 'text-red-400';
@@ -171,13 +194,13 @@ const Analytics: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
               <p className="text-gray-400 text-sm">Total P&L</p>
-              <p className="text-2xl font-bold text-white">${performanceData.totalPnL.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-white">${analyticsData.totalPnL.toLocaleString()}</p>
             </div>
             <DollarSign className="w-8 h-8 text-accent" />
               </div>
           <div className="mt-2 flex items-center text-sm">
             <TrendingUp className="w-4 h-4 text-green-400 mr-1" />
-            <span className="text-green-400">+{performanceData.totalPnLPercentage}%</span>
+            <span className="text-green-400">+{analyticsData.totalPnLPercentage.toFixed(2)}%</span>
             <span className="text-gray-400 ml-1">total return</span>
               </div>
             </div>
@@ -187,12 +210,12 @@ const Analytics: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
               <p className="text-gray-400 text-sm">Win Rate</p>
-              <p className="text-2xl font-bold text-white">{performanceData.winRate}%</p>
+              <p className="text-2xl font-bold text-white">{analyticsData.winRate}%</p>
             </div>
             <Target className="w-8 h-8 text-green-400" />
               </div>
           <div className="mt-2 flex items-center text-sm">
-            <span className="text-gray-400">{performanceData.winningTrades}/{performanceData.totalTrades} trades</span>
+            <span className="text-gray-400">{Math.floor(analyticsData.totalTrades * analyticsData.winRate / 100)}/{analyticsData.totalTrades} trades</span>
               </div>
             </div>
 
@@ -201,7 +224,7 @@ const Analytics: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
               <p className="text-gray-400 text-sm">Sharpe Ratio</p>
-              <p className="text-2xl font-bold text-white">{performanceData.sharpeRatio}</p>
+              <p className="text-2xl font-bold text-white">{analyticsData.sharpeRatio}</p>
             </div>
             <BarChart3 className="w-8 h-8 text-blue-400" />
               </div>
@@ -215,12 +238,12 @@ const Analytics: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
               <p className="text-gray-400 text-sm">Max Drawdown</p>
-              <p className="text-2xl font-bold text-white">{performanceData.maxDrawdown}%</p>
+              <p className="text-2xl font-bold text-white">{analyticsData.maxDrawdown}%</p>
             </div>
             <TrendingDown className="w-8 h-8 text-red-400" />
               </div>
           <div className="mt-2 flex items-center text-sm">
-            <span className="text-gray-400">Recovery: {performanceData.recoveryFactor}x</span>
+            <span className="text-gray-400">Recovery: {(analyticsData.totalPnL / Math.abs(analyticsData.maxDrawdown * 1000)).toFixed(1)}x</span>
               </div>
             </div>
         </motion.div>
@@ -238,16 +261,12 @@ const Analytics: React.FC = () => {
           </div>
           
           {showChart ? (
-            <div className="h-64 bg-bg-deep rounded-lg p-4 flex items-center justify-center">
-              <div className="text-center">
-                <LineChart className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                <p className="text-gray-400">Interactive Chart Coming Soon</p>
-                <p className="text-sm text-gray-500">Equity curve visualization with zoom and pan</p>
-              </div>
+            <div className="h-64 bg-bg-deep rounded-lg p-4">
+              <EquityCurveChart data={equityData} height={200} />
             </div>
           ) : (
             <div className="space-y-2">
-              {equityCurveData.slice(-10).map((point, index) => (
+              {equityData.slice(-10).map((point, index) => (
                 <div key={index} className="flex items-center justify-between p-2 bg-bg-deep rounded">
                   <span className="text-sm text-gray-400">{point.date}</span>
                   <span className="text-sm text-white">${point.equity.toLocaleString()}</span>

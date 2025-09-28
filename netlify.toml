@@ -59,12 +59,12 @@
 
 [context.production.environment]
   NODE_ENV = "production"
-  VITE_API_BASE = "https://normal-sofa-production-9d2b.up.railway.app"
+  VITE_API_BASE = "https://sb1-dapxyzdb-trade-shit.up.railway.app"
 
 [context.deploy-preview.environment]
   NODE_ENV = "preview"
-  VITE_API_BASE = "https://normal-sofa-production-9d2b.up.railway.app"
+  VITE_API_BASE = "https://sb1-dapxyzdb-trade-shit.up.railway.app"
 
 [context.branch-deploy.environment]
   NODE_ENV = "development"
-  VITE_API_BASE = "https://normal-sofa-production-9d2b.up.railway.app"
+  VITE_API_BASE = "https://sb1-dapxyzdb-trade-shit.up.railway.app"
