@@ -1,0 +1,369 @@
+name: AI Trading System CI/CD
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+
+# Concurrency control to prevent race deployments
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+  TRADING_MODE: 'paper'  # Always paper mode in CI
+
+jobs:
+  # Paper-first testing matrix
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mode: [paper]
+        node-version: [20]
+    name: Test (Paper Mode)
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        
+    - name: Install Node dependencies
+      run: npm ci
+      
+    - name: Install Python dependencies
+      run: |
+        cd model-service
+        pip install -r requirements.txt
+        
+    - name: Run linting
+      run: npm run lint
+      
+    - name: Run type checking
+      run: npm run type-check
+      
+    - name: Run unit tests
+      run: npm run test
+      
+    - name: Run integration tests
+      run: npm run test:integration
+      env:
+        TRADING_MODE: paper
+        BYBIT_TESTNET: true
+        
+    - name: Run chaos tests
+      run: npm run test:chaos
+      env:
+        TRADING_MODE: paper
+        
+    - name: Run emergency brake tests
+      run: npm run test:emergency-brake
+      env:
+        TRADING_MODE: paper
+        
+    - name: Paper trading simulation
+      run: npm run sim:smoke
+      env:
+        TRADING_MODE: paper
+        SIMULATION_DAYS: 30
+        
+    - name: Validate risk parameters
+      run: npm run risk:validate
+      env:
+        TRADING_MODE: paper
+        
+    - name: Validate OMS idempotency
+      run: npm run oms:test-idempotency
+      env:
+        TRADING_MODE: paper
+
+  # Security scanning
+  security:
+    runs-on: ubuntu-latest
+    name: Security Scan
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run security audit
+      run: npm audit --audit-level=high
+      
+    - name: Run Snyk security scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+        
+    - name: Check for secrets
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+
+  # Build and test Docker images
+  build:
+    runs-on: ubuntu-latest
+    name: Build Docker Images
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build backend image
+      run: |
+        docker build -t ai-trading-backend:${{ github.sha }} .
+        docker build -t ai-trading-backend:latest .
+        
+    - name: Build model service image
+      run: |
+        cd model-service
+        docker build -t ai-trading-models:${{ github.sha }} .
+        docker build -t ai-trading-models:latest .
+        
+    - name: Test backend container
+      run: |
+        docker run --rm -d --name test-backend \
+          -e TRADING_MODE=paper \
+          -e NODE_ENV=test \
+          -p 3001:3001 \
+          ai-trading-backend:${{ github.sha }}
+        sleep 10
+        curl -f http://localhost:3001/health || exit 1
+        docker stop test-backend
+        
+    - name: Test model service container
+      run: |
+        docker run --rm -d --name test-models \
+          -p 8001:8001 \
+          ai-trading-models:${{ github.sha }}
+        sleep 10
+        curl -f http://localhost:8001/health || exit 1
+        docker stop test-models
+
+  # Paper deployment (automatic)
+  deploy-paper:
+    runs-on: ubuntu-latest
+    name: Deploy to Paper
+    needs: [test, security, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    environment:
+      name: paper
+      url: https://paper.methtrader.xyz
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to Railway (Paper)
+      uses: railway-deploy/railway-deploy@v1
+      with:
+        railway-token: ${{ secrets.RAILWAY_TOKEN }}
+        service: ai-trading-backend
+        environment: paper
+        
+    - name: Deploy Model Service to Railway (Paper)
+      uses: railway-deploy/railway-deploy@v1
+      with:
+        railway-token: ${{ secrets.RAILWAY_TOKEN }}
+        service: ai-trading-models
+        environment: paper
+        
+    - name: Deploy Frontend to Netlify (Paper)
+      uses: nwtgck/actions-netlify@v2.0
+      with:
+        publish-dir: './dist'
+        production-branch: main
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        deploy-message: "Paper deployment: ${{ github.sha }}"
+        enable-pull-request-comment: false
+        enable-commit-comment: false
+        overwrites-pull-request-comment: true
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        
+    - name: Verify paper deployment
+      run: |
+        sleep 30
+        curl -f https://paper.methtrader.xyz/health || exit 1
+        curl -f https://paper.methtrader.xyz/api/health || exit 1
+
+  # Live deployment (manual approval required)
+  deploy-live:
+    runs-on: ubuntu-latest
+    name: Deploy to Live
+    needs: [test, security, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    environment:
+      name: live
+      url: https://methtrader.xyz
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Verify paper deployment health
+      run: |
+        curl -f https://paper.methtrader.xyz/health || exit 1
+        curl -f https://paper.methtrader.xyz/api/health || exit 1
+        echo "Paper deployment verified healthy"
+        
+    - name: Check for live unlock file
+      run: |
+        if [ ! -f "ops/ENABLE_LIVE.md" ]; then
+          echo "Live deployment blocked: ENABLE_LIVE.md not found"
+          echo "Create ops/ENABLE_LIVE.md with timestamp to enable live deployment"
+          exit 1
+        fi
+        
+        # Check if unlock file is less than 24 hours old
+        unlock_time=$(stat -c %Y ops/ENABLE_LIVE.md)
+        current_time=$(date +%s)
+        age=$((current_time - unlock_time))
+        
+        if [ $age -gt 86400 ]; then
+          echo "Live deployment blocked: ENABLE_LIVE.md is older than 24 hours"
+          echo "Age: $age seconds (max: 86400)"
+          exit 1
+        fi
+        
+        echo "Live unlock file validated: age $age seconds"
+        
+    - name: Deploy to Railway (Live)
+      uses: railway-deploy/railway-deploy@v1
+      with:
+        railway-token: ${{ secrets.RAILWAY_TOKEN }}
+        service: ai-trading-backend
+        environment: live
+        
+    - name: Deploy Model Service to Railway (Live)
+      uses: railway-deploy/railway-deploy@v1
+      with:
+        railway-token: ${{ secrets.RAILWAY_TOKEN }}
+        service: ai-trading-models
+        environment: live
+        
+    - name: Deploy Frontend to Netlify (Live)
+      uses: nwtgck/actions-netlify@v2.0
+      with:
+        publish-dir: './dist'
+        production-branch: main
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        deploy-message: "Live deployment: ${{ github.sha }}"
+        enable-pull-request-comment: false
+        enable-commit-comment: false
+        overwrites-pull-request-comment: true
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        
+    - name: Verify live deployment
+      run: |
+        sleep 30
+        curl -f https://methtrader.xyz/health || exit 1
+        curl -f https://methtrader.xyz/api/health || exit 1
+        
+    - name: Remove live unlock file
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git rm ops/ENABLE_LIVE.md
+        git commit -m "Remove live unlock file after deployment" || exit 0
+        git push origin main || exit 0
+
+  # Performance and load testing
+  performance:
+    runs-on: ubuntu-latest
+    name: Performance Tests
+    needs: [test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run performance tests
+      run: npm run test:performance
+      env:
+        TRADING_MODE: paper
+        
+    - name: Run load tests
+      run: npm run test:load
+      env:
+        TRADING_MODE: paper
+
+  # Backtesting validation
+  backtest:
+    runs-on: ubuntu-latest
+    name: Backtest Validation
+    needs: [test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd model-service
+        pip install -r requirements.txt
+        
+    - name: Run backtest validation
+      run: npm run backtest:validate
+      env:
+        TRADING_MODE: paper
+        
+    - name: Generate backtest report
+      run: npm run backtest:report
+      env:
+        TRADING_MODE: paper
+        
+    - name: Upload backtest artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: backtest-report
+        path: backtest-reports/
+        retention-days: 30

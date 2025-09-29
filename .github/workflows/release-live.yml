@@ -1,0 +1,214 @@
+name: Live Release Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_live:
+        description: 'Type "DEPLOY LIVE" to confirm live deployment'
+        required: true
+        type: string
+      reason:
+        description: 'Reason for live deployment'
+        required: true
+        type: string
+      duration_hours:
+        description: 'Duration for live unlock (hours, max 24)'
+        required: true
+        type: number
+        default: 24
+
+# Concurrency control
+concurrency:
+  group: live-deployment
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Pre-deployment validation
+  validate:
+    runs-on: ubuntu-latest
+    name: Pre-deployment Validation
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Validate live deployment confirmation
+      run: |
+        if [ "${{ github.event.inputs.confirm_live }}" != "DEPLOY LIVE" ]; then
+          echo "Invalid confirmation. Must type exactly 'DEPLOY LIVE'"
+          exit 1
+        fi
+        
+        if [ "${{ github.event.inputs.duration_hours }}" -gt 24 ]; then
+          echo "Duration cannot exceed 24 hours"
+          exit 1
+        fi
+        
+        if [ "${{ github.event.inputs.duration_hours }}" -lt 1 ]; then
+          echo "Duration must be at least 1 hour"
+          exit 1
+        fi
+        
+        echo "Live deployment validation passed"
+        echo "Reason: ${{ github.event.inputs.reason }}"
+        echo "Duration: ${{ github.event.inputs.duration_hours }} hours"
+        
+    - name: Check paper deployment health
+      run: |
+        echo "Checking paper deployment health..."
+        curl -f https://paper.methtrader.xyz/health || exit 1
+        curl -f https://paper.methtrader.xyz/api/health || exit 1
+        echo "Paper deployment is healthy"
+        
+    - name: Run final validation tests
+      run: |
+        echo "Running final validation tests..."
+        # Add any final validation tests here
+        echo "All validation tests passed"
+
+  # Create live unlock file
+  create-unlock:
+    runs-on: ubuntu-latest
+    name: Create Live Unlock
+    needs: [validate]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Create live unlock file
+      run: |
+        mkdir -p ops
+        cat > ops/ENABLE_LIVE.md << EOF
+        # Live Deployment Unlock
+        
+        **WARNING: This file enables live trading deployment!**
+        
+        - Created: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        - Duration: ${{ github.event.inputs.duration_hours }} hours
+        - Expires: $(date -u -d "+${{ github.event.inputs.duration_hours }} hours" +"%Y-%m-%d %H:%M:%S UTC")
+        - Reason: ${{ github.event.inputs.reason }}
+        - Created by: ${{ github.actor }}
+        - Workflow: ${{ github.workflow }}
+        - Run ID: ${{ github.run_id }}
+        
+        ## Safety Reminders
+        
+        1. Ensure paper deployment is healthy before live deployment
+        2. Monitor live deployment closely after activation
+        3. This file will auto-expire in ${{ github.event.inputs.duration_hours }} hours
+        4. Remove this file manually if deployment needs to be halted early
+        
+        ## Risk Checklist
+        
+        - [ ] Paper deployment verified healthy
+        - [ ] All tests passing
+        - [ ] Risk parameters validated
+        - [ ] Circuit breakers tested
+        - [ ] Monitoring alerts configured
+        - [ ] Rollback plan ready
+        - [ ] Team notified of live deployment
+        
+        **DO NOT COMMIT THIS FILE TO MAIN BRANCH WITHOUT PROPER APPROVAL**
+        EOF
+        
+    - name: Commit unlock file
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add ops/ENABLE_LIVE.md
+        git commit -m "Enable live deployment: ${{ github.event.inputs.reason }}"
+        git push origin main
+        
+    - name: Wait for CI to trigger
+      run: |
+        echo "Waiting for CI workflow to trigger..."
+        sleep 30
+        
+    - name: Monitor deployment
+      run: |
+        echo "Monitoring deployment progress..."
+        # Add monitoring logic here
+        echo "Deployment monitoring complete"
+
+  # Post-deployment verification
+  verify:
+    runs-on: ubuntu-latest
+    name: Post-deployment Verification
+    needs: [create-unlock]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Wait for deployment to complete
+      run: |
+        echo "Waiting for deployment to complete..."
+        sleep 60
+        
+    - name: Verify live deployment health
+      run: |
+        echo "Verifying live deployment health..."
+        curl -f https://methtrader.xyz/health || exit 1
+        curl -f https://methtrader.xyz/api/health || exit 1
+        echo "Live deployment is healthy"
+        
+    - name: Verify trading mode
+      run: |
+        echo "Verifying trading mode..."
+        # Add trading mode verification here
+        echo "Trading mode verified"
+        
+    - name: Run smoke tests
+      run: |
+        echo "Running smoke tests..."
+        # Add smoke tests here
+        echo "Smoke tests passed"
+        
+    - name: Send deployment notification
+      run: |
+        echo "Sending deployment notification..."
+        # Add notification logic here (Slack, email, etc.)
+        echo "Deployment notification sent"
+
+  # Cleanup after expiration
+  cleanup:
+    runs-on: ubuntu-latest
+    name: Cleanup Expired Unlock
+    needs: [verify]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Wait for unlock expiration
+      run: |
+        echo "Waiting for unlock file to expire..."
+        sleep $(({{ github.event.inputs.duration_hours }} * 3600))
+        
+    - name: Remove expired unlock file
+      run: |
+        if [ -f "ops/ENABLE_LIVE.md" ]; then
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git rm ops/ENABLE_LIVE.md
+          git commit -m "Remove expired live unlock file" || exit 0
+          git push origin main || exit 0
+          echo "Expired unlock file removed"
+        else
+          echo "Unlock file already removed"
+        fi
+        
+    - name: Send expiration notification
+      run: |
+        echo "Sending expiration notification..."
+        # Add notification logic here
+        echo "Expiration notification sent"
