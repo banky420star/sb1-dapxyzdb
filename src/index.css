@@ -154,3 +154,98 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Futuristic Design System */
+.bg-futuristic {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%);
+  background-attachment: fixed;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.card-futuristic {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  transition: all 0.3s ease;
+}
+
+.card-futuristic:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 12px 40px 0 rgba(59, 130, 246, 0.2);
+}
+
+.btn-futuristic {
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px 0 rgba(59, 130, 246, 0.3);
+}
+
+.btn-futuristic:hover {
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+  box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-futuristic:active {
+  transform: translateY(0);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
