@@ -7,7 +7,7 @@ type Model = { type: string; status: string; metrics?: { accuracy: number; trade
 type TradingState = {
   systemStatus: 'online' | 'offline'
   tradingMode: 'paper' | 'live'
-  balance?: { currency: string; available: number; equity: number; pnl24hPct: number; updatedAt: string }
+  balance?: { currency: string; available: number; total: number; equity: number; pnl24hPct: number; updatedAt: string }
   positions: any[]
   openOrders: any[]
   models: Model[]
@@ -162,27 +162,26 @@ export function TradingProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { 
     refresh();
     
-    // Set up real-time polling
-    let cleanup: (() => void) | undefined;
-    
-    const setupPolling = async () => {
-      cleanup = await getJSON<any>('/api/trading/status', (tradingData) => {
+    // Set up real-time polling with interval
+    const interval = setInterval(async () => {
+      try {
+        const tradingData = await getJSON<any>('/api/trading/status');
         setState(s => ({
           ...s,
           autonomousTrading: {
-            isActive: tradingData.isActive,
-            config: tradingData.config,
-            tradeLog: tradingData.tradeLog,
-            lastUpdate: tradingData.timestamp
+            isActive: tradingData.isActive || false,
+            config: tradingData.config || {},
+            tradeLog: tradingData.tradeLog || [],
+            lastUpdate: tradingData.timestamp || new Date().toISOString()
           }
         }));
-      }, 5000); // Poll every 5 seconds
-    };
-
-    setupPolling();
+      } catch (error) {
+        console.error('Error polling trading status:', error);
+      }
+    }, 5000); // Poll every 5 seconds
 
     return () => {
-      if (cleanup) cleanup();
+      clearInterval(interval);
     };
   }, [])
 
