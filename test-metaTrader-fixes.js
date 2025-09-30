@@ -80,7 +80,7 @@ async function testFrontendComponents() {
   try {
     // Test if the build works
     console.log('\n1. Testing frontend build...');
-    const { exec } = require('child_process');
+    const { exec } = await import('child_process');
     
     exec('npm run build', (error, stdout, stderr) => {
       if (error) {
@@ -135,8 +135,8 @@ async function testChartComponents() {
   
   try {
     // Check if recharts is installed
-    const fs = require('fs');
-    const path = require('path');
+    const fs = await import('fs');
+    const path = await import('path');
     
     const packageJsonPath = path.join(process.cwd(), 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
@@ -166,12 +166,12 @@ async function runAllTests() {
   await testRealDataIntegration();
   await testChartComponents();
   
-  console.log('\n🚀 Starting local server for endpoint tests...');
-  console.log('Please start the server with: node server.js');
-  console.log('Then run this test again to test all endpoints.');
-  
-  // Uncomment the line below to test endpoints when server is running
-  // await testAllEndpoints();
+  console.log('\n🚀 Testing server endpoints...');
+  try {
+    await testAllEndpoints();
+  } catch (error) {
+    console.log('\n⚠️  Server might not be running. Start it with: node server.js');
+  }
 }
 
 // Run tests
