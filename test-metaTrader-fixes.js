@@ -166,12 +166,9 @@ async function runAllTests() {
   await testRealDataIntegration();
   await testChartComponents();
   
-  console.log('\n🚀 Starting local server for endpoint tests...');
-  console.log('Please start the server with: node server.js');
-  console.log('Then run this test again to test all endpoints.');
-  
-  // Uncomment the line below to test endpoints when server is running
-  // await testAllEndpoints();
+  console.log('\n🚀 Testing server endpoints...');
+  // Server should already be running, test endpoints
+  await testAllEndpoints();
 }
 
 // Run tests
