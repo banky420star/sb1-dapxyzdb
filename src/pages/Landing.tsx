@@ -19,13 +19,15 @@ import {
   Wifi,
   Database
 } from 'lucide-react';
-import { useTrading } from '../contexts/TradingContext';
+import { useTradingContext } from '../contexts/TradingContext';
 import StatusPill from '../components/StatusPill';
 import Logo from '../components/Logo';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
-  const { isConnected, activity } = useTrading();
+  const { state } = useTradingContext();
+  const isConnected = state.systemStatus === 'online';
+  const activity = state.autonomousTrading.tradeLog;
   const [showLogin, setShowLogin] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginForm, setLoginForm] = useState({

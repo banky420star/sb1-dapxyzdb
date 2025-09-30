@@ -83,16 +83,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       description: 'Positions & Orders'
     },
     { 
+      name: 'Crypto', 
+      href: '/crypto', 
+      icon: Monitor,
+      description: 'Crypto Trading'
+    },
+    { 
       name: 'Analytics', 
       href: '/analytics', 
       icon: BarChart3,
       description: 'Performance & Charts'
     },
     { 
-      name: 'AI & Risk', 
+      name: 'Models', 
       href: '/models', 
       icon: Shield,
-      description: 'Models & Risk Mgmt'
+      description: 'AI Models'
+    },
+    { 
+      name: 'Risk', 
+      href: '/risk', 
+      icon: Shield,
+      description: 'Risk Management'
     },
     { 
       name: 'Settings', 
