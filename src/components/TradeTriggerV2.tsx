@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '@/lib/api';
+import bybitApi from '@/services/bybitApi';
 
 export default function TradeTriggerV2() {
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,9 @@ export default function TradeTriggerV2() {
     try {
       setLoading(true); 
       setMsg('');
-      const out = await api.autoTick({ symbol: 'BTCUSDT', candles: [] }); // TODO: plug real candles
+      // Fetch recent real candles from Bybit (60m interval)
+      const candles = await bybitApi.getKlines('BTCUSDT', '60', 100);
+      const out = await api.autoTick({ symbol: 'BTCUSDT', candles });
       setMsg(JSON.stringify(out, null, 2));
     } catch (e:any) {
       setMsg(e.message || String(e));

@@ -24,6 +24,7 @@ export default function AINotificationPanel({ isOpen, onClose }: AINotificationP
   const [notifications, setNotifications] = useState<AINotification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread' | 'critical' | 'warning'>('all')
   const [showSettings, setShowSettings] = useState(false)
+  const [modalData, setModalData] = useState<any | null>(null)
 
   useEffect(() => {
     if (!socket) return
@@ -270,10 +271,7 @@ export default function AINotificationPanel({ isOpen, onClose }: AINotificationP
                           
                           {notification.data && (
                             <button
-                              onClick={() => {
-                                // TODO: Implement notification data viewer modal
-                                alert(JSON.stringify(notification.data, null, 2))
-                              }}
+                              onClick={() => setModalData(notification.data)}
                               className="text-xs text-blue-600 hover:text-blue-800"
                             >
                               View details
@@ -306,6 +304,22 @@ export default function AINotificationPanel({ isOpen, onClose }: AINotificationP
           </div>
         </div>
       </div>
+
+      {/* Details Modal */}
+      {modalData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setModalData(null)} />
+          <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full m-4 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-900">Notification Details</h3>
+              <button onClick={() => setModalData(null)} className="p-1 hover:bg-gray-100 rounded">
+                <X className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+            <pre className="text-xs bg-gray-50 p-3 rounded max-h-96 overflow-auto">{JSON.stringify(modalData, null, 2)}</pre>
+          </div>
+        </div>
+      )}
     </div>
   )
-} 
+}
