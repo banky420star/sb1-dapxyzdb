@@ -1,0 +1,51 @@
+# Oracle Cloud optimized ML Service Dockerfile
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for Oracle Cloud
+RUN apt-get update && apt-get install -y \
+    python3-dev \
+    build-essential \
+    curl \
+    bash \
+    tzdata \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p data models logs
+
+# Set environment variables for Oracle Cloud
+ENV PYTHONUNBUFFERED=1
+ENV TZ=UTC
+ENV MODEL_VERSION=production
+
+# Health check for Oracle Cloud
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:9000/health || exit 1
+
+# Expose port
+EXPOSE 9000
+
+# Create non-root user for security
+RUN groupadd -r trader && useradd -r -g trader trader
+
+# Change ownership
+RUN chown -R trader:trader /app
+
+# Switch to non-root user
+USER trader
+
+# Start the application
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "9000", "--workers", "1"]
