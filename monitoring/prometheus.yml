@@ -2,39 +2,54 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    monitor: 'ai-trading-monitor'
+    cluster: 'oci-trading-system'
+    environment: 'production'
 
-rule_files:
-  - "alert_rules.yml"
-
+# Alertmanager configuration (optional)
 alerting:
   alertmanagers:
     - static_configs:
-        - targets:
-          # - alertmanager:9093
+        - targets: []
+
+# Load rules once and periodically evaluate them
+rule_files:
+  # - "rules/*.yml"
 
 scrape_configs:
+  # Prometheus itself
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
 
-  - job_name: 'trading-api'
+  # Trading backend API
+  - job_name: 'trading-backend'
+    scrape_interval: 10s
+    metrics_path: '/metrics'
     static_configs:
-      - targets: ['trading-api:8000']
-    metrics_path: '/api/metrics'
-    scrape_interval: 30s
+      - targets: ['backend:8000']
+        labels:
+          service: 'backend'
+          app: 'ai-trading-system'
 
-  - job_name: 'nginx'
-    static_configs:
-      - targets: ['nginx:80']
-    scrape_interval: 30s
-
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['postgres:5432']
-    scrape_interval: 30s
-
+  # Redis metrics (if redis-exporter is added)
   - job_name: 'redis'
     static_configs:
       - targets: ['redis:6379']
-    scrape_interval: 30s
+        labels:
+          service: 'redis'
+
+  # Node exporter (system metrics - optional)
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+  #       labels:
+  #         service: 'node-exporter'
+
+  # Docker metrics (if configured)
+  # - job_name: 'docker'
+  #   static_configs:
+  #     - targets: ['docker-exporter:9323']
+  #       labels:
+  #         service: 'docker'
