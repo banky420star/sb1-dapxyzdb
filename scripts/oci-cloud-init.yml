@@ -1,0 +1,20 @@
+#cloud-config
+package_update: true
+packages:
+  - git
+  - curl
+runcmd:
+  - bash -lc "curl -fsSL https://get.docker.com | sh"
+  - bash -lc "usermod -aG docker ubuntu || true"
+  - bash -lc "systemctl enable docker && systemctl start docker"
+  - bash -lc "mkdir -p /usr/local/lib/docker/cli-plugins"
+  - bash -lc "curl -SL https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/lib/docker/cli-plugins/docker-compose && chmod +x /usr/local/lib/docker/cli-plugins/docker-compose"
+  - bash -lc "mkdir -p /opt/ats && cd /opt/ats && git clone https://github.com/banky420star/sb1-dapxyzdb.git ."
+  - bash -lc "cp env.example .env || true"
+  - bash -lc "echo 'NODE_ENV=production' >> .env"
+  - bash -lc "echo 'PORT=8000' >> .env"
+  - bash -lc "echo 'GRAFANA_PASSWORD=admin' >> .env"
+  - bash -lc "echo 'POSTGRES_PASSWORD=change_me' >> .env"
+  - bash -lc "echo 'REDIS_PASSWORD=change_me' >> .env"
+  - bash -lc "docker compose -f docker-compose.phase1.yml up -d --build"
+  - bash -lc "sleep 10 && curl -sSf http://localhost:8000/api/health || true"

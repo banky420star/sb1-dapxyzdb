@@ -10,8 +10,8 @@ COPY vite.config.js ./
 COPY tailwind.config.js ./
 COPY postcss.config.js ./
 
-# Install dependencies
-RUN npm install --omit=dev
+# Install all dependencies (dev deps required for build)
+RUN npm ci
 
 # Copy source code
 COPY src/ ./src/
