@@ -11,6 +11,7 @@ import zmq from 'zeromq'
 import { TradingEngine } from './trading/engine.js'
 import { DataManager } from './data/manager.js'
 import { RealDataFetcher } from './data/realDataFetcher.js'
+import tradingDataManager from './data/trading-data-manager.js'
 import { ModelManager } from './ml/manager.js'
 import { RiskManager } from './risk/manager.js'
 import { Logger } from './utils/logger.js'
@@ -50,8 +51,11 @@ const dataManager = new DataManager()
 const realDataFetcher = new RealDataFetcher({
   symbols: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD'],
   updateInterval: 1000,
-  dataSource: 'mock'
+  dataSource: 'real' // Changed to real data
 })
+
+// Initialize real-time trading data manager
+let tradingDataManagerInstance = null
 const modelManager = new ModelManager()
 const riskManager = new RiskManager()
 const metricsCollector = new MetricsCollector()
@@ -615,6 +619,105 @@ app.put('/api/ml/rewards/:modelType/metrics', async (req, res) => {
   }
 })
 
+// ===== REAL-TIME DATA ENDPOINTS =====
+
+// Real-time market data endpoint
+app.get('/api/data/market/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params
+    if (tradingDataManagerInstance) {
+      const data = tradingDataManagerInstance.getDataForSymbol(symbol)
+      res.json({ success: true, symbol, data, timestamp: new Date().toISOString() })
+    } else {
+      res.status(503).json({ success: false, error: 'Real-time data manager not available' })
+    }
+  } catch (error) {
+    logger.error('Error fetching market data:', error)
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+// Technical indicators endpoint
+app.get('/api/data/indicators/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params
+    const { timeframe = '1h' } = req.query
+    
+    if (tradingDataManagerInstance) {
+      const indicators = tradingDataManagerInstance.getTechnicalIndicators(symbol, timeframe)
+      res.json({ success: true, symbol, timeframe, indicators, timestamp: new Date().toISOString() })
+    } else {
+      res.status(503).json({ success: false, error: 'Real-time data manager not available' })
+    }
+  } catch (error) {
+    logger.error('Error fetching indicators:', error)
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+// Trading signals endpoint
+app.get('/api/data/signals', async (req, res) => {
+  try {
+    if (tradingDataManagerInstance) {
+      const signals = tradingDataManagerInstance.getTradingSignals()
+      res.json({ success: true, signals, timestamp: new Date().toISOString() })
+    } else {
+      res.status(503).json({ success: false, error: 'Real-time data manager not available' })
+    }
+  } catch (error) {
+    logger.error('Error fetching trading signals:', error)
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+// Model data endpoint
+app.get('/api/data/model/:modelType', async (req, res) => {
+  try {
+    const { modelType } = req.params
+    const { symbol } = req.query
+    
+    if (tradingDataManagerInstance) {
+      const modelData = tradingDataManagerInstance.getTrainingDataForModel(modelType, symbol)
+      res.json({ success: true, modelType, symbol, data: modelData, timestamp: new Date().toISOString() })
+    } else {
+      res.status(503).json({ success: false, error: 'Real-time data manager not available' })
+    }
+  } catch (error) {
+    logger.error('Error fetching model data:', error)
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+// Data quality report endpoint
+app.get('/api/data/quality', async (req, res) => {
+  try {
+    if (tradingDataManagerInstance) {
+      const report = tradingDataManagerInstance.getDataQualityReport()
+      res.json({ success: true, report, timestamp: new Date().toISOString() })
+    } else {
+      res.status(503).json({ success: false, error: 'Real-time data manager not available' })
+    }
+  } catch (error) {
+    logger.error('Error fetching data quality report:', error)
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+// All market data endpoint
+app.get('/api/data/all', async (req, res) => {
+  try {
+    if (tradingDataManagerInstance) {
+      const allData = tradingDataManagerInstance.getLatestMarketData()
+      res.json({ success: true, data: allData, timestamp: new Date().toISOString() })
+    } else {
+      res.status(503).json({ success: false, error: 'Real-time data manager not available' })
+    }
+  } catch (error) {
+    logger.error('Error fetching all market data:', error)
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
 // Function to find available port
 async function findAvailablePort(startPort = 8000) {
   const net = await import('net')
@@ -658,6 +761,16 @@ async function startEnhancedServer() {
         tradingEngine.initialize()
       ]).then(async () => {
         logger.info('✅ Core system initialized successfully')
+        
+        // Initialize real-time trading data manager
+        try {
+          await tradingDataManager.initialize()
+          await tradingDataManager.start()
+          tradingDataManagerInstance = tradingDataManager
+          logger.info('✅ Real-time trading data manager started')
+        } catch (error) {
+          logger.warn('⚠️ Real-time trading data manager failed to start:', error.message)
+        }
         
         // Start real data fetcher
         try {

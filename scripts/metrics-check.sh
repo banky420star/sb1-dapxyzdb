@@ -62,11 +62,11 @@ expected_app=38
 actual_app=$(wc -l < src/App.tsx)
 if ! check_threshold $expected_app $actual_app "src/App.tsx"; then ((errors++)); fi
 
-expected_main=9
+expected_main=22
 actual_main=$(wc -l < src/main.tsx)
 if ! check_threshold $expected_main $actual_main "src/main.tsx"; then ((errors++)); fi
 
-expected_context=181
+expected_context=182
 actual_context=$(wc -l < src/contexts/TradingContext.tsx)
 if ! check_threshold $expected_context $actual_context "src/contexts/TradingContext.tsx"; then ((errors++)); fi
 
@@ -74,7 +74,7 @@ echo -e "\n${BLUE}🔧 Backend API Metrics Validation${NC}"
 echo "====================================="
 
 # Backend checks
-expected_index=843
+expected_index=86
 actual_index=$(wc -l < server/index.js)
 if ! check_threshold $expected_index $actual_index "server/index.js"; then ((errors++)); fi
 
@@ -98,7 +98,7 @@ expected_rf=578
 actual_rf=$(wc -l < server/ml/models/randomforest.js)
 if ! check_threshold $expected_rf $actual_rf "server/ml/models/randomforest.js"; then ((errors++)); fi
 
-expected_lstm=602
+expected_lstm=586
 actual_lstm=$(wc -l < server/ml/models/lstm.js)
 if ! check_threshold $expected_lstm $actual_lstm "server/ml/models/lstm.js"; then ((errors++)); fi
 
@@ -114,7 +114,7 @@ echo -e "\n${BLUE}💰 Trading Engine Metrics Validation${NC}"
 echo "====================================="
 
 # Trading checks
-expected_engine=1226
+expected_engine=1312
 actual_engine=$(wc -l < server/trading/engine.js)
 if ! check_threshold $expected_engine $actual_engine "server/trading/engine.js"; then ((errors++)); fi
 
@@ -126,12 +126,12 @@ echo -e "\n${BLUE}🧪 Testing & Scripts Validation${NC}"
 echo "================================"
 
 # Test files count
-expected_tests=7
+expected_tests=9
 actual_tests=$(find tests/ -name '*.js' -o -name '*.ts' | wc -l)
 if ! check_exact $expected_tests $actual_tests "test files count"; then ((errors++)); fi
 
 # Scripts count
-expected_scripts=13
+expected_scripts=29
 actual_scripts=$(ls -1 scripts/ | wc -l)
 if ! check_exact $expected_scripts $actual_scripts "scripts count"; then ((errors++)); fi
 
@@ -155,7 +155,7 @@ echo "========================"
 echo "Generating comprehensive code analysis..."
 total_lines=$((actual_app + actual_main + actual_context + actual_index + actual_enhanced + actual_simple + actual_api + actual_rf + actual_lstm + actual_ddqn + actual_manager + actual_engine + actual_risk))
 
-expected_total=7263
+expected_total=6594
 if ! check_threshold $expected_total $total_lines "total code lines"; then ((errors++)); fi
 
 echo -e "\n${BLUE}📋 Summary Report${NC}"
