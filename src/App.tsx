@@ -20,13 +20,13 @@ function App() {
           <Route path="/*" element={
             <Layout>
               <Routes>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/trading" element={<Trading />} />
-                <Route path="/crypto" element={<Crypto />} />
-                <Route path="/models" element={<Models />} />
-                <Route path="/risk" element={<Risk />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="trading" element={<Trading />} />
+                <Route path="crypto" element={<Crypto />} />
+                <Route path="models" element={<Models />} />
+                <Route path="risk" element={<Risk />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="settings" element={<Settings />} />
               </Routes>
             </Layout>
           } />
